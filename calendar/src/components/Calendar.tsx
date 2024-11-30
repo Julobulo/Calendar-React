@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -12,12 +12,12 @@ const Calendar = () => {
 
   const handleYearChange = (newYear: number) => {
     setCurrentDate(new Date(newYear, currentDate.getMonth(), 1));
-    setShowYearPopup(false);
+    // setShowYearPopup(false);
   };
 
   const handleMonthChange = (newMonth: number) => {
     setCurrentDate(new Date(currentDate.getFullYear(), newMonth, 1));
-    setShowMonthPopup(false);
+    // setShowMonthPopup(false);
   };
 
   const handleDayClick = (day: number) => {
@@ -48,20 +48,20 @@ const Calendar = () => {
   ];
 
   return (
-    <div className="p-4">
+    <div className="p-10">
       {/* Header */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="mb-4">
         <button
-          className="text-xl font-bold"
-          onClick={() => setShowYearPopup(true)}
-        >
-          {year}
-        </button>
-        <button
-          className="text-xl font-bold"
+          className="text-xl font-bold m-1"
           onClick={() => setShowMonthPopup(true)}
         >
           {monthNames[month]}
+        </button>
+        <button
+          className="text-xl font-bold m-1 ml-0"
+          onClick={() => setShowYearPopup(true)}
+        >
+          {year}
         </button>
       </div>
 
