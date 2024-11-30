@@ -1,26 +1,39 @@
-import { NavLink } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
+  const location = useLocation(); // Get the current route
+
+  // Function to determine if a route is active
+  const isActive = (path: string) => location.pathname === path;
+
   return (
-    <div className="fixed top-0 left-0 w-64 h-full bg-white shadow-md p-4">
-      <h2 className="text-2xl font-bold mb-6 text-center text-gray-700">Dashboard</h2>
-      <div className="flex flex-col space-y-4">
-        <NavLink
+    <aside className="fixed top-0 left-0 h-full w-64 bg-gray-100 shadow-md">
+      <div className="p-4 text-center text-lg font-bold border-b border-gray-300">
+        Dashboard
+      </div>
+      <nav className="flex flex-col p-4 space-y-4">
+        <Link
           to="/calendar"
-          className="text-lg p-2 rounded hover:bg-gray-200"
-          activeClassName="bg-gray-300"
+          className={`p-3 rounded-lg ${
+            isActive("/calendar")
+              ? "bg-blue-500 text-white"
+              : "hover:bg-blue-100 text-gray-700"
+          }`}
         >
           Calendar
-        </NavLink>
-        <NavLink
+        </Link>
+        <Link
           to="/statistics"
-          className="text-lg p-2 rounded hover:bg-gray-200"
-          activeClassName="bg-gray-300"
+          className={`p-3 rounded-lg ${
+            isActive("/statistics")
+              ? "bg-blue-500 text-white"
+              : "hover:bg-blue-100 text-gray-700"
+          }`}
         >
           Statistics
-        </NavLink>
-      </div>
-    </div>
+        </Link>
+      </nav>
+    </aside>
   );
 };
 
