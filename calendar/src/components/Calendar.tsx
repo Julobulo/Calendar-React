@@ -8,7 +8,8 @@ const Calendar = () => {
     top: 0,
     left: 0,
   });
-  const [temporaryDate, setTemporaryDate] = useState(new Date(currentDate));
+  const [tempYear, setTempYear] = useState(currentDate.getFullYear());
+  const [tempMonth, setTempMonth] = useState(currentDate.getMonth());
 
   const popupRef = useRef<HTMLDivElement | null>(null);
 
@@ -34,12 +35,13 @@ const Calendar = () => {
   const showPopupNextToButton = (event: React.MouseEvent, popupType: "year" | "month") => {
     const rect = event.currentTarget.getBoundingClientRect();
     setPopupPosition({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX });
-    setTemporaryDate(new Date(currentDate));
+    setTempYear(currentDate.getFullYear());
+    setTempMonth(currentDate.getMonth());
     setActivePopup(popupType);
   };
 
   const applyDateChange = () => {
-    setCurrentDate(new Date(temporaryDate));
+    setCurrentDate(new Date(tempYear, tempMonth, 1));
     setActivePopup(null);
   };
 
@@ -166,12 +168,8 @@ const Calendar = () => {
             <>
               <h2 className="text-lg font-bold mb-4">Select Month</h2>
               <select
-                value={temporaryDate.getMonth()}
-                onChange={(e) =>
-                  setTemporaryDate(
-                    new Date(temporaryDate.getFullYear(), Number(e.target.value), 1)
-                  )
-                }
+                value={tempMonth}
+                onChange={(e) => setTempMonth(Number(e.target.value))}
                 className="border p-2 rounded w-full"
               >
                 {monthNames.map((name, index) => (
@@ -193,12 +191,8 @@ const Calendar = () => {
               <h2 className="text-lg font-bold mb-4">Select Year</h2>
               <input
                 type="number"
-                value={temporaryDate.getFullYear()}
-                onChange={(e) =>
-                  setTemporaryDate(
-                    new Date(Number(e.target.value), temporaryDate.getMonth(), 1)
-                  )
-                }
+                value={tempYear}
+                onChange={(e) => setTempYear(Number(e.target.value))}
                 className="border p-2 rounded w-full"
               />
               <button
