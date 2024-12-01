@@ -1,12 +1,12 @@
 
 const Login = () => {
     const handleGoogleLogin = () => {
-        // window.location.href = `http://localhost:8787/oauth/google`;
-        window.location.href = "https://api.racing.kennan.tech/oauth/google";
+        window.location.href = `http://localhost:8787/oauth/google`;
+        // window.location.href = "https://api.calendar.jules.tf/oauth/google";
     };
     const handleGuestLogin = () => {
-        // window.location.href = `http://localhost:8787/oauth/guest`;
-        window.location.href = "https://api.racing.kennan.tech/oauth/guest";
+        window.location.href = `http://localhost:8787/oauth/google`;
+        // window.location.href = "https://api.calendar.jules.tf/oauth/guest";
     };
 
     return (
