@@ -98,7 +98,7 @@ const Calendar = () => {
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
-    <div className="p-10">
+    <div className="grid grid-rows-[auto,1fr] h-full">
       {/* Header */}
       <div className="mb-4 flex justify-center space-x-4">
         <button
@@ -122,7 +122,7 @@ const Calendar = () => {
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-2 text-center">
+      <div className="grid grid-cols-7 gap-2 text-center h-full">
         {/* Day Names */}
         {dayNames.map((day, index) => (
           <div key={index} className="font-bold">
