@@ -21,7 +21,7 @@ const App = () => {
           <Route path="/" element={
             <div className="bg-gray-100 p-10">
               <Home />
-              {Cookies.get('token') && <Login />}
+              {!Cookies.get('token') && <Login />}
             </div>
           } />
           <Route path="/calendar" element={<Calendar />} />
