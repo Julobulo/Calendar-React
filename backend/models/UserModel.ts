@@ -13,6 +13,7 @@ interface AppleAuth {
 export interface User {
     _id: ObjectId;
     email: string;
+    username: string;
     createdAt: Date;
     authentication: GoogleAuth | AppleAuth;
 }
