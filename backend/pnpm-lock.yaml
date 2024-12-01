@@ -20,6 +20,9 @@ importers:
       realm-web:
         specifier: ^2.0.1
         version: 2.0.1
+      unique-names-generator:
+        specifier: ^4.7.1
+        version: 4.7.1
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20241127.0
@@ -541,6 +544,10 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  unique-names-generator@4.7.1:
+    resolution: {integrity: sha512-lMx9dX+KRmG8sq6gulYYpKWZc9RlGsgBR6aoO8Qsm3qvkSJ+3rAymr+TnV8EDMrIrwuFJ4kruzMWM/OpYzPoow==}
+    engines: {node: '>=8'}
+
   vite-node@2.1.6:
     resolution: {integrity: sha512-DBfJY0n9JUwnyLxPSSUmEePT21j8JZp/sR9n+/gBwQU6DcQOioPdb8/pibWfXForbirSagZCilseYIwaL3f95A==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
@@ -1034,6 +1041,8 @@ snapshots:
   tinyspy@3.0.2: {}
 
   typescript@5.7.2: {}
+
+  unique-names-generator@4.7.1: {}
 
   vite-node@2.1.6:
     dependencies:
