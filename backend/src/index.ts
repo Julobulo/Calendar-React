@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import * as Realm from "realm-web";
 import { User } from "../models/UserModel";
+import OAuthRoute from "../routes/Oauth";
 
 // The Worker's environment bindings
 type Bindings = {
@@ -54,5 +55,7 @@ app.get("/", async (c, next) => {
     message: `Hello World! It took ${end - start} milli seconds to handle your request!`,
   });
 });
+
+app.route('/oauth', OAuthRoute);
 
 export default app;
