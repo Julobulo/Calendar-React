@@ -5,11 +5,13 @@ import Sidebar from "./components/Sidebar";
 import Home from "./components/Home";
 import Login from "./components/Login";
 import Cookies from "js-cookie";
+import { Analytics } from "@vercel/analytics/react"
 
 const App = () => {
 
   return (
     <div className="flex h-screen">
+      <Analytics />
       {/* Sidebar */}
       <Sidebar />
 
