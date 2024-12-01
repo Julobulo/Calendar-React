@@ -17,7 +17,7 @@ const Home = () => {
             <li>Get an overview of your performance over time.</li>
           </ul>
           <p className="text-lg text-gray-600">
-            To get started, simply navigate to the Calendar or Statistics page using the sidebar.
+            To get started, simply navigate to the <a href="/calendar">Calendar</a> or <a href="/statistics">Statistics</a> page using the sidebar.
           </p>
         </div>
       </div>
