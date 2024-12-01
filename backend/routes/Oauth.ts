@@ -225,11 +225,11 @@ OAuthRoute.get("/google/callback", async (c) => {
     c.res.headers.append(
         // set a cookie to a token generated and signed
         "Set-Cookie",
-        `token=${cookieToken}; Expires=${new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)}; Path=/; Domain=localhost; Secure; SameSite=None`,
+        `token=${cookieToken}; Expires=${new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)}; Path=/; Domain=calendar.jules.tf; Secure; SameSite=None`,
     );
 
-    return c.redirect("http://localhost:5173");
-    // return c.redirect("https://calendar.jules.tf");
+    // return c.redirect("http://localhost:5173");
+    return c.redirect("https://calendar.jules.tf");
 });
 
 // Generate a funny username
