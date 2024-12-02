@@ -133,6 +133,8 @@ const Calendar = () => {
 
   const activities: FrontendUserActivity[] = [
     {
+      "_id": "64e9a79b59e0f77a33c8ab02",
+      "userId": "64e9a79b59e0f77a33c8ab60",
       "date": new Date("2024-12-01T00:00:00.000Z"),
       "entries": [
         {
@@ -160,7 +162,7 @@ const Calendar = () => {
     {
       "_id": "64e9a79b59e0f77a33c8ab02",
       "userId": "64e9a79b59e0f77a33c8ab60",
-      "date": "2024-12-02T00:00:00.000Z",
+      "date": new Date("2024-12-02T00:00:00.000Z"),
       "entries": [
         {
           "activity": "Reading",
@@ -172,7 +174,7 @@ const Calendar = () => {
     {
       "_id": "64e9a79b59e0f77a33c8ab03",
       "userId": "64e9a79b59e0f77a33c8ab60",
-      "date": "2024-12-04T00:00:00.000Z",
+      "date": new Date("2024-12-04T00:00:00.000Z"),
       "entries": [
         {
           "activity": "Cooking",
@@ -189,7 +191,7 @@ const Calendar = () => {
     {
       "_id": "64e9a79b59e0f77a33c8ab04",
       "userId": "64e9a79b59e0f77a33c8ab60",
-      "date": "2024-12-07T00:00:00.000Z",
+      "date": new Date("2024-12-07T00:00:00.000Z"),
       "entries": [
         {
           "activity": "Cycling",
@@ -201,7 +203,7 @@ const Calendar = () => {
     {
       "_id": "64e9a79b59e0f77a33c8ab05",
       "userId": "64e9a79b59e0f77a33c8ab60",
-      "date": "2024-12-09T00:00:00.000Z",
+      "date": new Date("2024-12-09T00:00:00.000Z"),
       "entries": [
         {
           "activity": "Gardening",
@@ -213,7 +215,7 @@ const Calendar = () => {
     {
       "_id": "64e9a79b59e0f77a33c8ab06",
       "userId": "64e9a79b59e0f77a33c8ab60",
-      "date": "2024-12-10T00:00:00.000Z",
+      "date": new Date("2024-12-10T00:00:00.000Z"),
       "entries": [
         {
           "activity": "Yoga",
@@ -230,7 +232,7 @@ const Calendar = () => {
     {
       "_id": "64e9a79b59e0f77a33c8ab07",
       "userId": "64e9a79b59e0f77a33c8ab60",
-      "date": "2024-12-12T00:00:00.000Z",
+      "date": new Date("2024-12-12T00:00:00.000Z"),
       "entries": [
         {
           "activity": "Swimming",
@@ -242,7 +244,7 @@ const Calendar = () => {
     {
       "_id": "64e9a79b59e0f77a33c8ab08",
       "userId": "64e9a79b59e0f77a33c8ab60",
-      "date": "2024-12-15T00:00:00.000Z",
+      "date": new Date("2024-12-15T00:00:00.000Z"),
       "entries": [
         {
           "activity": "Hiking",
@@ -254,7 +256,7 @@ const Calendar = () => {
     {
       "_id": "64e9a79b59e0f77a33c8ab09",
       "userId": "64e9a79b59e0f77a33c8ab60",
-      "date": "2024-12-18T00:00:00.000Z",
+      "date": new Date("2024-12-18T00:00:00.000Z"),
       "entries": [
         {
           "activity": "Photography",
@@ -266,7 +268,7 @@ const Calendar = () => {
     {
       "_id": "64e9a79b59e0f77a33c8ab10",
       "userId": "64e9a79b59e0f77a33c8ab60",
-      "date": "2024-12-20T00:00:00.000Z",
+      "date": new Date("2024-12-20T00:00:00.000Z"),
       "entries": [
         {
           "activity": "Writing",
@@ -278,7 +280,7 @@ const Calendar = () => {
     {
       "_id": "64e9a79b59e0f77a33c8ab11",
       "userId": "64e9a79b59e0f77a33c8ab60",
-      "date": "2024-12-25T00:00:00.000Z",
+      "date": new Date("2024-12-25T00:00:00.000Z"),
       "entries": [
         {
           "activity": "Celebrating Christmas",
@@ -290,7 +292,7 @@ const Calendar = () => {
     {
       "_id": "64e9a79b59e0f77a33c8ab12",
       "userId": "64e9a79b59e0f77a33c8ab60",
-      "date": "2024-12-31T00:00:00.000Z",
+      "date": new Date("2024-12-31T00:00:00.000Z"),
       "entries": [
         {
           "activity": "New Year's Eve Party",
@@ -379,12 +381,12 @@ const Calendar = () => {
               {isToday ? (
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white font-bold">
                   {day}
-                  {renderDayCell(day, month, year, activities)}
+                  {renderDayCell(day, month, year, activities.map(({ _id, userId, ...rest }) => rest))}
                 </div>
               ) : (
                 <div>
                   {day}
-                  {renderDayCell(day, month, year, activities)}
+                  {renderDayCell(day, month, year, activities.map(({ _id, userId, ...rest }) => rest))}
                 </div>
               )}
             </div>
