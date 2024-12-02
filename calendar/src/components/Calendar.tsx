@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { UserActivity } from "../../../backend/models/UserActivityModel";
+import { NewUserActivity } from "../../../backend/models/UserActivityModel";
+type FrontendUserActivity = Omit<NewUserActivity, "userId">;
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -98,11 +99,11 @@ const Calendar = () => {
 
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  const renderDayCell = (day: number, month: number, year: number, activities: UserActivity[]) => {
+  const renderDayCell = (day: number, month: number, year: number, activities: FrontendUserActivity[]) => {
     // Find activities for the given day
     const dateString = new Date(year, month, day).toISOString().split("T")[0];
     const activityForDay = activities.find(
-      (activity: UserActivity) => new Date(activity.date).toISOString().split("T")[0] === dateString
+      (activity: FrontendUserActivity) => new Date(activity.date).toISOString().split("T")[0] === dateString
     );
 
     return (
@@ -113,13 +114,13 @@ const Calendar = () => {
         {/* Display activities */}
         {activityForDay && (
           <div className="mt-2 flex flex-col items-center space-y-1">
-            {activityForDay.entries.map((entry: UserActivity["entries"][0], index: number) => (
+            {activityForDay.entries.map((entry: FrontendUserActivity["entries"][0], index: number) => (
               <div
                 key={index}
                 style={{
                   "backgroundColor": colors[entry.activity] || "#ffffff", // Default color if no match found
                 }}
-                className={`text-xs text-gray-600 text-black rounded px-2 py-1`}
+                className={`text-xs text-black rounded px-2 py-1`}
               >
                 {entry.duration} - {entry.description}
               </div>
@@ -130,11 +131,9 @@ const Calendar = () => {
     );
   };
 
-  const activities = [
+  const activities: FrontendUserActivity[] = [
     {
-      "_id": "64e9a79b59e0f77a33c8ab01",
-      "userId": "64e9a79b59e0f77a33c8ab60",
-      "date": "2024-12-01T00:00:00.000Z",
+      "date": new Date("2024-12-01T00:00:00.000Z"),
       "entries": [
         {
           "activity": "Piano Practice",
@@ -145,7 +144,17 @@ const Calendar = () => {
           "activity": "Jogging",
           "duration": "30min",
           "description": "Jogged around the park."
-        }
+        },
+        {
+          "activity": "Piano Practice",
+          "duration": "45min",
+          "description": "Practiced Moonlight Sonata."
+        },
+        {
+          "activity": "Piano Practice",
+          "duration": "45min",
+          "description": "Practiced Moonlight Sonata."
+        },
       ]
     },
     {
@@ -291,7 +300,7 @@ const Calendar = () => {
       ]
     }
   ];
-  const colors = {
+  const colors: { [id: string] : string; } = {
     "Piano Practice": "#FF5733",
     "Jogging": "#33FF57",
     "Reading": "#3357FF",
@@ -337,7 +346,7 @@ const Calendar = () => {
       <div className="grid grid-cols-7 gap-2 text-center h-full">
         {/* Day Names */}
         {dayNames.map((day, index) => (
-          <div key={index} className="font-bold">
+          <div key={index} className="font-bold p-2">
             {day}
           </div>
         ))}
