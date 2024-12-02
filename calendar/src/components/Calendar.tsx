@@ -141,15 +141,30 @@ const Calendar = () => {
         ))}
 
         {/* Days of the Month */}
-        {Array.from({ length: days }, (_, i) => (
-          <div
-            key={i}
-            className="p-4 border rounded-lg hover:bg-gray-200 cursor-pointer"
-            onClick={(e) => handleDayClick(e, i + 1)}
-          >
-            {i + 1}
-          </div>
-        ))}
+        {Array.from({ length: days }, (_, i) => {
+          const day = i + 1;
+          const today = new Date();
+          const isToday =
+            day === today.getDate() &&
+            month === today.getMonth() &&
+            year === today.getFullYear();
+
+          return (
+            <div
+              key={i}
+              className="p-4 border rounded-lg hover:bg-gray-200 cursor-pointer flex  justify-center"
+              onClick={(e) => handleDayClick(e, day)}
+            >
+              {isToday ? (
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white font-bold">
+                  {day}
+                </div>
+              ) : (
+                day
+              )}
+            </div>
+          );
+        })}
 
         {/* Grey Boxes for Remaining Non-Month Days */}
         {Array.from(
