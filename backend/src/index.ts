@@ -4,6 +4,7 @@ import * as Realm from "realm-web";
 import { User } from "../models/UserModel";
 import OAuthRoute from "../routes/Oauth";
 import { UserActivity } from "../models/UserActivityModel";
+import ActivityRoute from "../routes/Activity";
 
 // The Worker's environment bindings
 type Bindings = {
@@ -58,6 +59,7 @@ app.get("/", async (c, next) => {
 });
 
 app.route('/oauth', OAuthRoute);
+app.route('/activity', ActivityRoute);
 
 // Input: A string that corresponds to a time, ex: "1h30min", or "1min", or "2h"
 // Output: A number that corresponds to the number of minutes, ex: 90, 1, 120 (according to above's examples)
@@ -134,32 +136,53 @@ function getTimeFromLongString(input: string) {
 
 const weekList = [
   [
-    {},
-    {},
-    {
-      'TheOdinProject / OpenClassrooms': '40min',
-      'Projets de web scraping pour Papa': '40min',
-      'Piano': '20min',
-    },
-    {
-      'TheOdinProject / OpenClassrooms': '35min',
-      'CNED (français)': '1h',
-      'Projets de web scraping pour Papa': '25min',
-      'Other': '40min-setting up fiverr, 40min coding the school blocked urls detector',
-    },
-    {
-      'CNED (français)': '30min (test)',
-      'Projets de web scraping pour Papa': '40min',
-      'Other': '30min-JS game',
-    },
-    {
-      'CNED (français)': '3h',
-      'Other': '1h (YT scripts)'
-    },
-    {
-      'TheOdinProject / OpenClassrooms': '1h30min',
-      'CNED (français)': '2h30min',
-    },
+      {
+          "Piano": '10min river flows in you',
+          "Studying": '20min présentation ES',
+          "Reading": '1h tome II (valentine est morte)',
+          "Youtube": '40min',
+          "Other": '10min speaking with Tito, 40min speaking with Aubin',
+      },
+      {
+          "Piano": '30min piano class',
+          "Studying": '40min exposé ES, 30min writing History studying sheets',
+          "Reading": '40min',
+          "Youtube": '20min',
+          "Other": '20min talking with monordiaulycee support (can\'t get BIOS because I didn\'t graduate yet)',
+      },
+      {
+          "Programming": '20min meeting with An (he added github secret), 1h30min meeting with Emile for his vrin website duplicate, 45min fixing github action IT WORKS!!!',
+          "Piano": '10min',
+          "Studying": '30min continuing to write History sheets',
+          "Reading": '25min',
+      },
+      {
+          "Programming": '20min trying to fix jules.tf dns (fixed it by setting ssl/tls mode to full in cloudflare)',
+          "Piano": '40min river flows in you',
+          "Studying": '30min chemistry exercises',
+          "Reading": '10min',
+          "Youtube": '40min',
+      },
+      {
+          "Piano": '1h (can do almost all river flows in you)',
+          "Studying": '45min writing history study sheets, 30min chemistry exercises',
+          "Youtube": '30min poissond fécond + seth meyers',
+          "Other": '15min calling tito about snowboarding (mom talked with people from ski station that said that it was fine taking classes in the bigger station)',
+      },
+      {
+          "Programming": '1h10min started actual calendar project, 45min meeting with An',
+          "Piano": '20min',
+          "Studying": '30min ex 3 for maths expertes',
+          "Reading": '1h30min almost finished tome II comte de Monte-Cristo',
+          "Working out": '2h with Vasile at basic-fit tolbiac',
+      },
+      {
+          "Programming": '20min contact@jules.tf WORKS!!!, 2h calendar.jules.tf frontend and backend (site online, google oauth, deployed cloudflare worker)',
+          "Piano": '15min',
+          "Studying": '20min spe maths exs, 45min DM de maths, 1h reading all my philosophy notes',
+          "Application": '5min speaking about personal statement with dad',
+          "Other": '20min telling Anna I want a vest and a hat and gloves for Christmas',
+      },
   ],
 ];
 
@@ -246,7 +269,7 @@ app.post('/userColors', async (c) => {
       }
     }
   }
-  return c.json({ message: "successfully updated user's colors"});
+  return c.json({ message: "successfully updated user's colors" });
 })
 
 export default app;
