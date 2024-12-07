@@ -16,6 +16,7 @@ export interface User {
     username: string;
     createdAt: Date;
     authentication: GoogleAuth | AppleAuth;
+    colors: { [id: string]: string; }; // stores colors in hex for each activity
 }
 
 // Utility type for creating new users without an _id field
