@@ -2,7 +2,7 @@ import { ObjectId } from "bson";
 
 export interface ActivityEntry {
     activity: string;
-    duration: string;
+    duration: number; // number of minutes
     description: string;
 }
 
