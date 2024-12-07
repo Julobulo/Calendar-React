@@ -183,14 +183,14 @@ app.post('/oldData', async (c) => {
         // Prepare entries in the correct format
         const entries = Object.entries(day).map(([activity, description]) => ({
           activity,
-          duration: getHumanTimeFromMinutes(getTimeFromLongString(description)),
+          duration: getTimeFromLongString(description),
           description, // Add descriptions if necessary
         }));
 
         if (!await activityCollection.findOne({ date: new Date(currentDate) })) {
           // Insert into database
           await activityCollection.insertOne({
-            userId: new ObjectId('674cc6160ae28b370ffe69a6'), // Replace with the actual user ID
+            userId: new ObjectId('674cc6160ae28b370ffe69a6') as any, // Replace with the actual user ID
             date: new Date(currentDate),
             entries,
           });
@@ -208,6 +208,45 @@ app.post('/oldData', async (c) => {
 
   console.log('Data insertion completed');
   return c.json({ message: "successfully completed data insertion" });
+})
+
+app.post('/userColors', async (c) => {
+  App = App || new Realm.App(c.env.ATLAS_APPID);
+  const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
+  const user = await App.logIn(credentials); // Attempt to authenticate
+  const client = user.mongoClient("mongodb-atlas");
+  const userCollection = client
+    .db("calendar")
+    .collection<User>("users");
+  const activityCollection = client
+    .db("calendar")
+    .collection<UserActivity>("activity");
+
+  const { userId } = await c.req.parseBody();
+  const currentUser = await userCollection.findOne({ _id: new ObjectId(userId.toString()) });
+  if (!currentUser) {
+    c.status(400)
+    return c.json({ message: "Failed to retrieve user" });
+  }
+  const currentUserActivities: UserActivity[] = await activityCollection.find({ userId: new ObjectId(userId) });
+  if (!currentUserActivities.length) {
+    c.status(400)
+    return c.json({ message: "User doesn't have any activities" });
+  }
+
+  for (const activity of currentUserActivities) {
+    for (const entry of activity.entries) {
+      if (!(entry.activity in currentUser.colors)) {
+        const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+        currentUser.colors[entry.activity] = randomColor; // update currentUser so for next iterations
+        await userCollection.updateOne( // Update the user's colors in the database
+          { _id: currentUser._id },
+          { $set: { [`colors.${entry.activity}`]: randomColor } }
+        );
+      }
+    }
+  }
+  return c.json({ message: "successfully updated user's colors"});
 })
 
 export default app;
