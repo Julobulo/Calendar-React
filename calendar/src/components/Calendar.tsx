@@ -132,6 +132,19 @@ const Calendar = () => {
 
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+  function getHumanTimeFromMinutes(minutes: number) {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    let ret = '';
+    if (hours !== 0) {
+      ret += `${hours}h`;
+    }
+    if (remainingMinutes !== 0) {
+      ret += `${remainingMinutes}min`;
+    }
+    return ret
+  }
+
   const renderDayCell = (day: number, month: number, year: number, activities: FrontendUserActivity[]) => {
     // Find activities for the given day
     const dateString = new Date(year, month, day).toISOString().split("T")[0];
@@ -155,7 +168,7 @@ const Calendar = () => {
                 }}
                 className={`text-xs text-black rounded px-2 py-1`}
               >
-                {entry.duration} - {entry.description}
+                {entry.activity} - {getHumanTimeFromMinutes(entry.duration)}
               </div>
             ))}
           </div>
