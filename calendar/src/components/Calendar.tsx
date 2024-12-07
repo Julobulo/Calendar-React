@@ -82,6 +82,7 @@ const Calendar = () => {
   const startDay = firstDayOfMonth(year, month);
   const previousMonthDays = lastMonthDays(year, month);
   const [activities, setActivities] = useState<UserActivity[]>([]);
+  const [colors, setColors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const fetchActivities = async () => {
@@ -98,6 +99,21 @@ const Calendar = () => {
     fetchActivities();
   }, [year, month]);
 
+  useEffect(() => {
+    const fetchColors = async () => {
+      const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/colors`, {
+        method: "GET",
+        credentials: "include", // Include cookies in the request
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch colors");
+      }
+      const data = await response.json();
+      setColors(data);
+    };
+
+    fetchColors();
+  }, []);
 
   const monthNames = [
     "January",
