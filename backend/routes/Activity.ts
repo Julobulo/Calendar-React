@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import * as Realm from "realm-web";
 import { ObjectId } from "bson";
 import { UserActivity } from "../models/UserActivityModel";
+import { User } from "../models/UserModel";
 
 // The Worker's environment bindings
 type Bindings = {
@@ -108,6 +109,39 @@ ActivityRoute.get('/', async (c) => {
         });
 
     return c.json(activities);
+});
+
+ActivityRoute.get('/colors', async (c) => {
+    App = App || new Realm.App(c.env.ATLAS_APPID);
+    const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
+    const user = await App.logIn(credentials);
+    const client = user.mongoClient("mongodb-atlas");
+    const userCollection = client
+        .db("calendar")
+        .collection<User>("users");
+
+    const cookieHeader = c.req.header("Cookie");
+    if (!cookieHeader) {
+        c.status(400);
+        return c.json({ message: "no cookies found" });
+    }
+
+    const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
+    let token = cookies.find((cookie) => cookie.startsWith(`token=`));
+    if (!token) {
+        c.status(400);
+        return c.json({ message: "no token found" });
+    }
+    token = token.split("=")[1].trim();
+
+    const id = await checkToken(token, c.env.JWT_SECRET);
+    if (!id) {
+        c.status(400);
+        return c.json({ message: "bad token" });
+    }
+    const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
+    const colors = currentUser?.colors;
+    return c.json(colors);
 })
 
 export default ActivityRoute
