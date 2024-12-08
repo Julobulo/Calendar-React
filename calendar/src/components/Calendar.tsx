@@ -2,16 +2,16 @@ import { useState, useRef, useEffect } from "react";
 import { ActivityEntry, NewUserActivity, UserActivity } from "../../../backend/models/UserActivityModel";
 type FrontendUserActivity = Omit<NewUserActivity, "userId">;
 
-const Calendar = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+const Calendar: React.FC = () => {
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [activePopup, setActivePopup] = useState<"year" | "month" | "day" | "moreActivities" | null>(null);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [popupPosition, setPopupPosition] = useState<{ top: number; left: number }>({
     top: 0,
     left: 0,
   });
-  const [tempYear, setTempYear] = useState(currentDate.getFullYear());
-  const [tempMonth, setTempMonth] = useState(currentDate.getMonth());
+  const [tempYear, setTempYear] = useState<number>(currentDate.getFullYear());
+  const [tempMonth, setTempMonth] = useState<number>(currentDate.getMonth());
 
   const popupRef = useRef<HTMLDivElement | null>(null);
 
@@ -83,11 +83,11 @@ const Calendar = () => {
     };
   }, [activePopup, tempYear, tempMonth]);
 
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-  const days = daysInMonth(year, month);
-  const startDay = firstDayOfMonth(year, month);
-  const previousMonthDays = lastMonthDays(year, month);
+  const year: number = currentDate.getFullYear();
+  const month: number = currentDate.getMonth();
+  const days: number = daysInMonth(year, month);
+  const startDay: number = firstDayOfMonth(year, month);
+  const previousMonthDays: number = lastMonthDays(year, month);
   const [activities, setActivities] = useState<UserActivity[]>([]);
   const [colors, setColors] = useState<Record<string, string>>({});
 
@@ -139,7 +139,7 @@ const Calendar = () => {
 
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  function getHumanTimeFromMinutes(minutes: number) {
+  function getHumanTimeFromMinutes(minutes: number) : string {
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
     let ret = '';
