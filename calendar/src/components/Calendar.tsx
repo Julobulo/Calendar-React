@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ActivityEntry, NewUserActivity, UserActivity } from "../../../backend/models/UserActivityModel";
 type FrontendUserActivity = Omit<NewUserActivity, "userId">;
+import { ObjectId } from "bson";
 
 const Calendar: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
