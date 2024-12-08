@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { NewUserActivity, UserActivity } from "../../../backend/models/UserActivityModel";
+import { ActivityEntry, NewUserActivity, UserActivity } from "../../../backend/models/UserActivityModel";
 type FrontendUserActivity = Omit<NewUserActivity, "userId">;
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [activePopup, setActivePopup] = useState<"year" | "month" | "day" | null>(null);
+  const [activePopup, setActivePopup] = useState<"year" | "month" | "day" | "moreActivities" | null>(null);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [popupPosition, setPopupPosition] = useState<{ top: number; left: number }>({
     top: 0,
@@ -32,6 +32,13 @@ const Calendar = () => {
     setPopupPosition({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX });
     setSelectedDay(day);
     setActivePopup("day");
+  };
+
+  const handleMoreActivitesClick = (event: React.MouseEvent, day: number, activities: ActivityEntry[]) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setPopupPosition({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX });
+    setMoreActivities({ day, activities });
+    setActivePopup("moreActivities");
   };
 
   const showPopupNextToButton = (event: React.MouseEvent, popupType: "year" | "month") => {
@@ -145,37 +152,49 @@ const Calendar = () => {
     return ret
   }
 
+  const [moreActivities, setMoreActivities] = useState<{
+    day: number;
+    activities: ActivityEntry[];
+  } | null>(null);
+
   const renderDayCell = (day: number, month: number, year: number, activities: FrontendUserActivity[]) => {
-    // Find activities for the given day
     const dateString = new Date(year, month, day).toISOString().split("T")[0];
-    const activityForDay = activities.find(
+    const activitiesForDay = activities.find(
       (activity: FrontendUserActivity) => new Date(activity.date).toISOString().split("T")[0] === dateString
     );
 
     return (
-      <div
-        key={day}
-      >
-
-        {/* Display activities */}
-        {activityForDay && (
+      <div key={day}>
+        {activitiesForDay && (
           <div className="mt-2 flex flex-col items-center space-y-1">
-            {activityForDay.entries.map((entry: FrontendUserActivity["entries"][0], index: number) => (
+            {activitiesForDay.entries.slice(0, 2).map((entry, index) => (
               <div
                 key={index}
                 style={{
-                  "backgroundColor": colors[entry.activity] || "#ffffff", // Default color if no match found
+                  backgroundColor: colors[entry.activity] || "#ffffff", // Default color if no match found
                 }}
-                className={`text-xs text-black rounded px-2 py-1`}
+                className="text-xs text-black rounded px-2 py-1"
               >
                 {entry.activity} - {getHumanTimeFromMinutes(entry.duration)}
               </div>
             ))}
+            {activitiesForDay.entries.length > 2 && (
+              <button
+                className="text-xs text-blue-500 underline mt-1 bg-black"
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent parent `onClick` from triggering
+                  handleMoreActivitesClick(e, day, activitiesForDay.entries);
+                }}
+              >
+                + {activitiesForDay.entries.length - 2} more
+              </button>
+            )}
           </div>
         )}
       </div>
     );
   };
+
 
   return (
     <div className="grid grid-rows-[auto,1fr] h-full">
@@ -321,6 +340,32 @@ const Calendar = () => {
               >
                 Change
               </button>
+            </>
+          )}
+          {activePopup === "moreActivities" && moreActivities && (
+            <>
+              {moreActivities.day === new Date(2024, 11, 5).getDate() &&
+                month === new Date(2024, 11, 5).getMonth() &&
+                year === new Date(2024, 11, 5).getFullYear() ? (
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white font-bold">
+                  {moreActivities.day}
+                </div>
+              ) : (
+                <div>{moreActivities.day}</div>
+              )}
+              <div className="mt-4 space-y-2">
+                {moreActivities.activities.map((entry, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      backgroundColor: colors[entry.activity] || "#ffffff", // Default color if no match found
+                    }}
+                    className="text-xs text-black rounded px-2 py-1"
+                  >
+                    {entry.activity} - {getHumanTimeFromMinutes(entry.duration)}
+                  </div>
+                ))}
+              </div>
             </>
           )}
         </div>
