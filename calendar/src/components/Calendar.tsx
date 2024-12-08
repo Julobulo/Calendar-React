@@ -173,7 +173,7 @@ const Calendar = () => {
                 style={{
                   backgroundColor: colors[entry.activity] || "#ffffff", // Default color if no match found
                 }}
-                className="text-xs text-black rounded px-2 py-1"
+                className={`text-xs ${isLightOrDark(colors[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
               >
                 {entry.activity} - {getHumanTimeFromMinutes(entry.duration)}
               </div>
@@ -195,6 +195,21 @@ const Calendar = () => {
     );
   };
 
+  const isLightOrDark = (hex: string): boolean => {
+    // Remove the hash symbol if it's present
+    hex = hex.replace('#', '');
+
+    // Parse the red, green, and blue values from the hex string
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+
+    // Calculate luminance using the formula
+    const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+    // Return if the color is light or dark
+    return luminance > 128 ? true : false;
+  };
 
   return (
     <div className="grid grid-rows-[auto,1fr] h-full">
@@ -344,9 +359,9 @@ const Calendar = () => {
           )}
           {activePopup === "moreActivities" && moreActivities && (
             <>
-              {moreActivities.day === new Date(2024, 11, 5).getDate() &&
-                month === new Date(2024, 11, 5).getMonth() &&
-                year === new Date(2024, 11, 5).getFullYear() ? (
+              {moreActivities.day === new Date().getDate() &&
+                month === new Date().getMonth() &&
+                year === new Date().getFullYear() ? (
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white font-bold">
                   {moreActivities.day}
                 </div>
@@ -360,7 +375,7 @@ const Calendar = () => {
                     style={{
                       backgroundColor: colors[entry.activity] || "#ffffff", // Default color if no match found
                     }}
-                    className="text-xs text-black rounded px-2 py-1"
+                    className={`text-xs ${isLightOrDark(colors[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
                   >
                     {entry.activity} - {getHumanTimeFromMinutes(entry.duration)}
                   </div>
