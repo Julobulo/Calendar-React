@@ -20,6 +20,12 @@ const Statistics = () => {
 
   return (
     <div className="p-10">
+      <div className="bg-yellow-200 text-black p-4 rounded-md mb-4">
+        <div className="font-semibold text-lg">Disclaimer</div>
+        <p className="mt-2">
+          The information displayed on this page is fake and for demonstration purposes only.
+        </p>
+      </div>
       {/* Key Metrics */}
       <div className="flex space-x-10 mb-10">
         <div className="text-center">
