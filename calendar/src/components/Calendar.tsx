@@ -21,12 +21,6 @@ export type NewUserActivity = Omit<UserActivity, "_id">;
 
 const Calendar: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  // const [activePopup, setActivePopup] = useState<"year" | "month" | "day" | "moreActivities" | null>(null);
-  // const [selectedDay, setSelectedDay] = useState<number | null>(null);
-  // const [popupPosition, setPopupPosition] = useState<{ top: number; left: number }>({
-  //   top: 0,
-  //   left: 0,
-  // });
   const [popupState, setPopupState] = useState<{
     type: "year" | "month" | "day" | "moreActivities" | null;
     position: { top: number; left: number } | null;
@@ -89,16 +83,13 @@ const Calendar: React.FC = () => {
 
   const showPopupNextToButton = (event: React.MouseEvent, popupType: "year" | "month") => {
     const rect = event.currentTarget.getBoundingClientRect();
-    // setPopupPosition({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX });
     setTempYear(currentDate.getFullYear());
     setTempMonth(currentDate.getMonth());
-    // setActivePopup(popupType);
     setPopupState({ type: popupType, position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX }, day: popupState.day, activities: popupState.activities });
   };
 
   const applyDateChange = () => {
     setCurrentDate(new Date(tempYear, tempMonth, 1));
-    // setActivePopup(null);
     setPopupState({ type: null, position: popupState.position, day: popupState.day, activities: popupState.activities });
   };
 
@@ -109,22 +100,17 @@ const Calendar: React.FC = () => {
 
   const handleClickOutside = (event: MouseEvent) => {
     if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-      // setActivePopup(null);
-      // setSelectedDay(null);
       setPopupState({ type: null, position: popupState.position, day: null, activities: popupState.activities });
-      // setMoreActivities(null);
     }
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    // if (event.key === "Enter" && (activePopup === "month" || activePopup === "year")) {
     if (event.key === "Enter" && (popupState.type === "month" || popupState.type === "year")) {
       applyDateChange();
     }
   };
 
   useEffect(() => {
-    // if (activePopup) {
     if (popupState.type) {
       document.addEventListener("mousedown", handleClickOutside);
       document.addEventListener("keydown", handleKeyDown);
@@ -133,7 +119,6 @@ const Calendar: React.FC = () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
-    // }, [activePopup, tempYear, tempMonth]);
   }, [popupState.type, tempYear, tempMonth]);
 
   const year: number = currentDate.getFullYear();
@@ -205,11 +190,6 @@ const Calendar: React.FC = () => {
     return ret
   }
 
-  // const [moreActivities, setMoreActivities] = useState<{
-  //   day: number;
-  //   activities: ActivityEntry[];
-  // } | null>(null);
-
   const renderDayCell = (day: number, month: number, year: number, activities: FrontendUserActivity[]) => {
     const dateString = new Date(year, month, day).toISOString().split("T")[0];
     const activitiesForDay = activities.find(
@@ -235,7 +215,6 @@ const Calendar: React.FC = () => {
               <button
                 className="text-xs text-blue-500 underline mt-1 bg-black"
                 onClick={(e) => {
-                  // e.stopPropagation(); // Prevent parent `onClick` from triggering
                   handleMoreActivitesClick(e, day, activitiesForDay.entries);
                 }}
               >
@@ -352,24 +331,19 @@ const Calendar: React.FC = () => {
       </div>
 
       {/* Popup */}
-      {/* {activePopup && ( */}
       {popupState.type && (
         <div
           ref={popupRef}
           className="absolute bg-white border rounded-lg shadow-md p-4"
           style={{ top: popupState.position?.top, left: popupState.position?.left }}
-        // style={{ top: popupPosition.top, left: popupPosition.left }}
         >
-          {/* {activePopup === "day" && selectedDay && ( */}
           {popupState.type === "day" && popupState.day && (
             <>
               <h2 className="text-lg font-bold mb-4">
                 Add details for {popupState.day} {monthNames[month]} {year}
-                {/* Add details for {selectedDay} {monthNames[month]} {year} */}
               </h2>
               <button
                 className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                // onClick={() => setActivePopup(null)}
                 onClick={() => setPopupState({ type: null, position: popupState.position, day: popupState.day, activities: popupState.activities })}
               >
                 Close
@@ -377,7 +351,6 @@ const Calendar: React.FC = () => {
             </>
           )}
           {popupState.type === "month" && (
-            // {activePopup === "month" && (
             <>
               <h2 className="text-lg font-bold mb-4">Select Month</h2>
               <select
@@ -400,7 +373,6 @@ const Calendar: React.FC = () => {
             </>
           )}
           {popupState.type === "year" && (
-            // {activePopup === "year" && (
             <>
               <h2 className="text-lg font-bold mb-4">Select Year</h2>
               <input
@@ -418,23 +390,18 @@ const Calendar: React.FC = () => {
             </>
           )}
           {popupState.type === "moreActivities" && popupState.activities && (
-            // {activePopup === "moreActivities" && moreActivities && (
             <>
               {popupState.day === new Date().getDate() &&
-                // {moreActivities.day === new Date().getDate() &&
                 month === new Date().getMonth() &&
                 year === new Date().getFullYear() ? (
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white font-bold">
                   {popupState.day}
-                  {/* {moreActivities.day} */}
                 </div>
               ) : (
                 <div>{popupState.day}</div>
-                // <div>{moreActivities.day}</div>
               )}
               <div className="mt-4 space-y-2">
                 {popupState.activities.map((entry, index) => (
-                  // {moreActivities.activities.map((entry, index) => (
                   <div
                     key={index}
                     style={{
