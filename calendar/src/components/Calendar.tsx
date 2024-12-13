@@ -23,7 +23,7 @@ const Calendar: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [popupState, setPopupState] = useState<{
     type: "year" | "month" | "day" | "moreActivities" | null;
-    position: { top: number; left: number } | null;
+    position: { top: number; left: number; width: number; height: number } | null;
     day: number | null;
     activities: ActivityEntry[] | null;
   }>({
@@ -55,13 +55,13 @@ const Calendar: React.FC = () => {
       if (prevState.activities && prevState.day === day) {
         return {
           ...prevState,
-          position: { top: rect.top + window.scrollY - rect.height / 2, left: rect.left + window.scrollX - rect.width },
+          position: { top: rect.top + window.scrollY - rect.height/2, left: rect.left + window.scrollX - rect.width/2, width: popupState.position?.width, height: popupState.position?.height },
         };
       }
       return {
         ...prevState,
         type: "day",
-        position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX },
+        position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: popupState.position?.width, height: popupState.position?.height },
         day,
         activities: null,
       };
@@ -69,12 +69,10 @@ const Calendar: React.FC = () => {
   };
 
 
-  const handleMoreActivitesClick = (event: React.MouseEvent, day: number, activities: ActivityEntry[]) => {
-    const rect = event.currentTarget.getBoundingClientRect();
+  const handleMoreActivitesClick = (day: number, activities: ActivityEntry[]) => {
     setPopupState((prevState) => ({
       ...prevState,
       type: "moreActivities",
-      position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX },
       day,
       activities,
     }));
@@ -215,7 +213,7 @@ const Calendar: React.FC = () => {
               <button
                 className="text-xs text-blue-500 underline mt-1 bg-black"
                 onClick={(e) => {
-                  handleMoreActivitesClick(e, day, activitiesForDay.entries);
+                  handleMoreActivitesClick(day, activitiesForDay.entries);
                 }}
               >
                 + {activitiesForDay.entries.length - 2} more
@@ -335,7 +333,7 @@ const Calendar: React.FC = () => {
         <div
           ref={popupRef}
           className="absolute bg-white border rounded-lg shadow-md p-4"
-          style={{ top: popupState.position?.top, left: popupState.position?.left }}
+          style={{ top: popupState.position?.top, left: popupState.position?.left, width: popupState.position?.width, height: popupState.position?.height }}
         >
           {popupState.type === "day" && popupState.day && (
             <>
@@ -390,7 +388,7 @@ const Calendar: React.FC = () => {
             </>
           )}
           {popupState.type === "moreActivities" && popupState.activities && (
-            <>
+            <div>
               {popupState.day === new Date().getDate() &&
                 month === new Date().getMonth() &&
                 year === new Date().getFullYear() ? (
@@ -413,7 +411,7 @@ const Calendar: React.FC = () => {
                   </div>
                 ))}
               </div>
-            </>
+            </div>
           )}
         </div>
       )}
