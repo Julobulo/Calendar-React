@@ -55,7 +55,7 @@ const Calendar: React.FC = () => {
       if (prevState.activities && prevState.day === day) {
         return {
           ...prevState,
-          position: { top: rect.top + window.scrollY - rect.height/2, left: rect.left + window.scrollX - rect.width/2, width: popupState.position?.width, height: popupState.position?.height },
+          position: { top: rect.top + window.scrollY - .125 * rect.height, left: rect.left + window.scrollX - .25 * rect.width, width: rect.width * 1.5, height: popupState.position?.height },
         };
       }
       return {
@@ -83,7 +83,7 @@ const Calendar: React.FC = () => {
     const rect = event.currentTarget.getBoundingClientRect();
     setTempYear(currentDate.getFullYear());
     setTempMonth(currentDate.getMonth());
-    setPopupState({ type: popupType, position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX }, day: popupState.day, activities: popupState.activities });
+    setPopupState({ type: popupType, position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: popupState.position?.width as number, height: popupState.position?.height as number }, day: popupState.day, activities: popupState.activities });
   };
 
   const applyDateChange = () => {
@@ -198,7 +198,7 @@ const Calendar: React.FC = () => {
       <div key={day}>
         {activitiesForDay && (
           <div className="mt-2 flex flex-col items-center space-y-1">
-            {activitiesForDay.entries.slice(0, 2).map((entry, index) => (
+            {activitiesForDay.entries.slice(0, 1).map((entry, index) => (
               <div
                 key={index}
                 style={{
@@ -209,14 +209,14 @@ const Calendar: React.FC = () => {
                 {entry.activity} - {getHumanTimeFromMinutes(entry.duration)}
               </div>
             ))}
-            {activitiesForDay.entries.length > 2 && (
+            {activitiesForDay.entries.length > 1 && (
               <button
                 className="text-xs text-blue-500 underline mt-1 bg-black"
-                onClick={(e) => {
+                onClick={() => {
                   handleMoreActivitesClick(day, activitiesForDay.entries);
                 }}
               >
-                + {activitiesForDay.entries.length - 2} more
+                + {activitiesForDay.entries.length - 1} more
               </button>
             )}
           </div>
@@ -226,6 +226,7 @@ const Calendar: React.FC = () => {
   };
 
   const isLightOrDark = (hex: string): boolean => {
+    if (!hex) { return false }
     // Remove the hash symbol if it's present
     hex = hex.replace('#', '');
 
@@ -265,20 +266,22 @@ const Calendar: React.FC = () => {
         </button>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-2 text-center h-full">
-        {/* Day Names */}
+      {/* Day Names */}
+      <div className="grid grid-cols-7 text-center">
         {dayNames.map((day, index) => (
           <div key={index} className="font-bold p-2">
             {day}
           </div>
         ))}
+      </div>
+      {/* Calendar Grid */}
+      <div className="container gap-2 text-center">
 
         {/* Grey Boxes for Non-Month Days */}
         {Array.from({ length: startDay }, (_, i) => (
           <div
             key={`start-${i}`}
-            className="p-4 border bg-gray-200 text-gray-400 rounded-lg"
+            className="p-4 border bg-gray-200 text-gray-400 rounded-lg item"
           >
             {previousMonthDays - startDay + i + 1}
           </div>
@@ -296,7 +299,7 @@ const Calendar: React.FC = () => {
           return (
             <div
               key={i}
-              className="p-4 border rounded-lg hover:bg-gray-200 cursor-pointer flex justify-center"
+              className="p-4 border rounded-lg hover:bg-gray-200 cursor-pointer flex justify-center item"
               onClick={(e) => handleDayClick(e, day)}
             >
               {isToday && activities ? (
@@ -320,7 +323,7 @@ const Calendar: React.FC = () => {
           (_, i) => (
             <div
               key={`end-${i}`}
-              className="p-4 border bg-gray-200 text-gray-400 rounded-lg"
+              className="p-4 border bg-gray-200 text-gray-400 rounded-lg item"
             >
               {i + 1}
             </div>
@@ -388,7 +391,7 @@ const Calendar: React.FC = () => {
             </>
           )}
           {popupState.type === "moreActivities" && popupState.activities && (
-            <div>
+            <div onClick={(e) => handleDayClick(e, popupState.day as number)}>
               {popupState.day === new Date().getDate() &&
                 month === new Date().getMonth() &&
                 year === new Date().getFullYear() ? (
