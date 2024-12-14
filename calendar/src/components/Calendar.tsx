@@ -266,17 +266,15 @@ const Calendar: React.FC = () => {
         </button>
       </div>
 
-      {/* Day Names */}
-      <div className="grid grid-cols-7 text-center">
+      {/* Calendar Grid */}
+      <div className="container gap-2 text-center">
+        {/* Day Names */}
         {dayNames.map((day, index) => (
           <div key={index} className="font-bold p-2">
             {day}
           </div>
         ))}
-      </div>
-      {/* Calendar Grid */}
-      <div className="container gap-2 text-center">
-
+        
         {/* Grey Boxes for Non-Month Days */}
         {Array.from({ length: startDay }, (_, i) => (
           <div
