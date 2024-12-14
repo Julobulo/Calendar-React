@@ -16,7 +16,7 @@ const App = () => {
       <Sidebar />
 
       {/* Main Content */}
-      <main className="flex-1 p-10 overflow-y-auto ml-64">
+      <main className="flex-1 p-10 overflow-y-auto">
         <Routes>
           <Route path="/" element={
             <div className="bg-gray-100 p-10">
