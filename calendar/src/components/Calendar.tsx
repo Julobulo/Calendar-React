@@ -55,13 +55,13 @@ const Calendar: React.FC = () => {
       if (prevState.activities && prevState.day === day) {
         return {
           ...prevState,
-          position: { top: rect.top + window.scrollY - .125 * rect.height, left: rect.left + window.scrollX - .25 * rect.width, width: rect.width * 1.5, height: popupState.position?.height },
+          position: { top: rect.top + window.scrollY - .125 * rect.height, left: rect.left + window.scrollX - .25 * rect.width, width: rect.width * 1.5, height: popupState.position?.height as number },
         };
       }
       return {
         ...prevState,
         type: "day",
-        position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: popupState.position?.width, height: popupState.position?.height },
+        position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: popupState.position?.width as number, height: popupState.position?.height as number },
         day,
         activities: null,
       };
@@ -274,7 +274,7 @@ const Calendar: React.FC = () => {
             {day}
           </div>
         ))}
-        
+
         {/* Grey Boxes for Non-Month Days */}
         {Array.from({ length: startDay }, (_, i) => (
           <div
