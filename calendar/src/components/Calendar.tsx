@@ -189,7 +189,7 @@ const Calendar: React.FC = () => {
   }
 
   const renderDayCell = (day: number, month: number, year: number, activities: FrontendUserActivity[]) => {
-    const dateString = new Date(year, month, day).toISOString().split("T")[0];
+    const dateString = new Date(year, month, day+1).toISOString().split("T")[0];
     const activitiesForDay = activities.find(
       (activity: FrontendUserActivity) => new Date(activity.date).toISOString().split("T")[0] === dateString
     );
