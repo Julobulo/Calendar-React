@@ -32,6 +32,13 @@ const Calendar: React.FC = () => {
     day: null,
     activities: null,
   });
+  const [activityPopup, setActivityPopup] = useState<{
+    position: { top: number; left: number } | null;
+    activity: { title: string, duration: number, description: string } | null;
+  }>({
+    position: null,
+    activity: null,
+  });
   const [tempYear, setTempYear] = useState<number>(currentDate.getFullYear());
   const [tempMonth, setTempMonth] = useState<number>(currentDate.getMonth());
 
@@ -58,12 +65,12 @@ const Calendar: React.FC = () => {
           position: { top: rect.top + window.scrollY - .125 * rect.height, left: rect.left + window.scrollX - .25 * rect.width, width: rect.width * 1.5, height: popupState.position?.height as number },
         };
       }
+      return prevState;
+    });
+    setActivityPopup((prevState) => {
       return {
         ...prevState,
-        type: "day",
-        position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: popupState.position?.width as number, height: popupState.position?.height as number },
-        day,
-        activities: null,
+        position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX },
       };
     });
   };
@@ -100,6 +107,7 @@ const Calendar: React.FC = () => {
     if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
       setPopupState({ type: null, position: null, day: null, activities: popupState.activities });
       // need position: null because the day click function uses it to know when to display the "x more" activities or not
+      setActivityPopup({ position: null, activity: null });
     }
   };
 
@@ -417,6 +425,25 @@ const Calendar: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Activity popup */}
+      {activityPopup.position && (
+        <div
+          ref={popupRef}
+          className="absolute bg-white border rounded-lg shadow-md p-4"
+          style={{ top: activityPopup.position?.top, left: activityPopup.position?.left }}
+        >
+              <h2 className="text-lg font-bold mb-4">
+                Activity popup {popupState.day} {monthNames[month]} {year}
+              </h2>
+              <button
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                onClick={() => setActivityPopup({ position: null, activity: null })}
+              >
+                Close
+              </button>
+          </div>
+        )}
     </div>
   );
 };
