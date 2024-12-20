@@ -52,7 +52,7 @@ const Calendar: React.FC = () => {
   const handleDayClick = (event: React.MouseEvent, day: number) => {
     const rect = event.currentTarget.getBoundingClientRect();
     setPopupState((prevState) => {
-      if (prevState.activities && prevState.day === day) {
+      if (prevState.activities && prevState.day === day && !prevState.position) {
         return {
           ...prevState,
           position: { top: rect.top + window.scrollY - .125 * rect.height, left: rect.left + window.scrollX - .25 * rect.width, width: rect.width * 1.5, height: popupState.position?.height as number },
@@ -98,7 +98,8 @@ const Calendar: React.FC = () => {
 
   const handleClickOutside = (event: MouseEvent) => {
     if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-      setPopupState({ type: null, position: popupState.position, day: null, activities: popupState.activities });
+      setPopupState({ type: null, position: null, day: null, activities: popupState.activities });
+      // need position: null because the day click function uses it to know when to display the "x more" activities or not
     }
   };
 
