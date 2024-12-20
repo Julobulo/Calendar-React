@@ -32,7 +32,7 @@ const Sidebar = () => {
         style={{ width: isOpen ? "16rem" : "0" }} // Smooth resizing
       >
         <div className="p-4 text-center text-lg font-bold border-b border-gray-300">
-          Dashboard
+          <Link to="/">Dashboard</Link>
         </div>
         <nav className="flex flex-col p-4 space-y-4">
           <Link
