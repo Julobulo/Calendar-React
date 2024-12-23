@@ -118,7 +118,7 @@ const Calendar: React.FC = () => {
   };
 
   useEffect(() => {
-    if (popupState.type) {
+    if (popupState.type || activityPopup.position) {
       document.addEventListener("mousedown", handleClickOutside);
       document.addEventListener("keydown", handleKeyDown);
     }
