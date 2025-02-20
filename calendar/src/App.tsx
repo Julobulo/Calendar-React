@@ -6,6 +6,7 @@ import Home from "./components/Home";
 import Login from "./components/Login";
 import Cookies from "js-cookie";
 import { Analytics } from "@vercel/analytics/react"
+import Day from "./components/Day";
 
 const App = () => {
 
@@ -25,6 +26,7 @@ const App = () => {
             </div>
           } />
           <Route path="/calendar" element={<Calendar />} />
+          <Route path="/calendar/day" element={<Day />} />
           <Route path="/statistics" element={<Statistics />} />
         </Routes>
       </main>
