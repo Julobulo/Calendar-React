@@ -67,7 +67,7 @@ async function checkToken(token: string, secret: string): Promise<boolean> {
 }
 
 ActivityRoute.get('/', async (c) => {
-    const { year, month } = c.req.queries();
+    const { year, month, day } = c.req.queries();
     App = App || new Realm.App(c.env.ATLAS_APPID);
     const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
     const user = await App.logIn(credentials);
@@ -96,8 +96,15 @@ ActivityRoute.get('/', async (c) => {
         return c.json({ message: "bad token" });
     }
 
-    const startDate = new Date(Number(year), Number(month) - 1, 20);
-    const endDate = new Date(Number(year), Number(month) + 1, 10);
+    let startDate, endDate;
+    if (!day) {
+        startDate = new Date(Number(year), Number(month) - 1, 20);
+        endDate = new Date(Number(year), Number(month) + 1, 10);
+    }
+    else {
+        startDate = new Date(Number(year), Number(month), Number(day));
+        endDate = new Date(Number(year), Number(month), Number(day), 23, 59, 59, 999);
+    }
 
     const activities = await activityCollection
         .find({
