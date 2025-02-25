@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserActivity } from "./Calendar";
 import { getHumanTimeFromMinutes, isLightOrDark } from "../utils/helpers";
-import { format } from "date-fns";
+import { format, setMonth } from "date-fns";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 
@@ -43,7 +43,7 @@ const Day = () => {
             console.log(`data: ${JSON.stringify(data[0])}`);
         }
         fetchActivities();
-    }, []);
+    }, [year, month, day]);
 
     const navigate = useNavigate();
     const handleClick = () => {
@@ -56,6 +56,7 @@ const Day = () => {
     };
 
     const [selectedDate, setSelectedDate] = useState(new Date(year, month, day));
+    const [currentMonth, setCurrentMonth] = useState(new Date(year, month, 1));
 
     return (
         <div className="flex flex-col md:flex-row h-screen" onClick={handleClick}>
@@ -86,10 +87,15 @@ const Day = () => {
                     <DayPicker
                         mode="single"
                         selected={selectedDate}
-                        onSelect={(date) => setSelectedDate(date!)}
-                        fromYear={2000}
-                        toYear={2030}
+                        onSelect={(date) => {
+                            setSelectedDate(date!);
+                            setCurrentMonth(date!); // Update the month when a date is selected
+                            console.log(`new url: ${`/calendar/day?year=${date?.getFullYear()}&month=${date?.getMonth()}&day=${date?.getDate()}`}`);
+                            navigate(`/calendar/day?year=${date?.getFullYear()}&month=${date?.getMonth()}&day=${date?.getDate()}`);
+                        }}
                         captionLayout="dropdown"
+                        month={currentMonth}
+                        onMonthChange={setCurrentMonth}
                     />
                 </div>
 
