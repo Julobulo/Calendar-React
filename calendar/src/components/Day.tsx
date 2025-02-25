@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserActivity } from "./Calendar";
 import { getHumanTimeFromMinutes, isLightOrDark } from "../utils/helpers";
-import { format, setMonth } from "date-fns";
+import { format } from "date-fns";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 
@@ -58,6 +58,8 @@ const Day = () => {
     const [selectedDate, setSelectedDate] = useState(new Date(year, month, day));
     const [currentMonth, setCurrentMonth] = useState(new Date(year, month, 1));
 
+    const [eventPopUp, setEventPopUp] = useState<{state: "add" | "edit"; activity: string; description: string}>({state: "add", activity: "", description: ""});
+
     return (
         <div className="flex flex-col md:flex-row h-screen" onClick={handleClick}>
             {/* Events List */}
@@ -101,11 +103,11 @@ const Day = () => {
 
                 {/* Add Event Form */}
                 <div className="p-4 border rounded">
-                    <h3 className="text-lg font-semibold">Add Event</h3>
+                    <h3 className="text-lg font-semibold">{eventPopUp.state} event</h3>
                     <form>
-                        <input type="text" placeholder="Event Name" className="w-full p-2 border mb-2 rounded" />
-                        <textarea placeholder="Event Description" className="w-full p-2 border mb-2 rounded"></textarea>
-                        <button type="submit" className="w-full p-2 bg-blue-500 text-white rounded">Add Event</button>
+                        <input type="text" placeholder="Activity" className="w-full p-2 border mb-2 rounded" value={eventPopUp.activity} onChange={(e) => setEventPopUp({...eventPopUp, activity: e.target.value})} />
+                        <textarea placeholder="Description" className="w-full p-2 border mb-2 rounded" value={eventPopUp.description} onChange={(e) => setEventPopUp({...eventPopUp, description: e.target.value})}></textarea>
+                        <button type="submit" className="w-full p-2 bg-blue-500 text-white rounded">{eventPopUp.state}</button>
                     </form>
                 </div>
             </div>
