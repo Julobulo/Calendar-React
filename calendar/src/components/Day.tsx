@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserActivity } from "./Calendar";
 import { getHumanTimeFromMinutes, isLightOrDark } from "../utils/helpers";
 import { format } from "date-fns";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/dist/style.css";
 
 const Day = () => {
     const [searchParams] = useSearchParams();
@@ -53,6 +55,8 @@ const Day = () => {
         }
     };
 
+    const [selectedDate, setSelectedDate] = useState(new Date(year, month, day));
+
     return (
         <div className="flex flex-col md:flex-row h-screen" onClick={handleClick}>
             {/* Events List */}
@@ -79,15 +83,14 @@ const Day = () => {
             <div className="hidden md:flex flex-col w-2/5 p-4 bg-white">
                 {/* Simple Calendar */}
                 <div className="p-4 border rounded mb-4">
-                    <h3 className="text-lg font-semibold">Calendar</h3>
-                    {/* Calendar mock */}
-                    <div className="grid grid-cols-7 gap-1 text-center mt-2">
-                        {Array.from({ length: 30 }, (_, i) => (
-                            <button key={i} className="p-2 border rounded hover:bg-gray-200">
-                                {i + 1}
-                            </button>
-                        ))}
-                    </div>
+                    <DayPicker
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={(date) => setSelectedDate(date!)}
+                        fromYear={2000}
+                        toYear={2030}
+                        captionLayout="dropdown"
+                    />
                 </div>
 
                 {/* Add Event Form */}
