@@ -106,7 +106,7 @@ const Day = () => {
                 <div className="p-4 border rounded">
                     <h3 className="text-lg font-semibold">{eventPopUp.state} event</h3>
                     <form>
-                        <input type="text" placeholder="Activity" className="w-full p-2 border mb-2 rounded" value={eventPopUp.activity} onChange={(e) => setEventPopUp({ ...eventPopUp, activity: e.target.value })} />
+                        <input type="text" placeholder="Activity" className="w-full p-2 border mb-2 rounded" value={eventPopUp.activity} onChange={(e) => {if (eventPopUp.state==="add") {setEventPopUp({ ...eventPopUp, activity: e.target.value })}}} disabled={eventPopUp.state !== "add"} />
                         <textarea placeholder="Description" className="w-full p-2 border mb-2 rounded" value={eventPopUp.description} onChange={(e) => setEventPopUp({ ...eventPopUp, description: e.target.value })}></textarea>
                         <button className="w-full p-2 bg-blue-500 text-white rounded">{eventPopUp.state}</button>
                     </form>
