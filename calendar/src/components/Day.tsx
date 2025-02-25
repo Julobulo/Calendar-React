@@ -51,7 +51,7 @@ const Day = () => {
             navigate(`/calendar/day/details?year=${year}&month=${month}&day=${day}`);
         }
         else {
-            // make the form show up
+            setEventPopUp({state: "add", activity: "", description: ""});
         }
     };
 
@@ -74,7 +74,10 @@ const Day = () => {
                                     backgroundColor: colors[entry.activity] || "#ffffff", // Default color if no match found
                                 }}
                                 className={`text-xs ${isLightOrDark(colors[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
-                                onClick={() => setEventPopUp({state: "edit", activity: entry.activity, description: entry.description})}
+                                onClick={(e) => {
+                                    e.stopPropagation(); // Prevent handleClick from running
+                                    setEventPopUp({state: "edit", activity: entry.activity, description: entry.description})
+                                }}
                             >
                                 {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - {entry.description}
                             </div>
