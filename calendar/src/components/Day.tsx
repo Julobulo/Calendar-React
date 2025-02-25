@@ -1,23 +1,21 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 
 const Day = () => {
-    const [year, setYear] = useState('');
-    const [month, setMonth] = useState('');
-    const [day, setDay] = useState('');
-    const params = useParams();
+    const [searchParams] = useSearchParams();
+    const year = searchParams.get("year");
+    const month = searchParams.get("month");
+    const day = searchParams.get("day");
+
     useEffect(() => {
-            setYear(params.year);
-            setMonth(params.month);
-            setDay(params.day);
-            console.log(`params: ${JSON.stringify(params)}`);
-        }, [params]);
-    
+        console.log(`year: ${year}, month: ${month}, day: ${day}`);
+    }, [year, month, day]);
+
     return (
         <div>
             day component for year: {year}, month: {month}, day: {day}.
         </div>
-    )
-}
+    );
+};
 
 export default Day;
