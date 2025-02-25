@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserActivity } from "./Calendar";
 import { getHumanTimeFromMinutes, isLightOrDark } from "../utils/helpers";
+import { format } from "date-fns";
 
 const Day = () => {
     const [searchParams] = useSearchParams();
-    const year = searchParams.get("year");
-    const month = searchParams.get("month");
-    const day = searchParams.get("day");
+    const year = Number(searchParams.get("year"));
+    const month = Number(searchParams.get("month"));
+    const day = Number(searchParams.get("day"));
 
     const [dayActivities, setDayActivities] = useState<UserActivity>();
     const [colors, setColors] = useState<Record<string, string>>({});
@@ -56,7 +57,7 @@ const Day = () => {
         <div className="flex flex-col md:flex-row h-screen" onClick={handleClick}>
             {/* Events List */}
             <div className="w-full md:w-3/5 h-full overflow-y-auto p-4 bg-gray-100">
-                <h2 className="text-xl font-bold mb-4">Events for {year}-{month}-{day}</h2>
+                <h2 className="text-xl font-bold mb-4">Events for {format(new Date(year, month, day), "EEEE, MMMM do yyyy")}</h2>
                 {dayActivities && (
                     <div className="mt-2 flex flex-col space-y-1">
                         {dayActivities.entries.map((entry, index) => (
