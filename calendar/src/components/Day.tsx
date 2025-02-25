@@ -58,7 +58,7 @@ const Day = () => {
     const [selectedDate, setSelectedDate] = useState(new Date(year, month, day));
     const [currentMonth, setCurrentMonth] = useState(new Date(year, month, 1));
 
-    const [eventPopUp, setEventPopUp] = useState<{state: "add" | "edit"; activity: string; description: string}>({state: "add", activity: "", description: ""});
+    const [eventPopUp, setEventPopUp] = useState<{ state: "add" | "edit"; activity: string; description: string }>({ state: "add", activity: "", description: "" });
 
     return (
         <div className="flex flex-col md:flex-row h-screen" onClick={handleClick}>
@@ -74,6 +74,7 @@ const Day = () => {
                                     backgroundColor: colors[entry.activity] || "#ffffff", // Default color if no match found
                                 }}
                                 className={`text-xs ${isLightOrDark(colors[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
+                                onClick={() => setEventPopUp({state: "edit", activity: entry.activity, description: entry.description})}
                             >
                                 {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - {entry.description}
                             </div>
@@ -105,9 +106,9 @@ const Day = () => {
                 <div className="p-4 border rounded">
                     <h3 className="text-lg font-semibold">{eventPopUp.state} event</h3>
                     <form>
-                        <input type="text" placeholder="Activity" className="w-full p-2 border mb-2 rounded" value={eventPopUp.activity} onChange={(e) => setEventPopUp({...eventPopUp, activity: e.target.value})} />
-                        <textarea placeholder="Description" className="w-full p-2 border mb-2 rounded" value={eventPopUp.description} onChange={(e) => setEventPopUp({...eventPopUp, description: e.target.value})}></textarea>
-                        <button type="submit" className="w-full p-2 bg-blue-500 text-white rounded">{eventPopUp.state}</button>
+                        <input type="text" placeholder="Activity" className="w-full p-2 border mb-2 rounded" value={eventPopUp.activity} onChange={(e) => setEventPopUp({ ...eventPopUp, activity: e.target.value })} />
+                        <textarea placeholder="Description" className="w-full p-2 border mb-2 rounded" value={eventPopUp.description} onChange={(e) => setEventPopUp({ ...eventPopUp, description: e.target.value })}></textarea>
+                        <button className="w-full p-2 bg-blue-500 text-white rounded">{eventPopUp.state}</button>
                     </form>
                 </div>
             </div>
