@@ -251,7 +251,7 @@ app.post('/userColors', async (c) => {
     c.status(400)
     return c.json({ message: "Failed to retrieve user" });
   }
-  const currentUserActivities: UserActivity[] = await activityCollection.find({ userId: new ObjectId(userId) });
+  const currentUserActivities: UserActivity[] = await activityCollection.find({ userId: new ObjectId(userId.toString()) });
   if (!currentUserActivities.length) {
     c.status(400)
     return c.json({ message: "User doesn't have any activities" });
