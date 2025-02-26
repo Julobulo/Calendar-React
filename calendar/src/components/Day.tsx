@@ -5,6 +5,7 @@ import { getHumanTimeFromMinutes, isLightOrDark } from "../utils/helpers";
 import { format } from "date-fns";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
+import Spinner from "./Spinner";
 
 const Day = () => {
     const [searchParams] = useSearchParams();
@@ -32,6 +33,7 @@ const Day = () => {
 
     useEffect(() => {
         const fetchActivities = async () => {
+            setLoading(true);
             const response = await fetch(`${import.meta.env.VITE_API_URI}/activity?year=${year}&month=${month}&day=${day}`, {
                 credentials: "include"
             });
@@ -40,7 +42,7 @@ const Day = () => {
             }
             const data: UserActivity[] = await response.json();
             setDayActivities(data[0]);
-            console.log(`data: ${JSON.stringify(data[0])}`);
+            setLoading(false);
         }
         fetchActivities();
     }, [year, month, day]);
@@ -60,12 +62,14 @@ const Day = () => {
 
     const [eventPopUp, setEventPopUp] = useState<{ state: "add" | "edit"; activity: string; description: string }>({ state: "add", activity: "", description: "" });
 
+    const [loading, setLoading] = useState(true);
+
     return (
         <div className="flex flex-col md:flex-row h-screen">
             {/* Events List */}
             <div className="w-full md:w-3/5 h-full overflow-y-auto p-4 bg-gray-100" onClick={handleClick}>
                 <h2 className="text-xl font-bold mb-4">Events for {format(new Date(year, month, day), "EEEE, MMMM do yyyy")}</h2>
-                {dayActivities && (
+                {(dayActivities && !loading) && (
                     <div className="mt-2 flex flex-col space-y-1">
                         {dayActivities.entries.map((entry, index) => (
                             <div
@@ -82,6 +86,11 @@ const Day = () => {
                                 {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - {entry.description}
                             </div>
                         ))}
+                    </div>
+                )}
+                {loading && (
+                    <div className="flex justify-center">
+                        <Spinner />
                     </div>
                 )}
             </div>
