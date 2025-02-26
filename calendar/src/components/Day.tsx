@@ -61,9 +61,9 @@ const Day = () => {
     const [eventPopUp, setEventPopUp] = useState<{ state: "add" | "edit"; activity: string; description: string }>({ state: "add", activity: "", description: "" });
 
     return (
-        <div className="flex flex-col md:flex-row h-screen" onClick={handleClick}>
+        <div className="flex flex-col md:flex-row h-screen">
             {/* Events List */}
-            <div className="w-full md:w-3/5 h-full overflow-y-auto p-4 bg-gray-100">
+            <div className="w-full md:w-3/5 h-full overflow-y-auto p-4 bg-gray-100" onClick={handleClick}>
                 <h2 className="text-xl font-bold mb-4">Events for {format(new Date(year, month, day), "EEEE, MMMM do yyyy")}</h2>
                 {dayActivities && (
                     <div className="mt-2 flex flex-col space-y-1">
