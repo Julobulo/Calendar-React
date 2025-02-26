@@ -1,8 +1,9 @@
 import { Hono } from "hono";
 import * as Realm from "realm-web";
 import { ObjectId } from "bson";
-import { UserActivity } from "../models/UserActivityModel";
+import { ActivityEntry, NewUserActivity, UserActivity } from "../models/UserActivityModel";
 import { User } from "../models/UserModel";
+import { getTimeFromLongString } from "../../calendar/src/utils/helpers";
 
 // The Worker's environment bindings
 type Bindings = {
@@ -149,6 +150,79 @@ ActivityRoute.get('/colors', async (c) => {
     const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
     const colors = currentUser?.colors;
     return c.json(colors);
+})
+
+ActivityRoute.post('/new', async (c) => {
+    App = App || new Realm.App(c.env.ATLAS_APPID);
+    const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
+    const user = await App.logIn(credentials);
+    const client = user.mongoClient("mongodb-atlas");
+    const userCollection = client
+        .db("calendar")
+        .collection<User>("users");
+    const activityCollection = client
+        .db("calendar")
+        .collection<UserActivity>("activity")
+
+    const cookieHeader = c.req.header("Cookie");
+    if (!cookieHeader) {
+        c.status(400);
+        return c.json({ message: "no cookies found" });
+    }
+
+    const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
+    let token = cookies.find((cookie) => cookie.startsWith(`token=`));
+    if (!token) {
+        c.status(400);
+        return c.json({ message: "no token found" });
+    }
+    token = token.split("=")[1].trim();
+
+    const id = await checkToken(token, c.env.JWT_SECRET);
+    if (!id) {
+        c.status(400);
+        return c.json({ message: "bad token" });
+    }
+
+    // Parse request body
+    const { year, month, day, activity, description } = await c.req.json();
+
+    if (!year || !month || !day || !activity || !description) {
+        c.status(400);
+        return c.json({ message: `Missing required fields: ${JSON.stringify(await c.req.json())}` });
+    }
+    console.log(`day: ${day}`);
+    const date = new Date(Date.UTC(parseInt(year), parseInt(month), parseInt(day)));
+    const newEntry: ActivityEntry = { activity, duration: getTimeFromLongString(description), description: description };
+
+    // Check if user already has activities for that day
+    const existingActivity = await activityCollection.findOne({ userId: new ObjectId(id.toString()), date });
+    if (existingActivity) {
+        console.log(`the existing activity's id is: ${existingActivity._id}`)
+    }
+    else {
+        console.log(`there's no activity with that usedId: ${id} and date: ${date.toISOString()}`);
+    }
+
+    if (existingActivity) {
+        // Update existing entry
+        await activityCollection.updateOne(
+            { _id: existingActivity._id },
+            { $push: { entries: newEntry } }
+        );
+        console.log(`updating activity to activity collection: ${JSON.stringify(newEntry)}, id: ${existingActivity._id}`);
+    } else {
+        // Create new entry for that day
+        const newActivity: NewUserActivity = {
+            userId: new ObjectId(id.toString()),
+            date,
+            entries: [newEntry]
+        };
+        console.log(`adding activity to activity collection: ${newActivity}`);
+        await activityCollection.insertOne(newActivity);
+    }
+    // TODO: prevent if activity already defined for the day
+    return c.json({ message: "Activity added successfully" });
 })
 
 export default ActivityRoute
