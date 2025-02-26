@@ -15,6 +15,8 @@ const Day = () => {
 
     const [dayActivities, setDayActivities] = useState<UserActivity>();
     const [colors, setColors] = useState<Record<string, string>>({});
+    const [reload, setReload] = useState(false);
+
     useEffect(() => {
         const fetchColors = async () => {
             const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/colors`, {
@@ -45,7 +47,7 @@ const Day = () => {
             setLoading(false);
         }
         fetchActivities();
-    }, [year, month, day]);
+    }, [year, month, day, reload]);
 
     const navigate = useNavigate();
     const handleClick = () => {
@@ -86,6 +88,7 @@ const Day = () => {
             }
             else {
                 console.log(`message: ${JSON.stringify(data)}`);
+                setEventPopUp({state: "add", activity: "", description: ""});
             }
         }
     }
@@ -146,7 +149,7 @@ const Day = () => {
                     <div>
                         <input type="text" placeholder="Activity" className="w-full p-2 border mb-2 rounded" value={eventPopUp.activity} onChange={(e) => {if (eventPopUp.state==="add") {setEventPopUp({ ...eventPopUp, activity: e.target.value })}}} disabled={eventPopUp.state !== "add"} />
                         <textarea placeholder="Description" className="w-full p-2 border mb-2 rounded" value={eventPopUp.description} onChange={(e) => setEventPopUp({ ...eventPopUp, description: e.target.value })}></textarea>
-                        <button className="w-full p-2 bg-blue-500 text-white rounded" onClick={handleEventFinish}>{eventPopUp.state}</button>
+                        <button className="w-full p-2 bg-blue-500 text-white rounded" onClick={async () => {await handleEventFinish(); setReload(!reload); }}>{eventPopUp.state}</button>
                     </div>
                 </div>
             </div>
