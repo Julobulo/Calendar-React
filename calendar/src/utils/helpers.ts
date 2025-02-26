@@ -1,5 +1,5 @@
 export const isLightOrDark = (hex: string): boolean => {
-    if (!hex) return false;
+    if (!hex) return true;
     hex = hex.replace('#', '');
 
     const r = parseInt(hex.slice(0, 2), 16);
