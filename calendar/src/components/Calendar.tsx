@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 type FrontendUserActivity = Omit<NewUserActivity, "userId">;
 import { ObjectId } from "bson";
+import { useNavigate } from "react-router-dom";
+import { dayNames, getHumanTimeFromMinutes, isLightOrDark, monthNames } from "../utils/helpers";
 
 export interface ActivityEntry {
   activity: string;
@@ -22,25 +24,17 @@ export type NewUserActivity = Omit<UserActivity, "_id">;
 const Calendar: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [popupState, setPopupState] = useState<{
-    type: "year" | "month" | "day" | "moreActivities" | null;
+    type: "year" | "month" | null;
     position: { top: number; left: number; width: number; height: number } | null;
     day: number | null;
-    activities: ActivityEntry[] | null;
   }>({
     type: null,
     position: null,
     day: null,
-    activities: null,
-  });
-  const [activityPopup, setActivityPopup] = useState<{
-    position: { top: number; left: number } | null;
-    activity: { title: string, duration: number, description: string } | null;
-  }>({
-    position: null,
-    activity: null,
   });
   const [tempYear, setTempYear] = useState<number>(currentDate.getFullYear());
   const [tempMonth, setTempMonth] = useState<number>(currentDate.getMonth());
+  const navigate = useNavigate();
 
   const popupRef = useRef<HTMLDivElement | null>(null);
 
@@ -56,33 +50,13 @@ const Calendar: React.FC = () => {
     return daysInMonth(year, month - 1);
   };
 
-  const handleDayClick = (event: React.MouseEvent, day: number) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    setPopupState((prevState) => {
-      if (prevState.activities && prevState.day === day && !prevState.position) {
-        return {
-          ...prevState,
-          position: { top: rect.top + window.scrollY - .125 * rect.height, left: rect.left + window.scrollX - .25 * rect.width, width: rect.width * 1.5, height: popupState.position?.height as number },
-        };
-      }
-      return prevState;
-    });
-    setActivityPopup((prevState) => {
-      return {
-        ...prevState,
-        position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX },
-      };
-    });
+  const handleDayClick = (day: number) => {
+    navigate(`/calendar/day?year=${year}&month=${month}&day=${day}`);
   };
 
 
-  const handleMoreActivitesClick = (day: number, activities: ActivityEntry[]) => {
-    setPopupState((prevState) => ({
-      ...prevState,
-      type: "moreActivities",
-      day,
-      activities,
-    }));
+  const handleMoreActivitesClick = (day: number) => {
+    navigate(`/calendar/day?year=${year}&month=${month}&day=${day}`);
   };
 
 
@@ -90,12 +64,12 @@ const Calendar: React.FC = () => {
     const rect = event.currentTarget.getBoundingClientRect();
     setTempYear(currentDate.getFullYear());
     setTempMonth(currentDate.getMonth());
-    setPopupState({ type: popupType, position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: popupState.position?.width as number, height: popupState.position?.height as number }, day: popupState.day, activities: popupState.activities });
+    setPopupState({ type: popupType, position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: popupState.position?.width as number, height: popupState.position?.height as number }, day: popupState.day });
   };
 
   const applyDateChange = () => {
     setCurrentDate(new Date(tempYear, tempMonth, 1));
-    setPopupState({ type: null, position: popupState.position, day: popupState.day, activities: popupState.activities });
+    setPopupState({ type: null, position: popupState.position, day: popupState.day });
   };
 
   const goToToday = () => {
@@ -105,9 +79,7 @@ const Calendar: React.FC = () => {
 
   const handleClickOutside = (event: MouseEvent) => {
     if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-      setPopupState({ type: null, position: null, day: null, activities: popupState.activities });
-      // need position: null because the day click function uses it to know when to display the "x more" activities or not
-      setActivityPopup({ position: null, activity: null });
+      setPopupState({ type: null, position: null, day: null });
     }
   };
 
@@ -118,7 +90,7 @@ const Calendar: React.FC = () => {
   };
 
   useEffect(() => {
-    if (popupState.type || activityPopup.position) {
+    if (popupState.type) {
       document.addEventListener("mousedown", handleClickOutside);
       document.addEventListener("keydown", handleKeyDown);
     }
@@ -167,38 +139,8 @@ const Calendar: React.FC = () => {
     fetchColors();
   }, []);
 
-  const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-  function getHumanTimeFromMinutes(minutes: number): string {
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    let ret = '';
-    if (hours !== 0) {
-      ret += `${hours}h`;
-    }
-    if (remainingMinutes !== 0) {
-      ret += `${remainingMinutes}min`;
-    }
-    return ret
-  }
-
   const renderDayCell = (day: number, month: number, year: number, activities: FrontendUserActivity[]) => {
-    const dateString = new Date(year, month, day+1).toISOString().split("T")[0];
+    const dateString = new Date(year, month, day + 1).toISOString().split("T")[0];
     const activitiesForDay = activities.find(
       (activity: FrontendUserActivity) => new Date(activity.date).toISOString().split("T")[0] === dateString
     );
@@ -222,7 +164,7 @@ const Calendar: React.FC = () => {
               <button
                 className="text-xs text-blue-500 underline mt-1 bg-black"
                 onClick={() => {
-                  handleMoreActivitesClick(day, activitiesForDay.entries);
+                  handleMoreActivitesClick(day);
                 }}
               >
                 + {activitiesForDay.entries.length - 1} more
@@ -234,22 +176,6 @@ const Calendar: React.FC = () => {
     );
   };
 
-  const isLightOrDark = (hex: string): boolean => {
-    if (!hex) { return false }
-    // Remove the hash symbol if it's present
-    hex = hex.replace('#', '');
-
-    // Parse the red, green, and blue values from the hex string
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
-
-    // Calculate luminance using the formula
-    const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-
-    // Return if the color is light or dark
-    return luminance > 128 ? true : false;
-  };
 
   return (
     <div className="grid grid-rows-[auto,1fr] h-full">
@@ -307,7 +233,7 @@ const Calendar: React.FC = () => {
             <div
               key={i}
               className="p-4 border rounded-lg hover:bg-gray-200 cursor-pointer flex justify-center item"
-              onClick={(e) => handleDayClick(e, day)}
+              onClick={() => handleDayClick(day)}
             >
               {isToday && activities ? (
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white font-bold">
@@ -345,19 +271,6 @@ const Calendar: React.FC = () => {
           className="absolute bg-white border rounded-lg shadow-md p-4"
           style={{ top: popupState.position?.top, left: popupState.position?.left, width: popupState.position?.width, height: popupState.position?.height }}
         >
-          {popupState.type === "day" && popupState.day && (
-            <>
-              <h2 className="text-lg font-bold mb-4">
-                Add details for {popupState.day} {monthNames[month]} {year}
-              </h2>
-              <button
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                onClick={() => setPopupState({ type: null, position: popupState.position, day: popupState.day, activities: popupState.activities })}
-              >
-                Close
-              </button>
-            </>
-          )}
           {popupState.type === "month" && (
             <>
               <h2 className="text-lg font-bold mb-4">Select Month</h2>
@@ -397,53 +310,8 @@ const Calendar: React.FC = () => {
               </button>
             </>
           )}
-          {popupState.type === "moreActivities" && popupState.activities && (
-            <div onClick={(e) => handleDayClick(e, popupState.day as number)}>
-              {popupState.day === new Date().getDate() &&
-                month === new Date().getMonth() &&
-                year === new Date().getFullYear() ? (
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white font-bold">
-                  {popupState.day}
-                </div>
-              ) : (
-                <div>{popupState.day}</div>
-              )}
-              <div className="mt-4 space-y-2">
-                {popupState.activities.map((entry, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      backgroundColor: colors[entry.activity] || "#ffffff", // Default color if no match found
-                    }}
-                    className={`text-xs ${isLightOrDark(colors[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
-                  >
-                    {entry.activity} - {getHumanTimeFromMinutes(entry.duration)}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
-
-      {/* Activity popup */}
-      {activityPopup.position && (
-        <div
-          ref={popupRef}
-          className="absolute bg-white border rounded-lg shadow-md p-4"
-          style={{ top: activityPopup.position?.top, left: activityPopup.position?.left }}
-        >
-              <h2 className="text-lg font-bold mb-4">
-                Activity popup {popupState.day} {monthNames[month]} {year}
-              </h2>
-              <button
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                onClick={() => setActivityPopup({ position: null, activity: null })}
-              >
-                Close
-              </button>
-          </div>
-        )}
     </div>
   );
 };
