@@ -1,7 +1,7 @@
 Allow users to talk about people using @
-reload colors once a new activity is created
 
 DONE
 add a message when there are no activities for a day
 allow users to edit an activity
 create new color every time a user adds a new activity type
+reload colors once a new activity is created
