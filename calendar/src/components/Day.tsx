@@ -94,6 +94,31 @@ const Day = () => {
                 setReload(!reload);
             }
         }
+        else if (eventPopUp.state === "edit") {
+            const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/edit`, {
+                method: "PATCH",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json", // Tell the server we're sending JSON
+                },
+                body: JSON.stringify({
+                    year: year,
+                    month: month,
+                    day: day,
+                    activity: eventPopUp.activity,
+                    description: eventPopUp.description,
+                }),
+            });
+            const data = await response.json();
+            if (response.status !== 200) {
+                toast.error(data.message);
+                console.log(`the event wasn't successfully edited`);
+            }
+            else {
+                setEventPopUp({ state: "add", activity: "", description: "" });
+                setReload(!reload);
+            }
+        }
     }
 
     const handleDelete = async () => {
