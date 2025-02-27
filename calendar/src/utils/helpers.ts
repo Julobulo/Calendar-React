@@ -100,3 +100,7 @@ export interface UserActivity {
 
 // Utility type for creating new users without an _id field
 export type NewUserActivity = Omit<UserActivity, "_id">;
+
+export const generateRandomColor = () => {
+    return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`
+}
