@@ -1,25 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 type FrontendUserActivity = Omit<NewUserActivity, "userId">;
-import { ObjectId } from "bson";
 import { useNavigate } from "react-router-dom";
-import { dayNames, getHumanTimeFromMinutes, isLightOrDark, monthNames } from "../utils/helpers";
-
-export interface ActivityEntry {
-  activity: string;
-  duration: number; // number of minutes
-  description: string;
-}
-
-export interface UserActivity {
-  _id: ObjectId,
-  userId: ObjectId,
-  date: Date,
-  entries: ActivityEntry[]
-};
-
-
-// Utility type for creating new users without an _id field
-export type NewUserActivity = Omit<UserActivity, "_id">;
+import { dayNames, getHumanTimeFromMinutes, isLightOrDark, monthNames, NewUserActivity, UserActivity } from "../utils/helpers";
 
 const Calendar: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());

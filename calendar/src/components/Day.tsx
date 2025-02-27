@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { UserActivity } from "./Calendar";
+import { UserActivity } from "../utils/helpers";
 import { getHumanTimeFromMinutes, isLightOrDark } from "../utils/helpers";
 import { format } from "date-fns";
 import { DayPicker } from "react-day-picker";
