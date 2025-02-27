@@ -270,7 +270,7 @@ ActivityRoute.patch('/edit', async (c) => {
     // Parse request body
     const { year, month, day, activity, description } = await c.req.json();
 
-    if (!year || !month || !day || !activity) {
+    if (year === null || month === null || day === null || !activity) {
         c.status(400);
         return c.json({ message: `Missing required fields` });
     }
