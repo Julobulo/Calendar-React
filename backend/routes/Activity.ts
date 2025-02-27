@@ -157,9 +157,6 @@ ActivityRoute.post('/new', async (c) => {
     const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
     const user = await App.logIn(credentials);
     const client = user.mongoClient("mongodb-atlas");
-    const userCollection = client
-        .db("calendar")
-        .collection<User>("users");
     const activityCollection = client
         .db("calendar")
         .collection<UserActivity>("activity")
@@ -189,9 +186,8 @@ ActivityRoute.post('/new', async (c) => {
 
     if (!year || !month || !day || !activity || !description) {
         c.status(400);
-        return c.json({ message: `Missing required fields: ${JSON.stringify(await c.req.json())}` });
+        return c.json({ message: `Missing required fields` });
     }
-    console.log(`day: ${day}`);
     const date = new Date(Date.UTC(parseInt(year), parseInt(month), parseInt(day)));
     const newEntry: ActivityEntry = { activity, duration: getTimeFromLongString(description), description: description };
 
@@ -228,5 +224,74 @@ ActivityRoute.post('/new', async (c) => {
     }
     return c.json({ message: "ok" });
 })
+
+ActivityRoute.delete('/delete', async (c) => {
+    App = App || new Realm.App(c.env.ATLAS_APPID);
+    const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
+    const user = await App.logIn(credentials);
+    const client = user.mongoClient("mongodb-atlas");
+    const activityCollection = client
+        .db("calendar")
+        .collection<UserActivity>("activity")
+
+    const cookieHeader = c.req.header("Cookie");
+    if (!cookieHeader) {
+        c.status(400);
+        return c.json({ message: "no cookies found" });
+    }
+
+    const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
+    let token = cookies.find((cookie) => cookie.startsWith(`token=`));
+    if (!token) {
+        c.status(400);
+        return c.json({ message: "no token found" });
+    }
+    token = token.split("=")[1].trim();
+
+    const id = await checkToken(token, c.env.JWT_SECRET);
+    if (!id) {
+        c.status(400);
+        return c.json({ message: "bad token" });
+    }
+
+    const { year, month, day, activity } = await c.req.json(); // Parse request body
+
+    if (!year || !month || !day || !activity) {
+        c.status(400);
+        return c.json({ message: `Missing required fields` });
+    }
+    const date = new Date(Date.UTC(parseInt(year), parseInt(month), parseInt(day)));
+
+    // Check if user already has an activity document for that day
+    const existingActivity = await activityCollection.findOne({ userId: new ObjectId(id.toString()), date });
+    if (!existingActivity) {
+        c.status(400);
+        return c.json({ message: 'there are no activities for this day' });
+    }
+    // Filter out the activity to be deleted
+    const updatedEntries = existingActivity.entries.filter(entry => entry.activity !== activity);
+
+    if (updatedEntries.length === existingActivity.entries.length) {
+        return c.json({ message: "activity not found for this date" });
+    }
+
+    if (updatedEntries.length === 0) {
+        // If no more activities remain for that day, delete the document
+        await activityCollection.deleteOne({ _id: existingActivity._id });
+        return c.json({ message: "activity deleted, no more activities for this day" });
+    } else {
+        // Otherwise, update the document with the filtered entries
+        await activityCollection.updateOne(
+            { _id: existingActivity._id },
+            { $set: { entries: updatedEntries } }
+        );
+        return c.json({ message: "activity deleted successfully" });
+    }
+})
+
+// UserActivities.find({
+//     user: userId,                                // Filter by user
+//     "entries.description": { $regex: /keyword/i } // Case-insensitive search for keyword
+// });
 
 export default ActivityRoute
