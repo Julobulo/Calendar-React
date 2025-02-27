@@ -3,8 +3,10 @@ import { cors } from "hono/cors";
 import * as Realm from "realm-web";
 import { User } from "../models/UserModel";
 import OAuthRoute from "../routes/Oauth";
-import { UserActivity } from "../models/UserActivityModel";
+import { ActivityEntry, NewUserActivity, UserActivity } from "../models/UserActivityModel";
 import ActivityRoute from "../routes/Activity";
+import { generateRandomColor } from "../../calendar/src/utils/helpers";
+import { ObjectId } from "bson";
 
 // The Worker's environment bindings
 type Bindings = {
@@ -136,53 +138,53 @@ function getTimeFromLongString(input: string) {
 
 const weekList = [
   [
-      {
-          "Piano": '10min river flows in you',
-          "Studying": '20min présentation ES',
-          "Reading": '1h tome II (valentine est morte)',
-          "Youtube": '40min',
-          "Other": '10min speaking with Tito, 40min speaking with Aubin',
-      },
-      {
-          "Piano": '30min piano class',
-          "Studying": '40min exposé ES, 30min writing History studying sheets',
-          "Reading": '40min',
-          "Youtube": '20min',
-          "Other": '20min talking with monordiaulycee support (can\'t get BIOS because I didn\'t graduate yet)',
-      },
-      {
-          "Programming": '20min meeting with An (he added github secret), 1h30min meeting with Emile for his vrin website duplicate, 45min fixing github action IT WORKS!!!',
-          "Piano": '10min',
-          "Studying": '30min continuing to write History sheets',
-          "Reading": '25min',
-      },
-      {
-          "Programming": '20min trying to fix jules.tf dns (fixed it by setting ssl/tls mode to full in cloudflare)',
-          "Piano": '40min river flows in you',
-          "Studying": '30min chemistry exercises',
-          "Reading": '10min',
-          "Youtube": '40min',
-      },
-      {
-          "Piano": '1h (can do almost all river flows in you)',
-          "Studying": '45min writing history study sheets, 30min chemistry exercises',
-          "Youtube": '30min poissond fécond + seth meyers',
-          "Other": '15min calling tito about snowboarding (mom talked with people from ski station that said that it was fine taking classes in the bigger station)',
-      },
-      {
-          "Programming": '1h10min started actual calendar project, 45min meeting with An',
-          "Piano": '20min',
-          "Studying": '30min ex 3 for maths expertes',
-          "Reading": '1h30min almost finished tome II comte de Monte-Cristo',
-          "Working out": '2h with Vasile at basic-fit tolbiac',
-      },
-      {
-          "Programming": '20min contact@jules.tf WORKS!!!, 2h calendar.jules.tf frontend and backend (site online, google oauth, deployed cloudflare worker)',
-          "Piano": '15min',
-          "Studying": '20min spe maths exs, 45min DM de maths, 1h reading all my philosophy notes',
-          "Application": '5min speaking about personal statement with dad',
-          "Other": '20min telling Anna I want a vest and a hat and gloves for Christmas',
-      },
+    {
+      "Piano": '10min river flows in you',
+      "Studying": '20min présentation ES',
+      "Reading": '1h tome II (valentine est morte)',
+      "Youtube": '40min',
+      "Other": '10min speaking with Tito, 40min speaking with Aubin',
+    },
+    {
+      "Piano": '30min piano class',
+      "Studying": '40min exposé ES, 30min writing History studying sheets',
+      "Reading": '40min',
+      "Youtube": '20min',
+      "Other": '20min talking with monordiaulycee support (can\'t get BIOS because I didn\'t graduate yet)',
+    },
+    {
+      "Programming": '20min meeting with An (he added github secret), 1h30min meeting with Emile for his vrin website duplicate, 45min fixing github action IT WORKS!!!',
+      "Piano": '10min',
+      "Studying": '30min continuing to write History sheets',
+      "Reading": '25min',
+    },
+    {
+      "Programming": '20min trying to fix jules.tf dns (fixed it by setting ssl/tls mode to full in cloudflare)',
+      "Piano": '40min river flows in you',
+      "Studying": '30min chemistry exercises',
+      "Reading": '10min',
+      "Youtube": '40min',
+    },
+    {
+      "Piano": '1h (can do almost all river flows in you)',
+      "Studying": '45min writing history study sheets, 30min chemistry exercises',
+      "Youtube": '30min poissond fécond + seth meyers',
+      "Other": '15min calling tito about snowboarding (mom talked with people from ski station that said that it was fine taking classes in the bigger station)',
+    },
+    {
+      "Programming": '1h10min started actual calendar project, 45min meeting with An',
+      "Piano": '20min',
+      "Studying": '30min ex 3 for maths expertes',
+      "Reading": '1h30min almost finished tome II comte de Monte-Cristo',
+      "Working out": '2h with Vasile at basic-fit tolbiac',
+    },
+    {
+      "Programming": '20min contact@jules.tf WORKS!!!, 2h calendar.jules.tf frontend and backend (site online, google oauth, deployed cloudflare worker)',
+      "Piano": '15min',
+      "Studying": '20min spe maths exs, 45min DM de maths, 1h reading all my philosophy notes',
+      "Application": '5min speaking about personal statement with dad',
+      "Other": '20min telling Anna I want a vest and a hat and gloves for Christmas',
+    },
   ],
 ];
 
@@ -260,7 +262,7 @@ app.post('/userColors', async (c) => {
   for (const activity of currentUserActivities) {
     for (const entry of activity.entries) {
       if (!(entry.activity in currentUser.colors)) {
-        const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+        const randomColor = generateRandomColor();
         currentUser.colors[entry.activity] = randomColor; // update currentUser so for next iterations
         await userCollection.updateOne( // Update the user's colors in the database
           { _id: currentUser._id },
@@ -271,5 +273,90 @@ app.post('/userColors', async (c) => {
   }
   return c.json({ message: "successfully updated user's colors" });
 })
+
+// Route to process the weekList and create new activities
+app.post('/importActivities', async (c) => {
+  const { userId, weekList }: { userId: ObjectId, weekList: any[] } = await c.req.json();
+
+  App = App || new Realm.App(c.env.ATLAS_APPID);
+  const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
+  const user = await App.logIn(credentials); // Attempt to authenticate
+  const client = user.mongoClient("mongodb-atlas");
+  const userCollection = client
+    .db("calendar")
+    .collection<User>("users");
+  const activityCollection = client
+    .db("calendar")
+    .collection<UserActivity>("activity");
+  // 1. Erase all existing activities
+  console.log(`there are: ${(await activityCollection.find({ userId })).length} documents in activity collection`);
+  await activityCollection.deleteMany({ userId });
+  console.log(`now there are: ${(await activityCollection.find({ userId })).length} documents in activity collection`);
+
+  const currentUser = await userCollection.findOne({ _id: new ObjectId(userId.toString()) });
+
+  // Set the start date (January 1, 2024)
+  const startDate = new Date(Date.UTC(2024, 0, 1));
+
+  // 2. Iterate over weekList and process each day's activities
+  let currentDate = new Date(startDate); // Start from January 1, 2024
+
+  for (let i = 0; i < weekList.length; i++) {
+    const currentWeek = weekList[i];
+
+    for (let j = 0; j < currentWeek.length; j++) {
+      const currentDayActivities = currentWeek[j];
+      if (Object.keys(currentDayActivities).length > 0) {
+        // const date = new Date(currentDate); // Clone the current date object
+        const date = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate()));
+
+        const entries: ActivityEntry[] = [];
+
+        // Iterate through the activities of the day
+        for (const activityName in currentDayActivities) {
+          if (currentDayActivities.hasOwnProperty(activityName)) {
+            const description = currentDayActivities[activityName];
+
+            // Check if the user already has a color for this activity
+            let color = currentUser?.colors[activityName];
+            if (!color) {
+              // Update the user's colors collection to include the new color
+              await userCollection.updateOne(
+                { _id: userId },
+                { $set: { [`colors.${activityName}`]: generateRandomColor() } }
+              );
+            }
+
+            // Add the activity entry to the list
+            entries.push({
+              activity: activityName,
+              duration: getTimeFromLongString(description),
+              description,
+            });
+          }
+        }
+
+        // If there are any activities for this day, create an activity document
+        if (entries.length > 0) {
+          console.log(`added ${entries.length} activities for ${date}`);
+          const userActivity: NewUserActivity = {
+            userId: new ObjectId(userId.toString()),
+            date,
+            entries,
+          };
+
+          // Create the activity in the database
+          await activityCollection.insertOne(userActivity);
+        }
+      }
+
+      // Increment the date by one day after processing each day
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+  }
+
+  c.status(200);
+  return c.json({ message: "Activities imported successfully!" });
+});
 
 export default app;
