@@ -8,6 +8,7 @@ import "react-day-picker/dist/style.css";
 import Spinner from "./Spinner";
 import { toast } from "react-toastify";
 import { MdDelete } from "react-icons/md";
+import { FaRegCalendarTimes } from "react-icons/fa";
 
 const Day = () => {
     const [searchParams] = useSearchParams();
@@ -30,7 +31,6 @@ const Day = () => {
             }
             const data = await response.json();
             setColors(data);
-            console.log(`Colors: ${colors}`);
         };
         fetchColors();
     }, []);
@@ -90,7 +90,6 @@ const Day = () => {
                 console.log(`the event wasn't successfully created`);
             }
             else {
-                console.log(`message: ${JSON.stringify(data)}`);
                 setEventPopUp({ state: "add", activity: "", description: "" });
                 setReload(!reload);
             }
@@ -117,7 +116,6 @@ const Day = () => {
             console.log(`the event wasn't successfully deleted`);
         }
         else {
-            console.log(`message: ${JSON.stringify(data)}`);
             setEventPopUp({ state: "add", activity: "", description: "" });
             setReload(!reload);
         }
@@ -128,7 +126,12 @@ const Day = () => {
             {/* Events List */}
             <div className="w-full md:w-3/5 h-full overflow-y-auto p-4 bg-gray-100" onClick={handleClick}>
                 <h2 className="text-xl font-bold mb-4">Events for {format(new Date(year, month, day), "EEEE, MMMM do yyyy")}</h2>
-                {(dayActivities && !loading) && (
+                {loading && (
+                    <div className="flex justify-center">
+                        <Spinner />
+                    </div>
+                )}
+                {!loading && dayActivities && (
                     <div className="mt-2 flex flex-col space-y-1">
                         {dayActivities.entries.map((entry, index) => (
                             <div
@@ -147,11 +150,13 @@ const Day = () => {
                         ))}
                     </div>
                 )}
-                {loading && (
-                    <div className="flex justify-center">
-                        <Spinner />
+                {!loading && !dayActivities && (
+                    <div className="flex items-center gap-2 text-gray-500 text-sm p-2">
+                        <FaRegCalendarTimes className="text-lg" />
+                        No activities recorded for today.
                     </div>
-                )}
+                )
+                }
             </div>
 
             {/* Calendar & Form (Hidden on mobile) */}
@@ -164,7 +169,6 @@ const Day = () => {
                         onSelect={(date) => {
                             setSelectedDate(date!);
                             setCurrentMonth(date!); // Update the month when a date is selected
-                            console.log(`new url: ${`/calendar/day?year=${date?.getFullYear()}&month=${date?.getMonth()}&day=${date?.getDate()}`}`);
                             navigate(`/calendar/day?year=${date?.getFullYear()}&month=${date?.getMonth()}&day=${date?.getDate()}`);
                         }}
                         captionLayout="dropdown"
