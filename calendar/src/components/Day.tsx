@@ -35,6 +35,13 @@ const Day = () => {
         fetchColors();
     }, [reload]);
 
+    const emphasizeTimesInDescription = (description: string): string => {
+        const timeRegex =/(\d{1,2})h\s*(\d{1,2})?min?|\b(\d{1,2})min\b|\b(\d{1,2})h\b/g;
+        return description.replace(timeRegex, (match) => {
+            return `<u>${match}</u>`;
+        });
+    };
+
     useEffect(() => {
         const fetchActivities = async () => {
             setLoading(true);
@@ -45,6 +52,13 @@ const Day = () => {
                 throw new Error(`Failed to fetch activities: ${response.status}`);
             }
             const data: UserActivity[] = await response.json();
+            // Underline the times in the descriptions of the activities
+            if (data[0] && data[0].entries) {
+                data[0].entries = data[0].entries.map(entry => ({
+                    ...entry,
+                    description: emphasizeTimesInDescription(entry.description)
+                }));
+            }
             setDayActivities(data[0]);
             setLoading(false);
         }
@@ -170,7 +184,7 @@ const Day = () => {
                                     setEventPopUp({ state: "edit", activity: entry.activity, description: entry.description })
                                 }}
                             >
-                                {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - {entry.description}
+                                {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - <span dangerouslySetInnerHTML={{__html: entry.description}}></span>
                             </div>
                         ))}
                     </div>
