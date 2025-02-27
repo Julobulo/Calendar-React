@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import Spinner from "./Spinner";
+import { toast } from "react-toastify";
 
 const Day = () => {
     const [searchParams] = useSearchParams();
@@ -84,11 +85,13 @@ const Day = () => {
             });
             const data = await response.json();
             if (data.message !== "ok") {
+                toast.error(data.message);
                 console.log(`the event wasn't successfully created`);
             }
             else {
                 console.log(`message: ${JSON.stringify(data)}`);
                 setEventPopUp({state: "add", activity: "", description: ""});
+                setReload(!reload);
             }
         }
     }
@@ -149,7 +152,7 @@ const Day = () => {
                     <div>
                         <input type="text" placeholder="Activity" className="w-full p-2 border mb-2 rounded" value={eventPopUp.activity} onChange={(e) => {if (eventPopUp.state==="add") {setEventPopUp({ ...eventPopUp, activity: e.target.value })}}} disabled={eventPopUp.state !== "add"} />
                         <textarea placeholder="Description" className="w-full p-2 border mb-2 rounded" value={eventPopUp.description} onChange={(e) => setEventPopUp({ ...eventPopUp, description: e.target.value })}></textarea>
-                        <button className="w-full p-2 bg-blue-500 text-white rounded" onClick={async () => {await handleEventFinish(); setReload(!reload); }}>{eventPopUp.state}</button>
+                        <button className="w-full p-2 bg-blue-500 text-white rounded" onClick={async () => {await handleEventFinish(); }}>{eventPopUp.state}</button>
                     </div>
                 </div>
             </div>
