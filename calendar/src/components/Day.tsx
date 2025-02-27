@@ -33,7 +33,7 @@ const Day = () => {
             setColors(data);
         };
         fetchColors();
-    }, []);
+    }, [reload]);
 
     useEffect(() => {
         const fetchActivities = async () => {
