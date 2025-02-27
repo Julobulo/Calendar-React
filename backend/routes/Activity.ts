@@ -205,6 +205,11 @@ ActivityRoute.post('/new', async (c) => {
     }
 
     if (existingActivity) {
+        if (existingActivity.entries.some(entry => entry.activity === activity)) {
+            // prevent if activity already defined for the day
+            c.status(400);
+            return c.json({ message: `the activity is already defined for this date` });
+        }
         // Update existing entry
         await activityCollection.updateOne(
             { _id: existingActivity._id },
@@ -221,8 +226,7 @@ ActivityRoute.post('/new', async (c) => {
         console.log(`adding activity to activity collection: ${newActivity}`);
         await activityCollection.insertOne(newActivity);
     }
-    // TODO: prevent if activity already defined for the day
-    return c.json({ message: "Activity added successfully" });
+    return c.json({ message: "ok" });
 })
 
 export default ActivityRoute
