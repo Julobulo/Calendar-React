@@ -52,13 +52,6 @@ const Day = () => {
                 throw new Error(`Failed to fetch activities: ${response.status}`);
             }
             const data: UserActivity[] = await response.json();
-            // Underline the times in the descriptions of the activities
-            if (data[0] && data[0].entries) {
-                data[0].entries = data[0].entries.map(entry => ({
-                    ...entry,
-                    description: emphasizeTimesInDescription(entry.description)
-                }));
-            }
             setDayActivities(data[0]);
             setLoading(false);
         }
@@ -184,7 +177,7 @@ const Day = () => {
                                     setEventPopUp({ state: "edit", activity: entry.activity, description: entry.description })
                                 }}
                             >
-                                {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - <span dangerouslySetInnerHTML={{ __html: entry.description }}></span>
+                                {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - <span dangerouslySetInnerHTML={{ __html: emphasizeTimesInDescription(entry.description) }}></span>
                             </div>
                         ))}
                     </div>
