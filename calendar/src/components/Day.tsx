@@ -36,9 +36,9 @@ const Day = () => {
     }, [reload]);
 
     const emphasizeTimesInDescription = (description: string): string => {
-        const timeRegex =/(\d{1,2})h\s*(\d{1,2})?min?|\b(\d{1,2})min\b|\b(\d{1,2})h\b/g;
+        const timeRegex = /(\d{1,2})h\s*(\d{1,2})?min?|\b(\d{1,2})min\b|\b(\d{1,2})h\b/g;
         return description.replace(timeRegex, (match) => {
-            return `<u>${match}</u>`;
+            return `<span style="text-decoration: underline;">${match}</span>`;
         });
     };
 
@@ -184,7 +184,7 @@ const Day = () => {
                                     setEventPopUp({ state: "edit", activity: entry.activity, description: entry.description })
                                 }}
                             >
-                                {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - <span dangerouslySetInnerHTML={{__html: entry.description}}></span>
+                                {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - <span dangerouslySetInnerHTML={{ __html: entry.description }}></span>
                             </div>
                         ))}
                     </div>
