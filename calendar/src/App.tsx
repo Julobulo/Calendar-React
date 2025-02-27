@@ -7,11 +7,25 @@ import Login from "./components/Login";
 import Cookies from "js-cookie";
 import { Analytics } from "@vercel/analytics/react"
 import Day from "./components/Day";
+import { ToastContainer } from "react-toastify";
 
 const App = () => {
 
   return (
     <div className="flex h-screen">
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+        transition:Bounce
+      />
       <Analytics />
       {/* Sidebar */}
       <Sidebar />
