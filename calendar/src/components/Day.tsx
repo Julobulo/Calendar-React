@@ -7,6 +7,7 @@ import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import Spinner from "./Spinner";
 import { toast } from "react-toastify";
+import { MdDelete } from "react-icons/md";
 
 const Day = () => {
     const [searchParams] = useSearchParams();
@@ -56,7 +57,7 @@ const Day = () => {
             navigate(`/calendar/day/details?year=${year}&month=${month}&day=${day}`);
         }
         else {
-            setEventPopUp({state: "add", activity: "", description: ""});
+            setEventPopUp({ state: "add", activity: "", description: "" });
         }
     };
 
@@ -90,7 +91,7 @@ const Day = () => {
             }
             else {
                 console.log(`message: ${JSON.stringify(data)}`);
-                setEventPopUp({state: "add", activity: "", description: ""});
+                setEventPopUp({ state: "add", activity: "", description: "" });
                 setReload(!reload);
             }
         }
@@ -112,7 +113,7 @@ const Day = () => {
                                 className={`text-xs ${isLightOrDark(colors[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
                                 onClick={(e) => {
                                     e.stopPropagation(); // Prevent handleClick from running
-                                    setEventPopUp({state: "edit", activity: entry.activity, description: entry.description})
+                                    setEventPopUp({ state: "edit", activity: entry.activity, description: entry.description })
                                 }}
                             >
                                 {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - {entry.description}
@@ -150,9 +151,23 @@ const Day = () => {
                 <div className="p-4 border rounded">
                     <h3 className="text-lg font-semibold">{eventPopUp.state} event</h3>
                     <div>
-                        <input type="text" placeholder="Activity" className="w-full p-2 border mb-2 rounded" value={eventPopUp.activity} onChange={(e) => {if (eventPopUp.state==="add") {setEventPopUp({ ...eventPopUp, activity: e.target.value })}}} disabled={eventPopUp.state !== "add"} />
+                        <input type="text" placeholder="Activity" className="w-full p-2 border mb-2 rounded" value={eventPopUp.activity} onChange={(e) => { if (eventPopUp.state === "add") { setEventPopUp({ ...eventPopUp, activity: e.target.value }) } }} disabled={eventPopUp.state !== "add"} />
                         <textarea placeholder="Description" className="w-full p-2 border mb-2 rounded" value={eventPopUp.description} onChange={(e) => setEventPopUp({ ...eventPopUp, description: e.target.value })}></textarea>
-                        <button className="w-full p-2 bg-blue-500 text-white rounded" onClick={async () => {await handleEventFinish(); }}>{eventPopUp.state}</button>
+                        {
+                            (eventPopUp.state === "add") ?
+                            (<button className="w-full p-2 bg-blue-500 text-white rounded" onClick={async () => { await handleEventFinish(); }}>{eventPopUp.state}</button>)
+                                :
+                                (<div className="flex gap-2">
+                                    <button className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                        onClick={async () => { await handleEventFinish(); }}>
+                                        {eventPopUp.state}
+                                    </button>
+                                    <button className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
+                                        onClick={() => { }}>
+                                        <MdDelete className="text-xl" />
+                                    </button>
+                                </div>)
+                        }
                     </div>
                 </div>
             </div>
