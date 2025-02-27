@@ -85,7 +85,7 @@ const Day = () => {
                 }),
             });
             const data = await response.json();
-            if (data.message !== "ok") {
+            if (response.status !== 200) {
                 toast.error(data.message);
                 console.log(`the event wasn't successfully created`);
             }
@@ -94,6 +94,32 @@ const Day = () => {
                 setEventPopUp({ state: "add", activity: "", description: "" });
                 setReload(!reload);
             }
+        }
+    }
+
+    const handleDelete = async () => {
+        const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/delete`, {
+            method: "DELETE",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json", // Tell the server we're sending JSON
+            },
+            body: JSON.stringify({
+                year: year,
+                month: month,
+                day: day,
+                activity: eventPopUp.activity,
+            }),
+        });
+        const data = await response.json();
+        if (response.status !== 200) {
+            toast.error(data.message);
+            console.log(`the event wasn't successfully deleted`);
+        }
+        else {
+            console.log(`message: ${JSON.stringify(data)}`);
+            setEventPopUp({ state: "add", activity: "", description: "" });
+            setReload(!reload);
         }
     }
 
@@ -155,7 +181,7 @@ const Day = () => {
                         <textarea placeholder="Description" className="w-full p-2 border mb-2 rounded" value={eventPopUp.description} onChange={(e) => setEventPopUp({ ...eventPopUp, description: e.target.value })}></textarea>
                         {
                             (eventPopUp.state === "add") ?
-                            (<button className="w-full p-2 bg-blue-500 text-white rounded" onClick={async () => { await handleEventFinish(); }}>{eventPopUp.state}</button>)
+                                (<button className="w-full p-2 bg-blue-500 text-white rounded" onClick={async () => { await handleEventFinish(); }}>{eventPopUp.state}</button>)
                                 :
                                 (<div className="flex gap-2">
                                     <button className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -163,7 +189,7 @@ const Day = () => {
                                         {eventPopUp.state}
                                     </button>
                                     <button className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
-                                        onClick={() => { }}>
+                                        onClick={async () => { await handleDelete() }}>
                                         <MdDelete className="text-xl" />
                                     </button>
                                 </div>)
