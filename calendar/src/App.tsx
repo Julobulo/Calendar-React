@@ -7,7 +7,7 @@ import Login from "./components/Login";
 import Cookies from "js-cookie";
 import { Analytics } from "@vercel/analytics/react"
 import Day from "./components/Day";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, Bounce } from "react-toastify";
 
 const App = () => {
 
@@ -24,7 +24,7 @@ const App = () => {
         draggable
         pauseOnHover
         theme="dark"
-        transition:Bounce
+        transition={Bounce}
       />
       <Analytics />
       {/* Sidebar */}
