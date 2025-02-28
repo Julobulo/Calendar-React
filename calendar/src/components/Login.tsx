@@ -1,12 +1,12 @@
 
 const Login = () => {
     const handleGoogleLogin = () => {
-        window.location.href = `http://localhost:8787/oauth/google`;
-        // window.location.href = "https://api.calendar.jules.tf/oauth/google";
+        // window.location.href = `http://localhost:8787/oauth/google`;
+        window.location.href = "https://api.calendar.jules.tf/oauth/google";
     };
     const handleGuestLogin = () => {
-        window.location.href = `http://localhost:8787/oauth/google`;
-        // window.location.href = "https://api.calendar.jules.tf/oauth/google";
+        // window.location.href = `http://localhost:8787/oauth/google`;
+        window.location.href = "https://api.calendar.jules.tf/oauth/google";
     };
 
     return (
