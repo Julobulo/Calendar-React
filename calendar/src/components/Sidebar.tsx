@@ -6,10 +6,18 @@ import { GoHomeFill } from "react-icons/go";
 
 const Sidebar = () => {
   const location = useLocation();
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(() => {
+    return localStorage.getItem("sidebarOpen") === "false" ? false : true;
+  });
 
   const isActive = (path: string) => location.pathname === path;
-  const toggleSidebar = () => setIsOpen((prev) => !prev);
+  const toggleSidebar = () => {
+    setIsOpen((prev) => {
+      const newState = !prev;
+      localStorage.setItem("sidebarOpen", newState.toString());
+      return newState;
+    });
+  };
 
   return (
     <div className="h-full bg-gray-100 shadow-md transition-all duration-300 flex flex-col">
