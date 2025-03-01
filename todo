@@ -5,6 +5,7 @@ Add a search to the activity name input
 Allow users to talk about locations using a special character
 Have a "note" for each day (not an activity) where users can put other info than just the activities
 Have other categories of info for each day like for ex: weight, height, ...
+Use localStorage to store the current date
 
 DONE
 add a message when there are no activities for a day
