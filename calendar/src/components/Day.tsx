@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserActivity } from "../utils/helpers";
 import { getHumanTimeFromMinutes, isLightOrDark } from "../utils/helpers";
@@ -160,6 +160,15 @@ const Day = () => {
             setReload(!reload);
         }
     }
+    
+    const calendarRef = useRef<HTMLDivElement>(null);
+    const [calendarWidth, setCalendarWidth] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (calendarRef.current) {
+            setCalendarWidth(calendarRef.current.offsetWidth);
+        }
+    }, []);
 
     return (
         <div className="flex flex-col md:flex-row h-screen">
@@ -200,9 +209,9 @@ const Day = () => {
             </div>
 
             {/* Calendar & Form (Hidden on mobile) */}
-            <div className="hidden md:flex flex-col w-2/5 p-4 bg-white">
+            <div className="hidden md:inline-flex flex-col  p-4 bg-white max-w-fit">
                 {/* Simple Calendar */}
-                <div className="p-4 border rounded mb-4">
+                <div ref={calendarRef} className="p-4 border rounded mb-4 w-max ">
                     <DayPicker
                         mode="single"
                         selected={selectedDate}
@@ -219,7 +228,7 @@ const Day = () => {
                 </div>
 
                 {/* Add Event Form */}
-                <div className="p-4 border rounded">
+                <div className="p-4 border rounded" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
                     <h3 className="text-lg font-semibold">{eventPopUp.state} event</h3>
                     <div>
                         <input type="text" placeholder="Activity" className="w-full p-2 border mb-2 rounded" value={eventPopUp.activity} onChange={(e) => { if (eventPopUp.state === "add") { setEventPopUp({ ...eventPopUp, activity: e.target.value }) } }} disabled={eventPopUp.state !== "add"} />
