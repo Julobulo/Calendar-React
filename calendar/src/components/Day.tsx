@@ -173,7 +173,7 @@ const Day = () => {
     return (
         <div className="flex flex-col md:flex-row h-screen">
             {/* Events List */}
-            <div className="w-full md:w-3/5 h-full overflow-y-auto p-4 bg-gray-100" onClick={handleClick}>
+            <div className="w-full h-full overflow-y-auto p-4 bg-gray-100" onClick={handleClick}>
                 <h2 className="text-xl font-bold mb-4">Events for {format(new Date(year, month, day), "EEEE, MMMM do yyyy")}</h2>
                 {loading && (
                     <div className="flex justify-center">
@@ -209,7 +209,7 @@ const Day = () => {
             </div>
 
             {/* Calendar & Form (Hidden on mobile) */}
-            <div className="hidden md:inline-flex flex-col  p-4 bg-white max-w-fit">
+            <div className="hidden md:inline-flex flex-col p-4 bg-white max-w-fit">
                 {/* Simple Calendar */}
                 <div ref={calendarRef} className="p-4 border rounded mb-4 w-max ">
                     <DayPicker
