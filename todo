@@ -7,7 +7,8 @@ Have a "note" for each day (not an activity) where users can put other info than
 Have other categories of info for each day like for ex: weight, height, ...
 
 DONE
-Use localStorage to store the current date - 01/03/2025 - 12:38
+Fixed column width - 01/03/2025 - 1:20 pm
+Use localStorage to store the current date - 01/03/2025 - 12:38 am
 add a message when there are no activities for a day
 allow users to edit an activity
 create new color every time a user adds a new activity type
