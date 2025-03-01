@@ -71,6 +71,14 @@ const Day = () => {
     const [selectedDate, setSelectedDate] = useState(new Date(year, month, day));
     const [currentMonth, setCurrentMonth] = useState(new Date(year, month, 1));
 
+
+    useEffect(() => {
+        console.log(`month: ${selectedDate.getMonth()}, year: ${selectedDate.getFullYear()}, day: ${selectedDate.getDate()}`);
+        localStorage.setItem('day', selectedDate.getDate().toString());
+        localStorage.setItem('month', selectedDate.getMonth().toString());
+        localStorage.setItem('year', selectedDate.getFullYear().toString());
+    }, [selectedDate])
+
     const [eventPopUp, setEventPopUp] = useState<{ state: "add" | "edit"; activity: string; description: string }>({ state: "add", activity: "", description: "" });
 
     const [loading, setLoading] = useState(true);

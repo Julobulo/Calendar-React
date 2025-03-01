@@ -4,7 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { dayNames, getHumanTimeFromMinutes, isLightOrDark, monthNames, NewUserActivity, UserActivity } from "../utils/helpers";
 
 const Calendar: React.FC = () => {
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [currentDate, setCurrentDate] = useState<Date>(
+    new Date(
+      Number(localStorage.getItem('year')) || (new Date()).getFullYear(),
+      Number(localStorage.getItem('month')) || (new Date()).getMonth(),
+      Number(localStorage.getItem('day')) || (new Date()).getDate(),
+    ));
   const [popupState, setPopupState] = useState<{
     type: "year" | "month" | null;
     position: { top: number; left: number; width: number; height: number } | null;
@@ -15,6 +20,13 @@ const Calendar: React.FC = () => {
   const [tempYear, setTempYear] = useState<number>(currentDate.getFullYear());
   const [tempMonth, setTempMonth] = useState<number>(currentDate.getMonth());
   const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log(`month: ${currentDate.getMonth()}, year: ${currentDate.getFullYear()}, day: ${currentDate.getDate()}`);
+    localStorage.setItem('day', currentDate.getDate().toString());
+    localStorage.setItem('month', currentDate.getMonth().toString());
+    localStorage.setItem('year', currentDate.getFullYear().toString());
+  }, [currentDate])
 
   const popupRef = useRef<HTMLDivElement | null>(null);
 
