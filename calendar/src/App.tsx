@@ -10,7 +10,6 @@ import Day from "./components/Day";
 import { ToastContainer, Bounce } from "react-toastify";
 
 const App = () => {
-
   return (
     <div className="flex h-screen">
       <ToastContainer
@@ -27,18 +26,19 @@ const App = () => {
         transition={Bounce}
       />
       <Analytics />
-      {/* Sidebar */}
       <Sidebar />
-
-      {/* Main Content */}
-      <main className="flex-1 p-10 overflow-y-auto">
+      {/* Main Content (Flex-1 ensures it takes up the remaining space) */}
+      <main className="flex-1 p-10 overflow-y-auto transition-all duration-300">
         <Routes>
-          <Route path="/" element={
-            <div className="bg-gray-100 p-10">
-              <Home />
-              {!Cookies.get('token') && <Login />}
-            </div>
-          } />
+          <Route
+            path="/"
+            element={
+              <div className="bg-gray-100 p-10">
+                <Home />
+                {!Cookies.get("token") && <Login />}
+              </div>
+            }
+          />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/calendar/day" element={<Day />} />
           <Route path="/statistics" element={<Statistics />} />
