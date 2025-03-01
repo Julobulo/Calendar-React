@@ -289,9 +289,9 @@ app.post('/importActivities', async (c) => {
     .db("calendar")
     .collection<UserActivity>("activity");
   // 1. Erase all existing activities
-  console.log(`there are: ${(await activityCollection.find({ userId })).length} documents in activity collection`);
-  await activityCollection.deleteMany({ userId });
-  console.log(`now there are: ${(await activityCollection.find({ userId })).length} documents in activity collection`);
+  console.log(`there are: ${(await activityCollection.find({ userId: new ObjectId(userId.toString()) })).length} documents in activity collection`);
+  await activityCollection.deleteMany({ userId: new ObjectId(userId.toString()) });
+  console.log(`now there are: ${(await activityCollection.find({ userId: new ObjectId(userId.toString()) })).length} documents in activity collection`);
 
   const currentUser = await userCollection.findOne({ _id: new ObjectId(userId.toString()) });
 
@@ -304,7 +304,7 @@ app.post('/importActivities', async (c) => {
   for (let i = 0; i < weekList.length; i++) {
     const currentWeek = weekList[i];
 
-    for (let j = 0; j < currentWeek.length; j++) {
+    for (let j = 0; j < 7; j++) {
       const currentDayActivities = currentWeek[j];
       if (Object.keys(currentDayActivities).length > 0) {
         // const date = new Date(currentDate); // Clone the current date object
@@ -351,7 +351,12 @@ app.post('/importActivities', async (c) => {
       }
 
       // Increment the date by one day after processing each day
-      currentDate.setDate(currentDate.getDate() + 1);
+      currentDate = new Date(Date.UTC(
+        currentDate.getUTCFullYear(),
+        currentDate.getUTCMonth(),
+        currentDate.getUTCDate() + 1
+      ));
+
     }
   }
 
