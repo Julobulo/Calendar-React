@@ -8,11 +8,9 @@ const Calendar: React.FC = () => {
   const [popupState, setPopupState] = useState<{
     type: "year" | "month" | null;
     position: { top: number; left: number; width: number; height: number } | null;
-    day: number | null;
   }>({
     type: null,
     position: null,
-    day: null,
   });
   const [tempYear, setTempYear] = useState<number>(currentDate.getFullYear());
   const [tempMonth, setTempMonth] = useState<number>(currentDate.getMonth());
@@ -46,12 +44,12 @@ const Calendar: React.FC = () => {
     const rect = event.currentTarget.getBoundingClientRect();
     setTempYear(currentDate.getFullYear());
     setTempMonth(currentDate.getMonth());
-    setPopupState({ type: popupType, position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: popupState.position?.width as number, height: popupState.position?.height as number }, day: popupState.day });
+    setPopupState({ type: popupType, position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: popupState.position?.width as number, height: popupState.position?.height as number } });
   };
 
   const applyDateChange = () => {
     setCurrentDate(new Date(tempYear, tempMonth, 1));
-    setPopupState({ type: null, position: popupState.position, day: popupState.day });
+    setPopupState({ type: null, position: popupState.position });
   };
 
   const goToToday = () => {
@@ -61,7 +59,7 @@ const Calendar: React.FC = () => {
 
   const handleClickOutside = (event: MouseEvent) => {
     if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-      setPopupState({ type: null, position: null, day: null });
+      setPopupState({ type: null, position: null });
     }
   };
 
