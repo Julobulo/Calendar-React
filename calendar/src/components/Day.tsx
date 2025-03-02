@@ -20,6 +20,8 @@ const Day = () => {
     const [colors, setColors] = useState<Record<string, string>>({});
     const [reload, setReload] = useState(false);
 
+    const [mobileShowForm, setMobileShowForm] = useState<boolean>(false);
+
     useEffect(() => {
         const fetchColors = async () => {
             const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/colors`, {
@@ -61,7 +63,8 @@ const Day = () => {
     const navigate = useNavigate();
     const handleClick = () => {
         if (window.innerWidth < 768) {
-            navigate(`/calendar/day/details?year=${year}&month=${month}&day=${day}`);
+            // navigate(`/calendar/day/details?year=${year}&month=${month}&day=${day}`);
+            setMobileShowForm(true);
         }
         else {
             setEventPopUp({ state: "add", activity: "", description: "" });
@@ -134,6 +137,7 @@ const Day = () => {
                 setReload(!reload);
             }
         }
+        setMobileShowForm(false);
     }
 
     const handleDelete = async () => {
@@ -159,6 +163,7 @@ const Day = () => {
             setEventPopUp({ state: "add", activity: "", description: "" });
             setReload(!reload);
         }
+        setMobileShowForm(false);
     }
 
     const calendarRef = useRef<HTMLDivElement>(null);
@@ -211,10 +216,14 @@ const Day = () => {
         }
     };
 
+    const handleClose = () => {
+        setMobileShowForm(false);
+    }
+
     return (
         <div className="flex flex-col md:flex-row h-screen p-3">
             {/* Events List */}
-            <div className="w-full h-full overflow-y-auto p-4 bg-gray-100" onClick={handleClick}>
+            {((window.innerWidth < 768 && !mobileShowForm) || (window.innerWidth >= 768)) && (<div className="w-full h-full overflow-y-auto p-4 bg-gray-100" onClick={handleClick}>
                 <h2 className="text-xl font-bold mb-4">Events for {format(new Date(year, month, day), "EEEE, MMMM do yyyy")}</h2>
                 {loading && (
                     <div className="flex justify-center">
@@ -233,6 +242,7 @@ const Day = () => {
                                 onClick={(e) => {
                                     e.stopPropagation(); // Prevent handleClick from running
                                     setEventPopUp({ state: "edit", activity: entry.activity, description: entry.description })
+                                    setMobileShowForm(true);
                                 }}
                             >
                                 {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - <span dangerouslySetInnerHTML={{ __html: emphasizeTimesInDescription(entry.description) }}></span>
@@ -247,10 +257,10 @@ const Day = () => {
                     </div>
                 )
                 }
-            </div>
+            </div>)}
 
             {/* Calendar & Form (Hidden on mobile) */}
-            <div className="hidden md:inline-flex flex-col px-4 bg-white max-w-fit">
+            {((window.innerWidth < 768 && mobileShowForm) || (window.innerWidth >= 768)) && (<div className="md:inline-flex flex-col px-4 bg-white max-w-fit">
                 {/* Simple Calendar */}
                 <div ref={calendarRef} className="p-4 border rounded mb-4 w-max ">
                     <DayPicker
@@ -315,7 +325,8 @@ const Day = () => {
                         }
                     </div>
                 </div>
-            </div>
+                <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600">✕</button>
+            </div>)}
         </div>
     );
 };
