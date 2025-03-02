@@ -170,7 +170,7 @@ const Calendar: React.FC = () => {
 
 
   return (
-    <div className="grid grid-rows-[auto,1fr] h-full">
+    <div className="grid grid-rows-[auto,1fr] h-full p-3">
       {/* Header */}
       <div className="mb-4 flex justify-center space-x-4">
         <button
