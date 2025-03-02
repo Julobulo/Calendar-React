@@ -193,6 +193,24 @@ const Day = () => {
         setSuggestions([]);
     };
 
+    const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState<number>(-1);
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (suggestions.length === 0) return;
+
+        if (e.key === "ArrowDown") {
+            setSelectedSuggestionIndex((prev) =>
+                prev < suggestions.length - 1 ? prev + 1 : prev
+            );
+        } else if (e.key === "ArrowUp") {
+            setSelectedSuggestionIndex((prev) => (prev > 0 ? prev - 1 : prev));
+        } else if (e.key === "Enter" && selectedSuggestionIndex !== -1) {
+            setEventPopUp({ ...eventPopUp, activity: suggestions[selectedSuggestionIndex] });
+            setSuggestions([]);
+            setSelectedSuggestionIndex(-1);
+        }
+    };
+
     return (
         <div className="flex flex-col md:flex-row h-screen">
             {/* Events List */}
@@ -257,13 +275,17 @@ const Day = () => {
                         <input type="text" placeholder="Activity" className="w-full p-2 border rounded" value={eventPopUp.activity}
                             // onChange={(e) => { if (eventPopUp.state === "add") { setEventPopUp({ ...eventPopUp, activity: e.target.value }) } }}
                             onChange={handleInputChange}
+                            onKeyDown={handleKeyDown}
                             disabled={eventPopUp.state !== "add"} />
                         {suggestions.length > 0 && (
                             <ul className="mb-3 bg-white border rounded shadow-lg">
-                                {suggestions.map((suggestion) => (
+                                {suggestions.map((suggestion, index) => (
                                     <li
                                         key={suggestion}
-                                        className="p-2 cursor-pointer hover:bg-gray-200"
+                                        className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
+                                            }`}
+                                        onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                                        onMouseLeave={() => setSelectedSuggestionIndex(-1)}
                                         onClick={() => handleSuggestionClick(suggestion)}
                                     >
                                         {suggestion.split("").map((char, index) => (
