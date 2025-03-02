@@ -160,7 +160,7 @@ const Day = () => {
             setReload(!reload);
         }
     }
-    
+
     const calendarRef = useRef<HTMLDivElement>(null);
     const [calendarWidth, setCalendarWidth] = useState<number | null>(null);
 
@@ -169,6 +169,29 @@ const Day = () => {
             setCalendarWidth(calendarRef.current.offsetWidth);
         }
     }, []);
+
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        const value = e.target.value;
+        setEventPopUp({ ...eventPopUp, activity: value });
+
+        if (value.length === 0) {
+            setSuggestions([]);
+            return;
+        }
+
+        const filteredSuggestions = Object.keys(colors)
+            .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
+            .slice(0, 3);
+
+        setSuggestions(filteredSuggestions);
+    };
+
+    const handleSuggestionClick = (suggestion: string) => {
+        setEventPopUp({ ...eventPopUp, activity: suggestion });
+        setSuggestions([]);
+    };
 
     return (
         <div className="flex flex-col md:flex-row h-screen">
@@ -231,8 +254,28 @@ const Day = () => {
                 <div className="p-4 border rounded" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
                     <h3 className="text-lg font-semibold">{eventPopUp.state} event</h3>
                     <div>
-                        <input type="text" placeholder="Activity" className="w-full p-2 border mb-2 rounded" value={eventPopUp.activity} onChange={(e) => { if (eventPopUp.state === "add") { setEventPopUp({ ...eventPopUp, activity: e.target.value }) } }} disabled={eventPopUp.state !== "add"} />
-                        <textarea placeholder="Description" className="w-full p-2 border mb-2 rounded" value={eventPopUp.description} onChange={(e) => setEventPopUp({ ...eventPopUp, description: e.target.value })}></textarea>
+                        <input type="text" placeholder="Activity" className="w-full p-2 border rounded" value={eventPopUp.activity}
+                            // onChange={(e) => { if (eventPopUp.state === "add") { setEventPopUp({ ...eventPopUp, activity: e.target.value }) } }}
+                            onChange={handleInputChange}
+                            disabled={eventPopUp.state !== "add"} />
+                        {suggestions.length > 0 && (
+                            <ul className="mb-3 bg-white border rounded shadow-lg">
+                                {suggestions.map((suggestion) => (
+                                    <li
+                                        key={suggestion}
+                                        className="p-2 cursor-pointer hover:bg-gray-200"
+                                        onClick={() => handleSuggestionClick(suggestion)}
+                                    >
+                                        {suggestion.split("").map((char, index) => (
+                                            <span key={index} className={eventPopUp.activity.toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
+                                                {char}
+                                            </span>
+                                        ))}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                        <textarea placeholder="Description" className="w-full p-2 border my-2 rounded" value={eventPopUp.description} onChange={(e) => setEventPopUp({ ...eventPopUp, description: e.target.value })}></textarea>
                         {
                             (eventPopUp.state === "add") ?
                                 (<button className="w-full p-2 bg-blue-500 text-white rounded" onClick={async () => { await handleEventFinish(); }}>{eventPopUp.state}</button>)
