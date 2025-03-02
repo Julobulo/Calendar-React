@@ -65,6 +65,7 @@ const Day = () => {
         if (window.innerWidth < 768) {
             // navigate(`/calendar/day/details?year=${year}&month=${month}&day=${day}`);
             setMobileShowForm(true);
+            setEventPopUp({ state: "add", activity: "", description: "" });
         }
         else {
             setEventPopUp({ state: "add", activity: "", description: "" });
