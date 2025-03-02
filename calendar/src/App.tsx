@@ -28,7 +28,7 @@ const App = () => {
       <Analytics />
       <Sidebar />
       {/* Main Content (Flex-1 ensures it takes up the remaining space) */}
-      <main className="flex-1 p-10 overflow-y-auto transition-all duration-300">
+      <main className="flex-1 overflow-y-auto transition-all duration-300">
         <Routes>
           <Route
             path="/"

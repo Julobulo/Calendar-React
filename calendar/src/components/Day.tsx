@@ -212,7 +212,7 @@ const Day = () => {
     };
 
     return (
-        <div className="flex flex-col md:flex-row h-screen">
+        <div className="flex flex-col md:flex-row h-screen p-3">
             {/* Events List */}
             <div className="w-full h-full overflow-y-auto p-4 bg-gray-100" onClick={handleClick}>
                 <h2 className="text-xl font-bold mb-4">Events for {format(new Date(year, month, day), "EEEE, MMMM do yyyy")}</h2>
@@ -250,7 +250,7 @@ const Day = () => {
             </div>
 
             {/* Calendar & Form (Hidden on mobile) */}
-            <div className="hidden md:inline-flex flex-col p-4 bg-white max-w-fit">
+            <div className="hidden md:inline-flex flex-col px-4 bg-white max-w-fit">
                 {/* Simple Calendar */}
                 <div ref={calendarRef} className="p-4 border rounded mb-4 w-max ">
                     <DayPicker
@@ -269,7 +269,7 @@ const Day = () => {
                 </div>
 
                 {/* Add Event Form */}
-                <div className="p-4 border rounded" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
+                <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
                     <h3 className="text-lg font-semibold">{eventPopUp.state} event</h3>
                     <div>
                         <input type="text" placeholder="Activity" className="w-full p-2 border rounded" value={eventPopUp.activity}
@@ -278,7 +278,7 @@ const Day = () => {
                             onKeyDown={handleKeyDown}
                             disabled={eventPopUp.state !== "add"} />
                         {suggestions.length > 0 && (
-                            <ul className="mb-3 bg-white border rounded shadow-lg">
+                            <ul className="bg-white border rounded shadow-lg">
                                 {suggestions.map((suggestion, index) => (
                                     <li
                                         key={suggestion}
