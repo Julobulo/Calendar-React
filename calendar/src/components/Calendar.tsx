@@ -147,14 +147,14 @@ const Calendar: React.FC = () => {
                 style={{
                   backgroundColor: colors[entry.activity] || "#ffffff", // Default color if no match found
                 }}
-                className={`text-[5px] ${isLightOrDark(colors[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
+                className={`text-[5px] md:text-sm ${isLightOrDark(colors[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
               >
                 {entry.activity} - {getHumanTimeFromMinutes(entry.duration)}
               </div>
             ))}
             {activitiesForDay.entries.length > 1 && (
               <button
-                className="text-[5px] text-blue-500 underline mt-1 bg-black"
+                className="text-[5px] md:text-sm text-blue-500 underline mt-1 bg-black"
                 onClick={() => {
                   handleMoreActivitesClick(day);
                 }}
@@ -228,13 +228,18 @@ const Calendar: React.FC = () => {
               onClick={() => handleDayClick(day)}
             >
               {isToday && activities ? (
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white font-bold">
-                  {day}
+                <div className="flex flex-col items-center">
+                  {/* Blue circle for today's date */}
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white font-bold">
+                    {day}
+                  </div>
+                  {/* Activities below the date */}
                   {renderDayCell(day, month, year, activities.map(({ _id, userId, ...rest }) => rest))}
                 </div>
               ) : (
-                <div>
-                  {day}
+                <div className="flex flex-col items-center">
+                  {/* Regular day number */}
+                  <div>{day}</div>
                   {renderDayCell(day, month, year, activities.map(({ _id, userId, ...rest }) => rest))}
                 </div>
               )}
