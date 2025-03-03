@@ -326,7 +326,7 @@ const Day = () => {
                         }
                     </div>
                 </div>
-                <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600">✕</button>
+                <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
             </div>)}
         </div>
     );
