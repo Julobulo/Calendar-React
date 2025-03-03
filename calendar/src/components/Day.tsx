@@ -283,7 +283,7 @@ const Day = () => {
                 <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
                     <h3 className="text-lg font-semibold">{eventPopUp.state} event</h3>
                     <div>
-                        <input type="text" placeholder="Activity" className="w-full p-2 border rounded" value={eventPopUp.activity}
+                        <input type="text" placeholder="Activity, e.g. Running" className="w-full p-2 border rounded" value={eventPopUp.activity}
                             // onChange={(e) => { if (eventPopUp.state === "add") { setEventPopUp({ ...eventPopUp, activity: e.target.value }) } }}
                             onChange={handleInputChange}
                             onKeyDown={handleKeyDown}
@@ -308,7 +308,7 @@ const Day = () => {
                                 ))}
                             </ul>
                         )}
-                        <textarea placeholder="Description" className="w-full p-2 border my-2 rounded" value={eventPopUp.description} onChange={(e) => setEventPopUp({ ...eventPopUp, description: e.target.value })}></textarea>
+                        <textarea placeholder="Description, e.g. 1h22min morning run, followed by a 15min evening run" className="w-full p-2 border my-2 rounded" value={eventPopUp.description} onChange={(e) => setEventPopUp({ ...eventPopUp, description: e.target.value })}></textarea>
                         {
                             (eventPopUp.state === "add") ?
                                 (<button className="w-full p-2 bg-blue-500 text-white rounded" onClick={async () => { await handleEventFinish(); }}>{eventPopUp.state}</button>)
