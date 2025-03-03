@@ -11,7 +11,7 @@ import { ToastContainer, Bounce } from "react-toastify";
 
 const App = () => {
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen pb-12 md:pb-0">
       <ToastContainer
         position="top-right"
         autoClose={5000}
