@@ -147,14 +147,14 @@ const Calendar: React.FC = () => {
                 style={{
                   backgroundColor: colors[entry.activity] || "#ffffff", // Default color if no match found
                 }}
-                className={`text-xs ${isLightOrDark(colors[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
+                className={`text-[5px] ${isLightOrDark(colors[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
               >
                 {entry.activity} - {getHumanTimeFromMinutes(entry.duration)}
               </div>
             ))}
             {activitiesForDay.entries.length > 1 && (
               <button
-                className="text-xs text-blue-500 underline mt-1 bg-black"
+                className="text-[5px] text-blue-500 underline mt-1 bg-black"
                 onClick={() => {
                   handleMoreActivitesClick(day);
                 }}
@@ -194,7 +194,7 @@ const Calendar: React.FC = () => {
       </div>
 
       {/* Calendar Grid */}
-      <div className="container gap-2 text-center">
+      <div className="container gap-0 md:gap-2 text-center">
         {/* Day Names */}
         {dayNames.map((day, index) => (
           <div key={index} className="font-bold p-2">
@@ -206,7 +206,7 @@ const Calendar: React.FC = () => {
         {Array.from({ length: startDay }, (_, i) => (
           <div
             key={`start-${i}`}
-            className="p-4 border bg-gray-200 text-gray-400 rounded-lg item"
+            className="p-1 md:p-4 border bg-gray-200 text-gray-400 rounded-lg item"
           >
             {previousMonthDays - startDay + i + 1}
           </div>
@@ -224,7 +224,7 @@ const Calendar: React.FC = () => {
           return (
             <div
               key={i}
-              className="p-4 border rounded-lg hover:bg-gray-200 cursor-pointer flex justify-center item"
+              className="p-1 md:p-4 border rounded-lg hover:bg-gray-200 cursor-pointer flex justify-center item"
               onClick={() => handleDayClick(day)}
             >
               {isToday && activities ? (
@@ -248,7 +248,7 @@ const Calendar: React.FC = () => {
           (_, i) => (
             <div
               key={`end-${i}`}
-              className="p-4 border bg-gray-200 text-gray-400 rounded-lg item"
+              className="p-1 md:p-4 border bg-gray-200 text-gray-400 rounded-lg item"
             >
               {i + 1}
             </div>
