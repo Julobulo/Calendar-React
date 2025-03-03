@@ -1,13 +1,13 @@
 Allow users to talk about people using @
 underline time when users write description - probably not doable
-Do the mobile version
 Allow users to talk about locations using a special character
 Have a "note" for each day (not an activity) where users can put other info than just the activities
 Have other categories of info for each day like for ex: weight, height, ...
 Use localstorage to store current activity info
 
 DONE
-Added mobile interface for Day.tsx - 02/03/2024 - 9:15pm
+Added mobile sidebar - 03/03/2025 - 10:50am
+Added mobile interface for Day.tsx - 02/03/2025 - 9:15pm
 Add a search to the activity name input (max 3 suggestions) - 02/03/2025 - 1:30pm
 Fixed dates for activities when added by backend - 01/03/2025
 Fixed column width - 01/03/2025 - 1:20 pm
