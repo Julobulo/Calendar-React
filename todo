@@ -4,6 +4,7 @@ Have a "note" for each day (not an activity) where users can put other info than
 Have other categories of info for each day like for ex: weight, height, ...
 Use localstorage to store current activity info
 Add statistic "average time per activity per day/week/month/year" and have list of activities that can be selected or not
+Add loading and disable button when edit or add is clicked
 
 DONE
 Show to users how to write times (sample activity?) - 03/03/2025 - 6:35pm
