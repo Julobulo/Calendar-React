@@ -77,7 +77,6 @@ const Day = () => {
 
 
     useEffect(() => {
-        console.log(`month: ${selectedDate.getMonth()}, year: ${selectedDate.getFullYear()}, day: ${selectedDate.getDate()}`);
         localStorage.setItem('day', selectedDate.getDate().toString());
         localStorage.setItem('month', selectedDate.getMonth().toString());
         localStorage.setItem('year', selectedDate.getFullYear().toString());
@@ -179,14 +178,19 @@ const Day = () => {
     const names = ["Lucie", "Adèle", "Robin", "Jules"];
 
     const [suggestions, setSuggestions] = useState<string[]>([]);
-    const [suggestionsType, setSuggestionsType] = useState<"activity" | "name" | "">("name");
     const [cursorPosition, setCursorPosition] = useState<number>(0);
+
+    const suggestionsTypeRef = useRef<"activity" | "name" | "">("");
+
+    const setSuggestionsType = (value: "activity" | "name" | "") => {
+        suggestionsTypeRef.current = value;
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
         const value = e.target.value;
         let filteredSuggestions: Array<string> = [];
-        if (suggestionsType === "activity") {
-            setEventPopUp({ ...eventPopUp, activity: value });
+        if (suggestionsTypeRef.current === "activity") {
+            setEventPopUp((prev) => ({ ...prev, activity: value }));
 
             if (value.length === 0) {
                 setSuggestions([]);
@@ -197,8 +201,8 @@ const Day = () => {
                 .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
                 .slice(0, 3);
         }
-        else if (suggestionsType === "name") {
-            setEventPopUp({ ...eventPopUp, description: value });
+        else if (suggestionsTypeRef.current === "name") {
+            setEventPopUp((prev) => ({ ...prev, description: value }));
 
             if (value.length === 0) {
                 setSuggestions([]);
@@ -213,7 +217,6 @@ const Day = () => {
                 filteredSuggestions = names
                     .filter((name: string) => name.toLowerCase().includes(match[1].toLowerCase()))
                     .slice(0, 3);
-                console.log(`match: ${match[1]}, suggestions: ${filteredSuggestions}`);
             }
         }
 
@@ -221,14 +224,12 @@ const Day = () => {
     };
 
     const handleSuggestionClick = (suggestion: string) => {
-        if (suggestionsType === "activity") {
-            setEventPopUp({ ...eventPopUp, activity: suggestion });
+        if (suggestionsTypeRef.current === "activity") {
+            setEventPopUp((prev) => ({ ...prev, activity: suggestion }));
         }
-        else if (suggestionsType === "name") {
+        else if (suggestionsTypeRef.current === "name") {
             const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
-            const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
-            console.log(`replacing ${match} with ${suggestion}. Here's what it looks like: ${textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestion}`) + eventPopUp.description.slice(cursorPosition)}`);
-            setEventPopUp({ ...eventPopUp, description: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestion}`) + eventPopUp.description.slice(cursorPosition) });
+            setEventPopUp((prev) => ({ ...prev, description: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestion}`) + eventPopUp.description.slice(cursorPosition) }));
         }
         setSuggestions([]);
     };
@@ -245,7 +246,7 @@ const Day = () => {
         } else if (e.key === "ArrowUp") {
             setSelectedSuggestionIndex((prev) => (prev > 0 ? prev - 1 : prev));
         } else if (e.key === "Enter" && selectedSuggestionIndex !== -1) {
-            setEventPopUp({ ...eventPopUp, activity: suggestions[selectedSuggestionIndex] });
+            setEventPopUp((prev) => ({ ...prev, activity: suggestions[selectedSuggestionIndex] }));
             setSuggestions([]);
             setSelectedSuggestionIndex(-1);
         }
@@ -318,11 +319,11 @@ const Day = () => {
                     <h3 className="text-lg font-semibold">{eventPopUp.state} event</h3>
                     <div>
                         <input type="text" placeholder="Activity, e.g. Running" className="w-full p-2 border rounded" value={eventPopUp.activity}
-                            // onChange={(e) => { if (eventPopUp.state === "add") { setEventPopUp({ ...eventPopUp, activity: e.target.value }) } }}
-                            onChange={handleInputChange}
+                            // onChange={(e) => { if (eventPopUp.state === "add") { setEventPopup((prev) => ({ ...eventPopUp, activity: e.target.value }) } }}
+                            onChange={(e) => { setSuggestionsType("activity"); handleInputChange(e) }}
                             onKeyDown={handleKeyDown}
                             disabled={eventPopUp.state !== "add"} />
-                        {suggestions.length > 0 && suggestionsType === "activity" && (
+                        {suggestions.length > 0 && suggestionsTypeRef.current === "activity" && (
                             <ul className="bg-white border rounded shadow-lg">
                                 {suggestions.map((suggestion, index) => (
                                     <li
@@ -346,8 +347,8 @@ const Day = () => {
                             placeholder="Description, e.g. 1h22min morning run, followed by a 15min evening run"
                             className="w-full p-2 border mt-2 rounded"
                             value={eventPopUp.description}
-                            onChange={(e) => handleInputChange(e)}></textarea>
-                        {suggestions.length > 0 && suggestionsType === "name" && (
+                            onChange={(e) => { setSuggestionsType("name"); handleInputChange(e) }}></textarea>
+                        {suggestions.length > 0 && suggestionsTypeRef.current === "name" && (
                             <ul className="bg-white border rounded shadow-lg">
                                 {suggestions.map((suggestion, index) => (
                                     <li
