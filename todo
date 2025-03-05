@@ -1,4 +1,3 @@
-Allow users to talk about people using @
 Allow users to talk about locations using a special character
 Have a "note" for each day (not an activity) where users can put other info than just the activities
 Have other categories of info for each day like for ex: weight, height, ...
@@ -8,6 +7,7 @@ Add loading and disable button when edit or add is clicked
 Make a better suggestion filter
 
 DONE
+Making names bold in activities display - 05/03/2025 - 9:20pm
 Added names field in the user documents and updated routes to support name suggestion - 05/03/2025 - 4:00pm
 Added name suggestion after character "@" is typed - 05/03/2025 - 3:30pm
 Show to users how to write times (sample activity?) - 03/03/2025 - 6:35pm
