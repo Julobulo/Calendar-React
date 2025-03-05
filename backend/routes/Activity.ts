@@ -152,6 +152,39 @@ ActivityRoute.get('/colors', async (c) => {
     return c.json(colors);
 })
 
+ActivityRoute.get('/names', async (c) => {
+    App = App || new Realm.App(c.env.ATLAS_APPID);
+    const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
+    const user = await App.logIn(credentials);
+    const client = user.mongoClient("mongodb-atlas");
+    const userCollection = client
+        .db("calendar")
+        .collection<User>("users");
+
+    const cookieHeader = c.req.header("Cookie");
+    if (!cookieHeader) {
+        c.status(400);
+        return c.json({ message: "no cookies found" });
+    }
+
+    const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
+    let token = cookies.find((cookie) => cookie.startsWith(`token=`));
+    if (!token) {
+        c.status(400);
+        return c.json({ message: "no token found" });
+    }
+    token = token.split("=")[1].trim();
+
+    const id = await checkToken(token, c.env.JWT_SECRET);
+    if (!id) {
+        c.status(400);
+        return c.json({ message: "bad token" });
+    }
+    const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
+    const names = currentUser?.names;
+    return c.json(names);
+})
+
 ActivityRoute.post('/new', async (c) => {
     App = App || new Realm.App(c.env.ATLAS_APPID);
     const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
