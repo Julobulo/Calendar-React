@@ -176,26 +176,60 @@ const Day = () => {
         }
     }, []);
 
+    const names = ["Lucie", "Adèle", "Robin", "Jules"];
+
     const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [suggestionsType, setSuggestionsType] = useState<"activity" | "name" | "">("name");
+    const [cursorPosition, setCursorPosition] = useState<number>(0);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
         const value = e.target.value;
-        setEventPopUp({ ...eventPopUp, activity: value });
+        let filteredSuggestions: Array<string> = [];
+        if (suggestionsType === "activity") {
+            setEventPopUp({ ...eventPopUp, activity: value });
 
-        if (value.length === 0) {
-            setSuggestions([]);
-            return;
+            if (value.length === 0) {
+                setSuggestions([]);
+                return;
+            }
+
+            filteredSuggestions = Object.keys(colors)
+                .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
+                .slice(0, 3);
         }
+        else if (suggestionsType === "name") {
+            setEventPopUp({ ...eventPopUp, description: value });
 
-        const filteredSuggestions = Object.keys(colors)
-            .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
-            .slice(0, 3);
+            if (value.length === 0) {
+                setSuggestions([]);
+                return;
+            }
+            const cursorPos = e.target.selectionStart || 0;
+            setCursorPosition(cursorPos);
+            const textBeforeCursor = value.slice(0, cursorPos);
+            const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
+
+            if (match) {
+                filteredSuggestions = names
+                    .filter((name: string) => name.toLowerCase().includes(match[1].toLowerCase()))
+                    .slice(0, 3);
+                console.log(`match: ${match[1]}, suggestions: ${filteredSuggestions}`);
+            }
+        }
 
         setSuggestions(filteredSuggestions);
     };
 
     const handleSuggestionClick = (suggestion: string) => {
-        setEventPopUp({ ...eventPopUp, activity: suggestion });
+        if (suggestionsType === "activity") {
+            setEventPopUp({ ...eventPopUp, activity: suggestion });
+        }
+        else if (suggestionsType === "name") {
+            const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
+            const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
+            console.log(`replacing ${match} with ${suggestion}. Here's what it looks like: ${textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestion}`) + eventPopUp.description.slice(cursorPosition)}`);
+            setEventPopUp({ ...eventPopUp, description: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestion}`) + eventPopUp.description.slice(cursorPosition) });
+        }
         setSuggestions([]);
     };
 
@@ -288,7 +322,7 @@ const Day = () => {
                             onChange={handleInputChange}
                             onKeyDown={handleKeyDown}
                             disabled={eventPopUp.state !== "add"} />
-                        {suggestions.length > 0 && (
+                        {suggestions.length > 0 && suggestionsType === "activity" && (
                             <ul className="bg-white border rounded shadow-lg">
                                 {suggestions.map((suggestion, index) => (
                                     <li
@@ -308,7 +342,31 @@ const Day = () => {
                                 ))}
                             </ul>
                         )}
-                        <textarea placeholder="Description, e.g. 1h22min morning run, followed by a 15min evening run" className="w-full p-2 border my-2 rounded" value={eventPopUp.description} onChange={(e) => setEventPopUp({ ...eventPopUp, description: e.target.value })}></textarea>
+                        <textarea
+                            placeholder="Description, e.g. 1h22min morning run, followed by a 15min evening run"
+                            className="w-full p-2 border my-2 rounded"
+                            value={eventPopUp.description}
+                            onChange={(e) => handleInputChange(e)}></textarea>
+                        {suggestions.length > 0 && suggestionsType === "name" && (
+                            <ul className="bg-white border rounded shadow-lg">
+                                {suggestions.map((suggestion, index) => (
+                                    <li
+                                        key={suggestion}
+                                        className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
+                                            }`}
+                                        onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                                        onMouseLeave={() => setSelectedSuggestionIndex(-1)}
+                                        onClick={() => handleSuggestionClick(suggestion)}
+                                    >
+                                        {suggestion.split("").map((char, index) => (
+                                            <span key={index} className={eventPopUp.activity.toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
+                                                {char}
+                                            </span>
+                                        ))}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                         {
                             (eventPopUp.state === "add") ?
                                 (<button className="w-full p-2 bg-blue-500 text-white rounded" onClick={async () => { await handleEventFinish(); }}>{eventPopUp.state}</button>)
