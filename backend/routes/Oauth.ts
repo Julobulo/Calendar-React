@@ -215,6 +215,7 @@ OAuthRoute.get("/google/callback", async (c) => {
                 google_id: userInfo.sub,
             },
             colors: {},
+            names: [],
         })) as any;
         // Fetch the full user document using the insertedId
         user = (await userCollection.findOne({ _id: result.insertedId })) as User;
