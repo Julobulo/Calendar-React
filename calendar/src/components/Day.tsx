@@ -240,12 +240,15 @@ const Day = () => {
         if (suggestions.length === 0) return;
 
         if (e.key === "ArrowDown") {
+            e.preventDefault(); // Prevents the cursor from moving
             setSelectedSuggestionIndex((prev) =>
                 prev < suggestions.length - 1 ? prev + 1 : prev
             );
         } else if (e.key === "ArrowUp") {
+            e.preventDefault(); // Prevents the cursor from moving
             setSelectedSuggestionIndex((prev) => (prev > 0 ? prev - 1 : prev));
         } else if (e.key === "Enter" && selectedSuggestionIndex !== -1) {
+            e.preventDefault(); // Prevents the cursor from moving
             if (suggestionsTypeRef.current === "activity") {
                 setEventPopUp((prev) => ({ ...prev, activity: suggestions[selectedSuggestionIndex] }));
             }
