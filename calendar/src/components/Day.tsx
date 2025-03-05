@@ -30,7 +30,7 @@ const Day = () => {
                 credentials: "include", // Include cookies in the request
             });
             if (!response.ok) {
-                throw new Error("Failed to fetch colors");
+                toast.error("Failed to fetch colors");
             }
             const data = await response.json();
             setColors(data);
@@ -45,7 +45,7 @@ const Day = () => {
                 credentials: "include", // Include cookies in the request
             });
             if (!response.ok) {
-                throw new Error("Failed to fetch names");
+                toast.error("Failed to fetch names");
             }
             const data = await response.json();
             setNames(data);
@@ -67,7 +67,7 @@ const Day = () => {
                 credentials: "include"
             });
             if (!response.ok) {
-                throw new Error(`Failed to fetch activities: ${response.status}`);
+                toast.error(`Failed to fetch activities: ${response.status}`);
             }
             const data: UserActivity[] = await response.json();
             setDayActivities(data[0]);
