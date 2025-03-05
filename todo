@@ -7,6 +7,7 @@ Add statistic "average time per activity per day/week/month/year" and have list 
 Add loading and disable button when edit or add is clicked
 
 DONE
+Added name suggestion after character "@" is typed - 05/03/2025 - 3:30pm
 Show to users how to write times (sample activity?) - 03/03/2025 - 6:35pm
 Added mobile sidebar - 03/03/2025 - 10:50am
 Added mobile interface for Day.tsx - 02/03/2025 - 9:15pm
