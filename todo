@@ -8,6 +8,7 @@ Add loading and disable button when edit or add is clicked
 Make a better suggestion filter
 
 DONE
+Added names field in the user documents and updated routes to support name suggestion - 05/03/2025 - 4:00pm
 Added name suggestion after character "@" is typed - 05/03/2025 - 3:30pm
 Show to users how to write times (sample activity?) - 03/03/2025 - 6:35pm
 Added mobile sidebar - 03/03/2025 - 10:50am
