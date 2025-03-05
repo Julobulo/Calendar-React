@@ -235,6 +235,21 @@ ActivityRoute.post('/new', async (c) => {
             { $set: { [`colors.${activity}`]: newColor } }
         );
     }
+
+    // Extract user names from the description (those after "@")
+    const mentionedNames = Array.from(new Set(description.match(/@(\w+)/g)?.map((name: string) => name.slice(1)) || [])); // Removing "@" symbol
+    if (mentionedNames.length > 0) {
+        const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
+        const updatedNames = [...new Set([...(currentUser?.names || []), ...mentionedNames])]; // Add new names without duplicates
+
+        // Update user's names array with the new names
+        if (updatedNames.length > (currentUser?.names?.length ?? 0)) {
+            await userCollection.updateOne(
+                { _id: new ObjectId(id.toString()) },
+                { $set: { names: updatedNames } }
+            );
+        }
+    }
     return c.json({ message: "ok" });
 })
 
@@ -243,6 +258,9 @@ ActivityRoute.patch('/edit', async (c) => {
     const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
     const user = await App.logIn(credentials);
     const client = user.mongoClient("mongodb-atlas");
+    const userCollection = client
+        .db("calendar")
+        .collection<User>("users");
     const activityCollection = client
         .db("calendar")
         .collection<UserActivity>("activity")
@@ -304,6 +322,21 @@ ActivityRoute.patch('/edit', async (c) => {
     if (updateResult.modifiedCount === 0) {
         c.status(500);
         return c.json({ message: "failed to update activity" });
+    }
+
+    // Extract user names from the description (those after "@")
+    const mentionedNames = Array.from(new Set(description.match(/@(\w+)/g)?.map((name: string) => name.slice(1)) || [])); // Removing "@" symbol
+    if (mentionedNames.length > 0) {
+        const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
+        const updatedNames = [...new Set([...(currentUser?.names || []), ...mentionedNames])]; // Add new names without duplicates
+
+        // Update user's names array with the new names
+        if (updatedNames.length > (currentUser?.names?.length ?? 0)) {
+            await userCollection.updateOne(
+                { _id: new ObjectId(id.toString()) },
+                { $set: { names: updatedNames } }
+            );
+        }
     }
 
     return c.json({ message: "activity updated successfully" });
