@@ -53,10 +53,14 @@ const Day = () => {
         fetchNames();
     }, [reload]);
 
-    const emphasizeTimesInDescription = (description: string): string => {
+    const highlightTimesAndNames = (description: string): string => {
+        let newDescription;
         const timeRegex = /(\d{1,2})h\s*(\d{1,2})?min?|\b(\d{1,2})min\b|\b(\d{1,2})h\b/g;
-        return description.replace(timeRegex, (match) => {
+        newDescription = description.replace(timeRegex, (match) => {
             return `<span style="text-decoration: underline;">${match}</span>`;
+        });
+        return newDescription.replace(/@([a-zA-Z]*)$/, (match) => {
+            return `<span style="font-weight: bold;">${match}</span>`;
         });
     };
 
@@ -311,7 +315,7 @@ const Day = () => {
                                     setMobileShowForm(true);
                                 }}
                             >
-                                {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - <span dangerouslySetInnerHTML={{ __html: emphasizeTimesInDescription(entry.description) }}></span>
+                                {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - <span dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(entry.description) }}></span>
                             </div>
                         ))}
                     </div>
