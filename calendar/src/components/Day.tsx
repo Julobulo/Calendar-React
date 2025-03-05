@@ -350,8 +350,10 @@ const Day = () => {
                             onChange={(e) => { setSuggestionsType("name"); handleInputChange(e) }}></textarea>
                         {suggestions.length > 0 && suggestionsTypeRef.current === "name" && (
                             <ul className="bg-white border rounded shadow-lg">
-                                {suggestions.map((suggestion, index) => (
-                                    <li
+                                {suggestions.map((suggestion, index) => {
+                                    const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
+                                    const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
+                                    return <li
                                         key={suggestion}
                                         className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
                                             }`}
@@ -360,12 +362,12 @@ const Day = () => {
                                         onClick={() => handleSuggestionClick(suggestion)}
                                     >
                                         {suggestion.split("").map((char, index) => (
-                                            <span key={index} className={eventPopUp.activity.toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
+                                            <span key={index} className={match?.[1]||"".toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
                                                 {char}
                                             </span>
                                         ))}
                                     </li>
-                                ))}
+                                })}
                             </ul>
                         )}
                         {
