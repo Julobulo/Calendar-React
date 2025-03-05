@@ -344,7 +344,7 @@ const Day = () => {
                         )}
                         <textarea
                             placeholder="Description, e.g. 1h22min morning run, followed by a 15min evening run"
-                            className="w-full p-2 border my-2 rounded"
+                            className="w-full p-2 border mt-2 rounded"
                             value={eventPopUp.description}
                             onChange={(e) => handleInputChange(e)}></textarea>
                         {suggestions.length > 0 && suggestionsType === "name" && (
@@ -369,9 +369,9 @@ const Day = () => {
                         )}
                         {
                             (eventPopUp.state === "add") ?
-                                (<button className="w-full p-2 bg-blue-500 text-white rounded" onClick={async () => { await handleEventFinish(); }}>{eventPopUp.state}</button>)
+                                (<button className="w-full p-2 bg-blue-500 text-white rounded mt-2" onClick={async () => { await handleEventFinish(); }}>{eventPopUp.state}</button>)
                                 :
-                                (<div className="flex gap-2">
+                                (<div className="flex gap-2 mt-2">
                                     <button className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                                         onClick={async () => { await handleEventFinish(); }}>
                                         {eventPopUp.state}
