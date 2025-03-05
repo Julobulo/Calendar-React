@@ -18,6 +18,7 @@ const Day = () => {
 
     const [dayActivities, setDayActivities] = useState<UserActivity>();
     const [colors, setColors] = useState<Record<string, string>>({});
+    const [names, setNames] = useState<Array<string>>([]);
     const [reload, setReload] = useState(false);
 
     const [mobileShowForm, setMobileShowForm] = useState<boolean>(false);
@@ -35,6 +36,21 @@ const Day = () => {
             setColors(data);
         };
         fetchColors();
+    }, [reload]);
+
+    useEffect(() => {
+        const fetchNames = async () => {
+            const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/names`, {
+                method: "GET",
+                credentials: "include", // Include cookies in the request
+            });
+            if (!response.ok) {
+                throw new Error("Failed to fetch names");
+            }
+            const data = await response.json();
+            setNames(data);
+        };
+        fetchNames();
     }, [reload]);
 
     const emphasizeTimesInDescription = (description: string): string => {
@@ -174,8 +190,6 @@ const Day = () => {
             setCalendarWidth(calendarRef.current.offsetWidth);
         }
     }, []);
-
-    const names = ["Lucie", "Adèle", "Robin", "Jules"];
 
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [cursorPosition, setCursorPosition] = useState<number>(0);
