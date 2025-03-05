@@ -245,8 +245,13 @@ const Day = () => {
                 prev < suggestions.length - 1 ? prev + 1 : prev
             );
         } else if (e.key === "ArrowUp") {
-            e.preventDefault(); // Prevents the cursor from moving
-            setSelectedSuggestionIndex((prev) => (prev > 0 ? prev - 1 : prev));
+            if (selectedSuggestionIndex !== -1) e.preventDefault(); // Prevents the cursor from moving
+            if (selectedSuggestionIndex > 0) {
+                setSelectedSuggestionIndex((prevIndex) => prevIndex - 1);
+              } else {
+                // Stop selecting suggestions if already at the top
+                setSelectedSuggestionIndex(-1);
+              }
         } else if (e.key === "Enter" && selectedSuggestionIndex !== -1) {
             e.preventDefault(); // Prevents the cursor from moving
             if (suggestionsTypeRef.current === "activity") {
