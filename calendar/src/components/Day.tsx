@@ -263,6 +263,8 @@ const Day = () => {
             }
             setSuggestions([]);
             setSelectedSuggestionIndex(-1);
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+            setSuggestions([]);
         }
     };
 
