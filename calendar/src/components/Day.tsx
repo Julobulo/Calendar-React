@@ -236,7 +236,7 @@ const Day = () => {
 
     const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState<number>(-1);
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         if (suggestions.length === 0) return;
 
         if (e.key === "ArrowDown") {
@@ -246,7 +246,13 @@ const Day = () => {
         } else if (e.key === "ArrowUp") {
             setSelectedSuggestionIndex((prev) => (prev > 0 ? prev - 1 : prev));
         } else if (e.key === "Enter" && selectedSuggestionIndex !== -1) {
-            setEventPopUp((prev) => ({ ...prev, activity: suggestions[selectedSuggestionIndex] }));
+            if (suggestionsTypeRef.current === "activity") {
+                setEventPopUp((prev) => ({ ...prev, activity: suggestions[selectedSuggestionIndex] }));
+            }
+            else if (suggestionsTypeRef.current === "name") {
+                const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
+                setEventPopUp((prev) => ({ ...prev, description: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestions[selectedSuggestionIndex]}`) + eventPopUp.description.slice(cursorPosition) }));
+            }
             setSuggestions([]);
             setSelectedSuggestionIndex(-1);
         }
@@ -347,7 +353,8 @@ const Day = () => {
                             placeholder="Description, e.g. 1h22min morning run, followed by a 15min evening run"
                             className="w-full p-2 border mt-2 rounded"
                             value={eventPopUp.description}
-                            onChange={(e) => { setSuggestionsType("name"); handleInputChange(e) }}></textarea>
+                            onChange={(e) => { setSuggestionsType("name"); handleInputChange(e) }}
+                            onKeyDown={handleKeyDown}></textarea>
                         {suggestions.length > 0 && suggestionsTypeRef.current === "name" && (
                             <ul className="bg-white border rounded shadow-lg">
                                 {suggestions.map((suggestion, index) => {
@@ -362,7 +369,7 @@ const Day = () => {
                                         onClick={() => handleSuggestionClick(suggestion)}
                                     >
                                         {suggestion.split("").map((char, index) => (
-                                            <span key={index} className={match?.[1]||"".toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
+                                            <span key={index} className={match?.[1].toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
                                                 {char}
                                             </span>
                                         ))}
