@@ -268,10 +268,10 @@ const Day = () => {
             if (selectedSuggestionIndex !== -1) e.preventDefault(); // Prevents the cursor from moving
             if (selectedSuggestionIndex > 0) {
                 setSelectedSuggestionIndex((prevIndex) => prevIndex - 1);
-              } else {
+            } else {
                 // Stop selecting suggestions if already at the top
                 setSelectedSuggestionIndex(-1);
-              }
+            }
         } else if (e.key === "Enter" && selectedSuggestionIndex !== -1) {
             e.preventDefault(); // Prevents the cursor from moving
             if (suggestionsTypeRef.current === "activity") {
@@ -291,6 +291,8 @@ const Day = () => {
     const handleClose = () => {
         setMobileShowForm(false);
     }
+
+    const [selectedForm, setSelectedForm] = useState<"activity" | "note" | "variable">("activity");
 
     return (
         <div className="flex flex-col md:flex-row h-screen p-3">
@@ -349,82 +351,93 @@ const Day = () => {
                         onMonthChange={setCurrentMonth}
                     />
                 </div>
-
-                {/* Add Event Form */}
-                <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
-                    <h3 className="text-lg font-semibold">{eventPopUp.state} event</h3>
-                    <div>
-                        <input type="text" placeholder="Activity, e.g. Running" className="w-full p-2 border rounded" value={eventPopUp.activity}
-                            // onChange={(e) => { if (eventPopUp.state === "add") { setEventPopup((prev) => ({ ...eventPopUp, activity: e.target.value }) } }}
-                            onChange={(e) => { setSuggestionsType("activity"); handleInputChange(e) }}
-                            onKeyDown={handleKeyDown}
-                            disabled={eventPopUp.state !== "add"} />
-                        {suggestions.length > 0 && suggestionsTypeRef.current === "activity" && (
-                            <ul className="bg-white border rounded shadow-lg">
-                                {suggestions.map((suggestion, index) => (
-                                    <li
-                                        key={suggestion}
-                                        className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
-                                            }`}
-                                        onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                                        onMouseLeave={() => setSelectedSuggestionIndex(-1)}
-                                        onClick={() => handleSuggestionClick(suggestion)}
-                                    >
-                                        {suggestion.split("").map((char, index) => (
-                                            <span key={index} className={eventPopUp.activity.toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
-                                                {char}
-                                            </span>
-                                        ))}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                        <textarea
-                            placeholder="Description, e.g. 1h22min morning run, followed by a 15min evening run"
-                            className="w-full p-2 border mt-2 rounded"
-                            value={eventPopUp.description}
-                            onChange={(e) => { setSuggestionsType("name"); handleInputChange(e) }}
-                            onKeyDown={handleKeyDown}></textarea>
-                        {suggestions.length > 0 && suggestionsTypeRef.current === "name" && (
-                            <ul className="bg-white border rounded shadow-lg">
-                                {suggestions.map((suggestion, index) => {
-                                    const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
-                                    const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
-                                    return <li
-                                        key={suggestion}
-                                        className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
-                                            }`}
-                                        onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                                        onMouseLeave={() => setSelectedSuggestionIndex(-1)}
-                                        onClick={() => handleSuggestionClick(suggestion)}
-                                    >
-                                        {suggestion.split("").map((char, index) => (
-                                            <span key={index} className={match?.[1].toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
-                                                {char}
-                                            </span>
-                                        ))}
-                                    </li>
-                                })}
-                            </ul>
-                        )}
-                        {
-                            (eventPopUp.state === "add") ?
-                                (<button className="w-full p-2 bg-blue-500 text-white rounded mt-2" onClick={async () => { await handleEventFinish(); }}>{eventPopUp.state}</button>)
-                                :
-                                (<div className="flex gap-2 mt-2">
-                                    <button className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                        onClick={async () => { await handleEventFinish(); }}>
-                                        {eventPopUp.state}
-                                    </button>
-                                    <button className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
-                                        onClick={async () => { await handleDelete() }}>
-                                        <MdDelete className="text-xl" />
-                                    </button>
-                                </div>)
-                        }
+                {/* Dropdown to select form type */}
+                <select
+                    value={selectedForm}
+                    onChange={(e) => setSelectedForm(e.target.value as "activity" | "note" | "variable")}
+                    className="p-2 border rounded mb-4"
+                >
+                    <option value="activity">Activity</option>
+                    <option value="note">Note</option>
+                    <option value="variable">Variable</option>
+                </select>
+                {selectedForm === "activity" && (<div>
+                    {/* Add Event Form */}
+                    <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
+                        <h3 className="text-lg font-semibold">{eventPopUp.state} event</h3>
+                        <div>
+                            <input type="text" placeholder="Activity, e.g. Running" className="w-full p-2 border rounded" value={eventPopUp.activity}
+                                // onChange={(e) => { if (eventPopUp.state === "add") { setEventPopup((prev) => ({ ...eventPopUp, activity: e.target.value }) } }}
+                                onChange={(e) => { setSuggestionsType("activity"); handleInputChange(e) }}
+                                onKeyDown={handleKeyDown}
+                                disabled={eventPopUp.state !== "add"} />
+                            {suggestions.length > 0 && suggestionsTypeRef.current === "activity" && (
+                                <ul className="bg-white border rounded shadow-lg">
+                                    {suggestions.map((suggestion, index) => (
+                                        <li
+                                            key={suggestion}
+                                            className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
+                                                }`}
+                                            onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                                            onMouseLeave={() => setSelectedSuggestionIndex(-1)}
+                                            onClick={() => handleSuggestionClick(suggestion)}
+                                        >
+                                            {suggestion.split("").map((char, index) => (
+                                                <span key={index} className={eventPopUp.activity.toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
+                                                    {char}
+                                                </span>
+                                            ))}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                            <textarea
+                                placeholder="Description, e.g. 1h22min morning run, followed by a 15min evening run"
+                                className="w-full p-2 border mt-2 rounded"
+                                value={eventPopUp.description}
+                                onChange={(e) => { setSuggestionsType("name"); handleInputChange(e) }}
+                                onKeyDown={handleKeyDown}></textarea>
+                            {suggestions.length > 0 && suggestionsTypeRef.current === "name" && (
+                                <ul className="bg-white border rounded shadow-lg">
+                                    {suggestions.map((suggestion, index) => {
+                                        const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
+                                        const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
+                                        return <li
+                                            key={suggestion}
+                                            className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
+                                                }`}
+                                            onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                                            onMouseLeave={() => setSelectedSuggestionIndex(-1)}
+                                            onClick={() => handleSuggestionClick(suggestion)}
+                                        >
+                                            {suggestion.split("").map((char, index) => (
+                                                <span key={index} className={match?.[1].toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
+                                                    {char}
+                                                </span>
+                                            ))}
+                                        </li>
+                                    })}
+                                </ul>
+                            )}
+                            {
+                                (eventPopUp.state === "add") ?
+                                    (<button className="w-full p-2 bg-blue-500 text-white rounded mt-2" onClick={async () => { await handleEventFinish(); }}>{eventPopUp.state}</button>)
+                                    :
+                                    (<div className="flex gap-2 mt-2">
+                                        <button className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                            onClick={async () => { await handleEventFinish(); }}>
+                                            {eventPopUp.state}
+                                        </button>
+                                        <button className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
+                                            onClick={async () => { await handleDelete() }}>
+                                            <MdDelete className="text-xl" />
+                                        </button>
+                                    </div>)
+                            }
+                        </div>
                     </div>
-                </div>
-                <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
+                    <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
+                </div>)}
             </div>)}
         </div>
     );
