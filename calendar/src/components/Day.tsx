@@ -336,7 +336,7 @@ const Day = () => {
             {/* Calendar & Form (Hidden on mobile) */}
             {((window.innerWidth < 768 && mobileShowForm) || (window.innerWidth >= 768)) && (<div className="md:inline-flex flex-col px-4 bg-white max-w-fit">
                 {/* Simple Calendar */}
-                <div ref={calendarRef} className="p-4 border rounded mb-4 w-max ">
+                <div ref={calendarRef} className="p-4 border rounded mb-4 w-max mx-auto">
                     <DayPicker
                         mode="single"
                         selected={selectedDate}
@@ -355,7 +355,7 @@ const Day = () => {
                 <select
                     value={selectedForm}
                     onChange={(e) => setSelectedForm(e.target.value as "activity" | "note" | "variable")}
-                    className="p-2 border rounded mb-4"
+                    className="p-4 border mb-4 rounded w-full mx-auto lg:mr-2 xl:mr-14"
                 >
                     <option value="activity">Activity</option>
                     <option value="note">Note</option>
