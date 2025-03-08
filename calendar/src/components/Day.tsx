@@ -180,6 +180,7 @@ const Day = () => {
                 year: year,
                 month: month,
                 day: day,
+                type: "activity",
                 activity: eventPopUp.activity,
             }),
         });
