@@ -85,10 +85,10 @@ const Day = () => {
         if (window.innerWidth < 768) {
             // navigate(`/calendar/day/details?year=${year}&month=${month}&day=${day}`);
             setMobileShowForm(true);
-            setEventPopUp({ state: "add", activity: "", description: "" });
+            setEventPopUp({ state: "add", activity: "", description: "", note: "" });
         }
         else {
-            setEventPopUp({ state: "add", activity: "", description: "" });
+            setEventPopUp({ state: "add", activity: "", description: "", note: "" });
         }
     };
 
@@ -102,7 +102,7 @@ const Day = () => {
         localStorage.setItem('year', selectedDate.getFullYear().toString());
     }, [selectedDate])
 
-    const [eventPopUp, setEventPopUp] = useState<{ state: "add" | "edit"; activity: string; description: string }>({ state: "add", activity: "", description: "" });
+    const [eventPopUp, setEventPopUp] = useState<{ state: "add" | "edit"; activity: string; description: string, note: string }>({ state: "add", activity: "", description: "", note: "" });
 
     const [loading, setLoading] = useState(true);
 
@@ -129,7 +129,7 @@ const Day = () => {
                 console.log(`the event wasn't successfully created`);
             }
             else {
-                setEventPopUp({ state: "add", activity: "", description: "" });
+                setEventPopUp({ state: "add", activity: "", description: "", note: "" });
                 setReload(!reload);
             }
         }
@@ -155,7 +155,7 @@ const Day = () => {
                 console.log(`the event wasn't successfully edited`);
             }
             else {
-                setEventPopUp({ state: "add", activity: "", description: "" });
+                setEventPopUp({ state: "add", activity: "", description: "", note: "" });
                 setReload(!reload);
             }
         }
@@ -182,7 +182,7 @@ const Day = () => {
             console.log(`the event wasn't successfully deleted`);
         }
         else {
-            setEventPopUp({ state: "add", activity: "", description: "" });
+            setEventPopUp({ state: "add", activity: "", description: "", note: "" });
             setReload(!reload);
         }
         setMobileShowForm(false);
@@ -315,7 +315,7 @@ const Day = () => {
                                 className={`text-xs ${isLightOrDark(colors[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
                                 onClick={(e) => {
                                     e.stopPropagation(); // Prevent handleClick from running
-                                    setEventPopUp({ state: "edit", activity: entry.activity, description: entry.description })
+                                    setEventPopUp({ state: "edit", activity: entry.activity, description: entry.description, note: "" })
                                     setMobileShowForm(true);
                                 }}
                             >
