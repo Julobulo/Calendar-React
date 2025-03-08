@@ -438,8 +438,7 @@ const Day = () => {
                     </div>
                     <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
                 </div>)}
-                {selectedForm === "note" && (<div>
-                    {/* Add Note Form */}
+                {/* {selectedForm === "note" && (<div>
                     <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
                         <h3 className="text-lg font-semibold">{eventPopUp.state} note</h3>
                         <div>
@@ -489,7 +488,7 @@ const Day = () => {
                         </div>
                     </div>
                     <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
-                </div>)}
+                </div>)} */}
             </div>)}
         </div>
     );
