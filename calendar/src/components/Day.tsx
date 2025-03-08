@@ -105,9 +105,11 @@ const Day = () => {
     const [eventPopUp, setEventPopUp] = useState<{ state: "add" | "edit"; activity: string; description: string, note: string }>({ state: "add", activity: "", description: "", note: "" });
 
     const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState<boolean>(false);
 
     const handleEventFinish = async () => {
         if (eventPopUp.state === "add") {
+            setActionLoading(true);
             const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/new`, {
                 method: "POST",
                 credentials: "include",
@@ -132,8 +134,10 @@ const Day = () => {
                 setEventPopUp({ state: "add", activity: "", description: "", note: "" });
                 setReload(!reload);
             }
+            setActionLoading(false);
         }
         else if (eventPopUp.state === "edit") {
+            setActionLoading(true);
             const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/edit`, {
                 method: "PATCH",
                 credentials: "include",
@@ -158,11 +162,14 @@ const Day = () => {
                 setEventPopUp({ state: "add", activity: "", description: "", note: "" });
                 setReload(!reload);
             }
+            setTimeout('', 5000);
+            setActionLoading(false);
         }
         setMobileShowForm(false);
     }
 
     const handleDelete = async () => {
+        setActionLoading(true);
         const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/delete`, {
             method: "DELETE",
             credentials: "include",
@@ -186,6 +193,7 @@ const Day = () => {
             setReload(!reload);
         }
         setMobileShowForm(false);
+        setActionLoading(false);
     }
 
     const calendarRef = useRef<HTMLDivElement>(null);
@@ -420,19 +428,46 @@ const Day = () => {
                                 </ul>
                             )}
                             {
-                                (eventPopUp.state === "add") ?
-                                    (<button className="w-full p-2 bg-blue-500 text-white rounded mt-2" onClick={async () => { await handleEventFinish(); }}>{eventPopUp.state}</button>)
-                                    :
-                                    (<div className="flex gap-2 mt-2">
-                                        <button className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                            onClick={async () => { await handleEventFinish(); }}>
+                                eventPopUp.state === "add" ? (
+                                    actionLoading ? (
+                                        <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
+                                            <Spinner />
+                                        </div>
+                                    ) : (
+                                        <button
+                                            className="w-full p-2 bg-blue-500 text-white rounded mt-2"
+                                            onClick={async () => {
+                                                await handleEventFinish();
+                                            }}
+                                        >
                                             {eventPopUp.state}
                                         </button>
-                                        <button className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
-                                            onClick={async () => { await handleDelete() }}>
-                                            <MdDelete className="text-xl" />
-                                        </button>
-                                    </div>)
+                                    )
+                                ) : (
+                                    actionLoading ? (
+                                        <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
+                                            <Spinner />
+                                        </div>
+                                    ) :
+                                        (<div className="flex gap-2 mt-2">
+                                            <button
+                                                className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                                onClick={async () => {
+                                                    await handleEventFinish();
+                                                }}
+                                            >
+                                                {eventPopUp.state}
+                                            </button>
+                                            <button
+                                                className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
+                                                onClick={async () => {
+                                                    await handleDelete();
+                                                }}
+                                            >
+                                                <MdDelete className="text-xl" />
+                                            </button>
+                                        </div>)
+                                )
                             }
                         </div>
                     </div>
