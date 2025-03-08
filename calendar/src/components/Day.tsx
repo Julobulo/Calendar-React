@@ -438,6 +438,58 @@ const Day = () => {
                     </div>
                     <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
                 </div>)}
+                {selectedForm === "note" && (<div>
+                    {/* Add Note Form */}
+                    <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
+                        <h3 className="text-lg font-semibold">{eventPopUp.state} note</h3>
+                        <div>
+                            <textarea
+                                placeholder="Note for the day, e.g. visited @Michael and saw an aligator on my way home"
+                                className="w-full p-2 border mt-2 rounded"
+                                value={eventPopUp.description}
+                                onChange={(e) => { setSuggestionsType("name"); handleInputChange(e) }}
+                                onKeyDown={handleKeyDown}></textarea>
+                            {suggestions.length > 0 && suggestionsTypeRef.current === "name" && (
+                                <ul className="bg-white border rounded shadow-lg">
+                                    {suggestions.map((suggestion, index) => {
+                                        const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
+                                        const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
+                                        return <li
+                                            key={suggestion}
+                                            className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
+                                                }`}
+                                            onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                                            onMouseLeave={() => setSelectedSuggestionIndex(-1)}
+                                            onClick={() => handleSuggestionClick(suggestion)}
+                                        >
+                                            {suggestion.split("").map((char, index) => (
+                                                <span key={index} className={match?.[1].toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
+                                                    {char}
+                                                </span>
+                                            ))}
+                                        </li>
+                                    })}
+                                </ul>
+                            )}
+                            {
+                                (eventPopUp.state === "add") ?
+                                    (<button className="w-full p-2 bg-blue-500 text-white rounded mt-2" onClick={async () => { await handleEventFinish(); }}>{eventPopUp.state}</button>)
+                                    :
+                                    (<div className="flex gap-2 mt-2">
+                                        <button className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                            onClick={async () => { await handleEventFinish(); }}>
+                                            {eventPopUp.state}
+                                        </button>
+                                        <button className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
+                                            onClick={async () => { await handleDelete() }}>
+                                            <MdDelete className="text-xl" />
+                                        </button>
+                                    </div>)
+                            }
+                        </div>
+                    </div>
+                    <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
+                </div>)}
             </div>)}
         </div>
     );
