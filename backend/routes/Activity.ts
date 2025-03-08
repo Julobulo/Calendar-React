@@ -217,60 +217,57 @@ ActivityRoute.post('/new', async (c) => {
         return c.json({ message: "bad token" });
     }
 
-    // Parse request body
-    const { year, month, day, activity, description } = await c.req.json();
+    const { year, month, day, type, activity, description, note, variable, value } = await c.req.json();
+    if (!year || !month || !day || !type) return c.json({ message: "Missing required fields" }, 400);
 
-    if (!year || !month || !day || !activity || !description) {
-        c.status(400);
-        return c.json({ message: `Missing required fields` });
-    }
     const date = new Date(Date.UTC(parseInt(year), parseInt(month), parseInt(day)));
-    const newEntry: ActivityEntry = { activity, duration: getTimeFromLongString(description), description: description };
+    const existingEntry = await activityCollection.findOne({ userId: new ObjectId(id.toString()), date });
 
-    // Check if user already has activities for that day
-    const existingActivity = await activityCollection.findOne({ userId: new ObjectId(id.toString()), date });
-    if (existingActivity) {
-        console.log(`the existing activity's id is: ${existingActivity._id}`)
-    }
-    else {
-        console.log(`there's no activity with that usedId: ${id} and date: ${date.toISOString()}`);
-    }
+    let updateQuery = {};
 
-    if (existingActivity) {
-        if (existingActivity.entries.some(entry => entry.activity === activity)) {
-            // prevent if activity already defined for the day
-            c.status(400);
-            return c.json({ message: `the activity is already defined for this date` });
+    if (type === "activity") {
+        if (!activity || !description) return c.json({ message: "Missing activity fields" }, 400);
+        const newEntry: ActivityEntry = { activity, duration: getTimeFromLongString(description), description };
+
+        if (existingEntry) {
+            if (existingEntry.entries.some(e => e.activity === activity)) {
+                return c.json({ message: "Activity already defined for this date" }, 400);
+            }
+            updateQuery = { $push: { entries: newEntry } };
+        } else {
+            await activityCollection.insertOne({ userId: new ObjectId(id.toString()), date, entries: [newEntry], variables: [] });
+            return c.json({ message: "Activity added" }, 201);
         }
-        // Update existing entry
-        await activityCollection.updateOne(
-            { _id: existingActivity._id },
-            { $push: { entries: newEntry } }
-        );
-        console.log(`updating activity to activity collection: ${JSON.stringify(newEntry)}, id: ${existingActivity._id}`);
-    } else {
-        // Create new entry for that day
-        const newActivity: NewUserActivity = {
-            userId: new ObjectId(id.toString()),
-            date,
-            entries: [newEntry]
-        };
-        console.log(`adding activity to activity collection: ${newActivity}`);
-        await activityCollection.insertOne(newActivity);
     }
-    // checking if we need to create a new color
-    const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
-    if (!currentUser?.colors[activity]) {
-        const newColor = generateRandomColor();
-        // Update user with the new color
-        await userCollection.updateOne(
-            { _id: new ObjectId(id.toString()) },
-            { $set: { [`colors.${activity}`]: newColor } }
-        );
+    else if (type === "note") {
+        if (!note) return c.json({ message: "Missing note field" }, 400);
+        if (existingEntry?.note) return c.json({ message: "Note already exists for this date" }, 400);
+        updateQuery = { $set: { note } };
+    }
+    else if (type === "variable") {
+        if (!variable || !value) return c.json({ message: "Missing variable fields" }, 400);
+        updateQuery = { $push: { variables: { variable, value } } };
+    }
+
+    else {
+        return c.json({ message: "Invalid type" }, 400);
+    }
+
+    if (type === "activity") {
+        // checking if we need to create a new color
+        const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
+        if (!currentUser?.colors[activity]) {
+            const newColor = generateRandomColor();
+            // Update user with the new color
+            await userCollection.updateOne(
+                { _id: new ObjectId(id.toString()) },
+                { $set: { [`colors.${activity}`]: newColor } }
+            );
+        }
     }
 
     // Extract user names from the description (those after "@")
-    const mentionedNames = Array.from(new Set(description.match(/@(\w+)/g)?.map((name: string) => name.slice(1)) || [])); // Removing "@" symbol
+    const mentionedNames = Array.from(new Set(`${description} ${note}`.match(/@(\w+)/g)?.map((name: string) => name.slice(1)) || [])); // Removing "@" symbol
     if (mentionedNames.length > 0) {
         const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
         const updatedNames = [...new Set([...(currentUser?.names || []), ...mentionedNames])]; // Add new names without duplicates
@@ -283,7 +280,9 @@ ActivityRoute.post('/new', async (c) => {
             );
         }
     }
-    return c.json({ message: "ok" });
+
+    await activityCollection.updateOne({ userId: new ObjectId(id.toString()), date }, updateQuery, { upsert: true });
+    return c.json({ message: `${type} added successfully` }, 200);
 })
 
 ActivityRoute.patch('/edit', async (c) => {
