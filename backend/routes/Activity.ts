@@ -340,7 +340,13 @@ ActivityRoute.patch('/edit', async (c) => {
         if (!existingEntry.entries.some(e => e.activity === activity)) {
             return c.json({ message: "Activity not defined for this date" }, 400);
         }
-        updateQuery = { $push: { entries: newEntry } };
+        // updateQuery = { $push: { entries: newEntry } };
+        updateQuery = {
+            $set: {
+                "entries.$[elem].description": description,
+                "entries.$[elem].duration": getTimeFromLongString(description)
+            }
+        };
     }
     else if (type === "note") {
         if (!note) return c.json({ message: "Missing note field" }, 400);
@@ -358,29 +364,6 @@ ActivityRoute.patch('/edit', async (c) => {
         return c.json({ message: "Invalid type" }, 400);
     }
 
-    // // Find the specific activity entry
-    // const activityIndex = existingEntry.entries.findIndex((entry) => entry.activity === activity);
-    // if (activityIndex === -1) {
-    //     c.status(400);
-    //     return c.json({ message: "specified activity not found" });
-    // }
-
-    // // Update only the fields that are provided
-    // const updateFields: Partial<ActivityEntry> = {};
-    // updateFields.description = description;
-    // const duration = getTimeFromLongString(description);
-    // updateFields.duration = duration;
-
-    // const updateResult = await activityCollection.updateOne(
-    //     { _id: existingEntry._id, "entries.activity": activity },
-    //     { $set: { [`entries.${activityIndex}.description`]: description, [`entries.${activityIndex}.duration`]: duration } }
-    // );
-
-    // if (updateResult.modifiedCount === 0) {
-    //     c.status(500);
-    //     return c.json({ message: "failed to update activity" });
-    // }
-
     // Extract user names from the description (those after "@")
     const mentionedNames = Array.from(new Set(`${description} ${note}`.match(/@(\w+)/g)?.map((name: string) => name.slice(1)) || [])); // Removing "@" symbol
     if (mentionedNames.length > 0) {
@@ -396,7 +379,11 @@ ActivityRoute.patch('/edit', async (c) => {
         }
     }
 
-    await activityCollection.updateOne({ userId: new ObjectId(id.toString()), date }, updateQuery, { upsert: true });
+    await activityCollection.updateOne({ userId: new ObjectId(id.toString()), date }, updateQuery,
+        type === "activity"
+            ? { arrayFilters: [{ "elem.activity": activity }], upsert: true }
+            : { upsert: true }
+    );
     return c.json({ message: "activity updated successfully" });
 })
 
