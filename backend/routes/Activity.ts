@@ -236,7 +236,7 @@ ActivityRoute.post('/new', async (c) => {
             updateQuery = { $push: { entries: newEntry } };
         } else {
             await activityCollection.insertOne({ userId: new ObjectId(id.toString()), date, entries: [newEntry], variables: [] });
-            return c.json({ message: "Activity added" }, 201);
+            return c.json({ message: "Activity added" }, 200);
         }
     }
     else if (type === "note") {
@@ -340,7 +340,6 @@ ActivityRoute.patch('/edit', async (c) => {
         if (!existingEntry.entries.some(e => e.activity === activity)) {
             return c.json({ message: "Activity not defined for this date" }, 400);
         }
-        // updateQuery = { $push: { entries: newEntry } };
         updateQuery = {
             $set: {
                 "entries.$[elem].description": description,
@@ -416,39 +415,78 @@ ActivityRoute.delete('/delete', async (c) => {
         return c.json({ message: "bad token" });
     }
 
-    const { year, month, day, activity } = await c.req.json(); // Parse request body
+    // Parse request body
+    const { year, month, day, type, activity, variable } = await c.req.json();
+    if (!year || !month || !day || !type) return c.json({ message: "Missing required fields" }, 400);
 
-    if (!year || !month || !day || !activity) {
-        c.status(400);
-        return c.json({ message: `Missing required fields` });
-    }
     const date = new Date(Date.UTC(parseInt(year), parseInt(month), parseInt(day)));
-
-    // Check if user already has an activity document for that day
-    const existingActivity = await activityCollection.findOne({ userId: new ObjectId(id.toString()), date });
-    if (!existingActivity) {
+    const existingEntry = await activityCollection.findOne({ userId: new ObjectId(id.toString()), date });
+    if (!existingEntry) {
         c.status(400);
-        return c.json({ message: 'there are no activities for this day' });
-    }
-    // Filter out the activity to be deleted
-    const updatedEntries = existingActivity.entries.filter(entry => entry.activity !== activity);
-
-    if (updatedEntries.length === existingActivity.entries.length) {
-        c.status(400);
-        return c.json({ message: "activity not found for this date" });
+        return c.json({ message: "no entry for this day" });
     }
 
-    if (updatedEntries.length === 0) {
-        // If no more activities remain for that day, delete the document
-        await activityCollection.deleteOne({ _id: existingActivity._id });
-        return c.json({ message: "activity deleted, no more activities for this day" });
-    } else {
-        // Otherwise, update the document with the filtered entries
-        await activityCollection.updateOne(
-            { _id: existingActivity._id },
-            { $set: { entries: updatedEntries } }
-        );
-        return c.json({ message: "activity deleted successfully" });
+    if (type === "activity") {
+        if (!activity) return c.json({ message: "Missing activity fields" }, 400);
+        // Filter out the activity to be deleted
+        const updatedEntries = existingEntry.entries.filter(entry => entry.activity !== activity);
+        if (updatedEntries.length === existingEntry.entries.length) {
+            c.status(400);
+            return c.json({ message: "activity not found for this date" });
+        }
+        if (updatedEntries.length === 0 && !existingEntry?.note && !existingEntry?.variables.length) {
+            // If no more activities or note or variables remain for that day, delete the document
+            await activityCollection.deleteOne({ _id: existingEntry._id });
+            return c.json({ message: "activity deleted, no more activities or note or variables for this day" });
+        } else {
+            // Otherwise, update the document with the filtered entries
+            await activityCollection.updateOne(
+                { _id: existingEntry._id },
+                { $set: { entries: updatedEntries } }
+            );
+            return c.json({ message: "activity deleted successfully" });
+        }
+    }
+    else if (type === "note") {
+        if (!existingEntry?.note) return c.json({ message: "Note doesn't exist for this date" }, 400);
+        if (!existingEntry.entries.length && !existingEntry.variables.length) {
+            // If no more activities or note or variables remain for that day, delete the document
+            await activityCollection.deleteOne({ _id: existingEntry._id });
+            return c.json({ message: "note deleted, no more activities or note or variables for this day" });
+        } else {
+            // Otherwise, update the document with the filtered entries
+            await activityCollection.updateOne(
+                { _id: existingEntry._id },
+                { $unset: { note: "" } }
+            );
+            return c.json({ message: "activity deleted successfully" });
+        }
+    }
+    else if (type === "variable") {
+        if (!variable) return c.json({ message: "Missing variable fields" }, 400);
+        if (!existingEntry.variables.some(e => e.variable === variable)) {
+            return c.json({ message: "Variable not defined for this date" }, 400);
+        }
+        const updatedEntries = existingEntry.variables.filter(entry => entry.variable !== variable);
+        if (updatedEntries.length === existingEntry.variables.length) {
+            c.status(400);
+            return c.json({ message: "Variable not defined for this date" });
+        }
+        if (updatedEntries.length === 0 && !existingEntry?.note && !existingEntry.entries.length) {
+            // If no more activities or note or variables remain for that day, delete the document
+            await activityCollection.deleteOne({ _id: existingEntry._id });
+            return c.json({ message: "variable deleted, no more activities or note or variables for this day" });
+        } else {
+            // Otherwise, update the document with the filtered entries
+            await activityCollection.updateOne(
+                { _id: existingEntry._id },
+                { $set: { variable: updatedEntries } }
+            );
+            return c.json({ message: "variable deleted successfully" });
+        }
+    }
+    else {
+        return c.json({ message: "Invalid type" }, 400);
     }
 })
 
