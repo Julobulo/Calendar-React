@@ -357,7 +357,6 @@ ActivityRoute.patch('/edit', async (c) => {
         if (!existingEntry.variables.some(e => e.variable === variable)) {
             return c.json({ message: "Variable not defined for this date" }, 400);
         }
-        // updateQuery = { $push: { variables: { variable, value } } };
         // Update the existing variable instead of pushing a new one
         updateQuery = {
             $set: { "variables.$[elem].value": value }
@@ -486,7 +485,7 @@ ActivityRoute.delete('/delete', async (c) => {
             // Otherwise, update the document with the filtered entries
             await activityCollection.updateOne(
                 { _id: existingEntry._id },
-                { $set: { variable: updatedEntries } }
+                { $set: { variables: updatedEntries } }
             );
             return c.json({ message: "variable deleted successfully" });
         }
