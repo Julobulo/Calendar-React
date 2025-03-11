@@ -246,7 +246,7 @@ ActivityRoute.post('/new', async (c) => {
     }
     else if (type === "variable") {
         if (!variable || !value) return c.json({ message: "Missing variable fields" }, 400);
-        if (existingEntry?.variables.some(e => e.variable === variable)) {
+        if (existingEntry?.variables && existingEntry?.variables.some(e => e.variable === variable)) {
             return c.json({ message: "Variable already exists for this date" }, 400);
         }
         updateQuery = { $push: { variables: { variable, value } } };
