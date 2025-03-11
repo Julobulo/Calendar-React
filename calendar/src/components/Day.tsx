@@ -345,7 +345,7 @@ const Day = () => {
             {/* Calendar & Form (Hidden on mobile) */}
             {((window.innerWidth < 768 && mobileShowForm) || (window.innerWidth >= 768)) && (<div className="md:inline-flex flex-col px-4 bg-white max-w-fit">
                 {/* Simple Calendar */}
-                <div ref={calendarRef} className="p-4 border rounded mb-4 w-max mx-auto">
+                <div ref={calendarRef} className="p-4 border rounded mb-4 w-max">
                     <DayPicker
                         mode="single"
                         selected={selectedDate}
