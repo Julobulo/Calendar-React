@@ -95,7 +95,9 @@ export interface UserActivity {
   _id: ObjectId,
   userId: ObjectId,
   date: Date,
-  entries: ActivityEntry[]
+  entries: ActivityEntry[],
+  note?: string,
+  variables: { variable: string, value: string }[],
 };
 
 // Utility type for creating new users without an _id field
