@@ -459,7 +459,7 @@ ActivityRoute.delete('/delete', async (c) => {
                 { _id: existingEntry._id },
                 { $unset: { note: "" } }
             );
-            return c.json({ message: "activity deleted successfully" });
+            return c.json({ message: "note deleted successfully" });
         }
     }
     else if (type === "variable") {
