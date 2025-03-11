@@ -357,7 +357,11 @@ ActivityRoute.patch('/edit', async (c) => {
         if (!existingEntry.variables.some(e => e.variable === variable)) {
             return c.json({ message: "Variable not defined for this date" }, 400);
         }
-        updateQuery = { $push: { variables: { variable, value } } };
+        // updateQuery = { $push: { variables: { variable, value } } };
+        // Update the existing variable instead of pushing a new one
+        updateQuery = {
+            $set: { "variables.$[elem].value": value }
+        };
     }
     else {
         return c.json({ message: "Invalid type" }, 400);
@@ -381,7 +385,9 @@ ActivityRoute.patch('/edit', async (c) => {
     await activityCollection.updateOne({ userId: new ObjectId(id.toString()), date }, updateQuery,
         type === "activity"
             ? { arrayFilters: [{ "elem.activity": activity }], upsert: true }
-            : { upsert: true }
+            : (type === "variable"
+                ? { arrayFilters: [{ "elem.variable": variable }], upsert: true } :
+                { upsert: true })
     );
     return c.json({ message: "activity updated successfully" });
 })
