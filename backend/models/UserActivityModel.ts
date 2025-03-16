@@ -12,7 +12,7 @@ export interface UserActivity {
     date: Date,
     entries: ActivityEntry[],
     note?: string,
-    variables: { variable: string, value: string }[],
+    variables?: { variable: string, value: string }[],
 };
 
 
