@@ -499,7 +499,7 @@ const Day = () => {
                 >
                     <option value="activity">Activity</option>
                     <option value="note">Note</option>
-                    <option value="variable">Variable</option>
+                    {/* <option value="variable">Variable</option> */}
                 </select>
                 {selectedForm === "activity" && (<div>
                     {/* Add Event Form */}
