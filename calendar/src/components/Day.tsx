@@ -400,7 +400,7 @@ const Day = () => {
                     />
                 </div>
                 {/* Dropdown to select form type */}
-                {/* <select
+                <select
                     value={selectedForm}
                     onChange={(e) => setSelectedForm(e.target.value as "activity" | "note" | "variable")}
                     className="p-4 border mb-4 rounded w-full mx-auto lg:mr-2 xl:mr-14"
@@ -408,7 +408,7 @@ const Day = () => {
                     <option value="activity">Activity</option>
                     <option value="note">Note</option>
                     <option value="variable">Variable</option>
-                </select> */}
+                </select>
                 {selectedForm === "activity" && (<div>
                     {/* Add Event Form */}
                     <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
@@ -513,7 +513,7 @@ const Day = () => {
                     </div>
                     <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
                 </div>)}
-                {/* {selectedForm === "note" && (<div>
+                {selectedForm === "note" && (<div>
                     <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
                         <h3 className="text-lg font-semibold">{eventPopUp.state} note</h3>
                         <div>
@@ -563,7 +563,7 @@ const Day = () => {
                         </div>
                     </div>
                     <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
-                </div>)} */}
+                </div>)}
             </div>)}
         </div>
     );
