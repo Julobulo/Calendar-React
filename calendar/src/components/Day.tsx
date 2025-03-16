@@ -474,6 +474,7 @@ const Day = () => {
                     value={selectedForm}
                     onChange={(e) => setSelectedForm(e.target.value as "activity" | "note" | "variable")}
                     className="p-4 border mb-4 rounded w-full mx-auto lg:mr-2 xl:mr-14"
+                    style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}
                 >
                     <option value="activity">Activity</option>
                     <option value="note">Note</option>
