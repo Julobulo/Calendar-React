@@ -413,6 +413,7 @@ const Day = () => {
                                         className={`text-xs ${isLightOrDark(colors[entry.variable]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
                                         onClick={(e) => {
                                             e.stopPropagation(); // Prevent handleClick from running
+                                            setSelectedForm("variable");
                                             setEventPopUp({ state: "edit", activity: "", description: "", variable: entry.variable, value: entry.value, note: "" })
                                             setMobileShowForm(true);
                                         }}
@@ -432,6 +433,7 @@ const Day = () => {
                                     className={`text-xs ${isLightOrDark(colors["note"]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
                                     onClick={(e) => {
                                         e.stopPropagation(); // Prevent handleClick from running
+                                        setSelectedForm("note");
                                         setEventPopUp({ state: "edit", activity: "", description: "", note: dayActivities?.note || "", variable: "", value: "" })
                                         setMobileShowForm(true);
                                     }}
