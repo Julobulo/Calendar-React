@@ -331,6 +331,45 @@ const Day = () => {
                                 {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - <span dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(entry.description) }}></span>
                             </div>
                         ))}
+                        {(dayActivities.variables && dayActivities.variables.length > 0) && (
+                            <div>
+                                <hr className="my-2" />
+                                {dayActivities.variables.map((entry, index) => (
+                                    <div
+                                        key={index}
+                                        style={{
+                                            backgroundColor: colors[entry.variable] || "#ffffff", // Default color if no match found
+                                        }}
+                                        className={`text-xs ${isLightOrDark(colors[entry.variable]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // Prevent handleClick from running
+                                            setEventPopUp({ state: "edit", variable: entry.variable, value: entry.value, note: "" })
+                                            setMobileShowForm(true);
+                                        }}
+                                    >
+                                        {entry.variable} - <span dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(entry.variable) }}></span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {dayActivities?.note && (
+                            <div>
+                                <hr className="my-2" />
+                                <div
+                                    style={{
+                                        backgroundColor: colors["note"] || "#ffffff", // Default color if no match found
+                                    }}
+                                    className={`text-xs ${isLightOrDark(colors["note"]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent handleClick from running
+                                        setEventPopUp({ state: "edit", activity: "", description: "", note: dayActivities?.note || "" })
+                                        setMobileShowForm(true);
+                                    }}
+                                >
+                                    <span dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(dayActivities.note || "") }}></span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
                 {!loading && !dayActivities && (
