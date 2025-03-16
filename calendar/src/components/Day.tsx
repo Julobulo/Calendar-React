@@ -59,7 +59,7 @@ const Day = () => {
         newDescription = description.replace(timeRegex, (match) => {
             return `<span style="text-decoration: underline;">${match}</span>`;
         });
-        return newDescription.replace(/@([a-zA-Z]*)$/, (match) => {
+        return newDescription.replace(/@([a-zA-Z]*)/g, (match) => {
             return `<span style="font-weight: bold;">${match}</span>`;
         });
     };
