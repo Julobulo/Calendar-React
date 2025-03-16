@@ -212,19 +212,38 @@ const Day = () => {
 
     const handleDelete = async () => {
         setActionLoading(true);
+        let body;
+        if (selectedForm === "activity") {
+            body = {
+                year: year,
+                month: month,
+                day: day,
+                type: "activity",
+                activity: eventPopUp.activity,
+            }
+        } else if (selectedForm === "note") {
+            body = {
+                year: year,
+                month: month,
+                day: day,
+                type: "note",
+            }
+        } else if (selectedForm === "variable") {
+            body = {
+                year: year,
+                month: month,
+                day: day,
+                type: "variable",
+                variable: eventPopUp.variable,
+            }
+        }
         const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/delete`, {
             method: "DELETE",
             credentials: "include",
             headers: {
                 "Content-Type": "application/json", // Tell the server we're sending JSON
             },
-            body: JSON.stringify({
-                year: year,
-                month: month,
-                day: day,
-                type: "activity",
-                activity: eventPopUp.activity,
-            }),
+            body: JSON.stringify(body),
         });
         const data = await response.json();
         if (response.status !== 200) {
