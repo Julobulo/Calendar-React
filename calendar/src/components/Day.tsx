@@ -110,20 +110,41 @@ const Day = () => {
     const handleEventFinish = async () => {
         if (eventPopUp.state === "add") {
             setActionLoading(true);
-            const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/new`, {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json", // Tell the server we're sending JSON
-                },
-                body: JSON.stringify({
+            let body;
+            if (selectedForm === "activity") {
+                body = {
                     year: year,
                     month: month,
                     day: day,
                     type: "activity",
                     activity: eventPopUp.activity,
                     description: eventPopUp.description,
-                }),
+                }
+            } else if (selectedForm === "note") {
+                body = {
+                    year: year,
+                    month: month,
+                    day: day,
+                    type: "note",
+                    note: eventPopUp.note,
+                }
+            } else if (selectedForm === "variable") {
+                body = {
+                    year: year,
+                    month: month,
+                    day: day,
+                    type: "variable",
+                    variable: eventPopUp.variable,
+                    value: eventPopUp.value,
+                }
+            }
+            const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/new`, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json", // Tell the server we're sending JSON
+                },
+                body: JSON.stringify(body),
             });
             const data = await response.json();
             if (response.status !== 200) {
@@ -138,20 +159,41 @@ const Day = () => {
         }
         else if (eventPopUp.state === "edit") {
             setActionLoading(true);
-            const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/edit`, {
-                method: "PATCH",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json", // Tell the server we're sending JSON
-                },
-                body: JSON.stringify({
+            let body;
+            if (selectedForm === "activity") {
+                body = {
                     year: year,
                     month: month,
                     day: day,
                     type: "activity",
                     activity: eventPopUp.activity,
                     description: eventPopUp.description,
-                }),
+                }
+            } else if (selectedForm === "note") {
+                body = {
+                    year: year,
+                    month: month,
+                    day: day,
+                    type: "note",
+                    note: eventPopUp.note,
+                }
+            } else if (selectedForm === "variable") {
+                body = {
+                    year: year,
+                    month: month,
+                    day: day,
+                    type: "variable",
+                    variable: eventPopUp.variable,
+                    value: eventPopUp.value,
+                }
+            }
+            const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/edit`, {
+                method: "PATCH",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json", // Tell the server we're sending JSON
+                },
+                body: JSON.stringify(body),
             });
             const data = await response.json();
             if (response.status !== 200) {
