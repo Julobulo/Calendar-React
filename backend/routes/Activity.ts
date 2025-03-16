@@ -354,7 +354,7 @@ ActivityRoute.patch('/edit', async (c) => {
     }
     else if (type === "variable") {
         if (!variable || !value) return c.json({ message: "Missing variable fields" }, 400);
-        if (!existingEntry.variables.some(e => e.variable === variable)) {
+        if (existingEntry.variables && !existingEntry.variables.some(e => e.variable === variable)) {
             return c.json({ message: "Variable not defined for this date" }, 400);
         }
         // Update the existing variable instead of pushing a new one
@@ -439,7 +439,7 @@ ActivityRoute.delete('/delete', async (c) => {
             c.status(400);
             return c.json({ message: "activity not found for this date" });
         }
-        if (updatedEntries.length === 0 && !existingEntry?.note && !existingEntry?.variables.length) {
+        if (updatedEntries.length === 0 && !existingEntry?.note && (!existingEntry.variables || !existingEntry?.variables.length)) {
             // If no more activities or note or variables remain for that day, delete the document
             await activityCollection.deleteOne({ _id: existingEntry._id });
             return c.json({ message: "activity deleted, no more activities or note or variables for this day" });
@@ -454,7 +454,7 @@ ActivityRoute.delete('/delete', async (c) => {
     }
     else if (type === "note") {
         if (!existingEntry?.note) return c.json({ message: "Note doesn't exist for this date" }, 400);
-        if (!existingEntry.entries.length && !existingEntry.variables.length) {
+        if (!existingEntry.entries.length && (!existingEntry.variables || !existingEntry.variables.length)) {
             // If no more activities or note or variables remain for that day, delete the document
             await activityCollection.deleteOne({ _id: existingEntry._id });
             return c.json({ message: "note deleted, no more activities or note or variables for this day" });
@@ -469,11 +469,11 @@ ActivityRoute.delete('/delete', async (c) => {
     }
     else if (type === "variable") {
         if (!variable) return c.json({ message: "Missing variable fields" }, 400);
-        if (!existingEntry.variables.some(e => e.variable === variable)) {
+        if (existingEntry.variables && !existingEntry.variables.some(e => e.variable === variable)) {
             return c.json({ message: "Variable not defined for this date" }, 400);
         }
-        const updatedEntries = existingEntry.variables.filter(entry => entry.variable !== variable);
-        if (updatedEntries.length === existingEntry.variables.length) {
+        const updatedEntries = (existingEntry.variables || []).filter(entry => entry.variable !== variable);
+        if (existingEntry.variables && updatedEntries.length === existingEntry.variables.length) {
             c.status(400);
             return c.json({ message: "Variable not defined for this date" });
         }
