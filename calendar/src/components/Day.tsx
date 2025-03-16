@@ -495,7 +495,7 @@ const Day = () => {
                 <select
                     value={selectedForm}
                     onChange={(e) => { setSelectedForm(e.target.value as "activity" | "note" | "variable"); setEventPopUp({ state: "add", activity: "", description: "", note: "", variable: "", value: "" }) }}
-                    className="p-4 border mb-4 rounded w-full mx-auto lg:mr-2 xl:mr-14"
+                    className="p-4 border mb-4 rounded w-full mx-auto lg:mr-2 xl:mr-14 bg-white focus:bg-gray-200"
                     style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}
                 >
                     <option value="activity">Activity</option>
