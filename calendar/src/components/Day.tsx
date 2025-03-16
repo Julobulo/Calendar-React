@@ -596,7 +596,7 @@ const Day = () => {
                             {suggestions.length > 0 && (
                                 <ul className="bg-white border rounded shadow-lg">
                                     {suggestions.map((suggestion, index) => {
-                                        const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
+                                        const textBeforeCursor = eventPopUp.note.slice(0, cursorPosition);
                                         const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
                                         return <li
                                             key={suggestion}
