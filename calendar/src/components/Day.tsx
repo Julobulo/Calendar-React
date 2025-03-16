@@ -260,21 +260,39 @@ const Day = () => {
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
         const value = e.target.value;
         let filteredSuggestions: Array<string> = [];
-        if (suggestionsTypeRef.current === "activity") {
-            setEventPopUp((prev) => ({ ...prev, activity: value }));
+        if (selectedForm === "activity") {
+            if (suggestionsTypeRef.current === "activity") {
+                setEventPopUp((prev) => ({ ...prev, activity: value }));
 
-            if (value.length === 0) {
-                setSuggestions([]);
-                return;
+                if (value.length === 0) {
+                    setSuggestions([]);
+                    return;
+                }
+
+                filteredSuggestions = Object.keys(colors)
+                    .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
+                    .slice(0, 3);
             }
+            else if (suggestionsTypeRef.current === "name") {
+                setEventPopUp((prev) => ({ ...prev, description: value }));
 
-            filteredSuggestions = Object.keys(colors)
-                .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
-                .slice(0, 3);
-        }
-        else if (suggestionsTypeRef.current === "name") {
-            setEventPopUp((prev) => ({ ...prev, description: value }));
+                if (value.length === 0) {
+                    setSuggestions([]);
+                    return;
+                }
+                const cursorPos = e.target.selectionStart || 0;
+                setCursorPosition(cursorPos);
+                const textBeforeCursor = value.slice(0, cursorPos);
+                const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
 
+                if (match) {
+                    filteredSuggestions = names
+                        .filter((name: string) => name.toLowerCase().includes(match[1].toLowerCase()))
+                        .slice(0, 3);
+                }
+            }
+        } else if (selectedForm === "note") {
+            setEventPopUp((prev) => ({ ...prev, note: value }));
             if (value.length === 0) {
                 setSuggestions([]);
                 return;
@@ -562,10 +580,10 @@ const Day = () => {
                             <textarea
                                 placeholder="Note for the day, e.g. visited @Michael and saw an aligator on my way home"
                                 className="w-full p-2 border mt-2 rounded"
-                                value={eventPopUp.description}
-                                onChange={(e) => { setSuggestionsType("name"); handleInputChange(e) }}
+                                value={eventPopUp.note}
+                                onChange={(e) => { handleInputChange(e) }}
                                 onKeyDown={handleKeyDown}></textarea>
-                            {suggestions.length > 0 && suggestionsTypeRef.current === "name" && (
+                            {suggestions.length > 0 && (
                                 <ul className="bg-white border rounded shadow-lg">
                                     {suggestions.map((suggestion, index) => {
                                         const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
