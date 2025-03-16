@@ -343,12 +343,17 @@ const Day = () => {
             }
         } else if (e.key === "Enter" && selectedSuggestionIndex !== -1) {
             e.preventDefault(); // Prevents the cursor from moving
-            if (suggestionsTypeRef.current === "activity") {
-                setEventPopUp((prev) => ({ ...prev, activity: suggestions[selectedSuggestionIndex] }));
-            }
-            else if (suggestionsTypeRef.current === "name") {
-                const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
-                setEventPopUp((prev) => ({ ...prev, description: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestions[selectedSuggestionIndex]}`) + eventPopUp.description.slice(cursorPosition) }));
+            if (selectedForm === "activity") {
+                if (suggestionsTypeRef.current === "activity") {
+                    setEventPopUp((prev) => ({ ...prev, activity: suggestions[selectedSuggestionIndex] }));
+                }
+                else if (suggestionsTypeRef.current === "name") {
+                    const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
+                    setEventPopUp((prev) => ({ ...prev, description: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestions[selectedSuggestionIndex]}`) + eventPopUp.description.slice(cursorPosition) }));
+                }
+            } else if (selectedForm === "note") {
+                const textBeforeCursor = eventPopUp.note.slice(0, cursorPosition);
+                setEventPopUp((prev) => ({ ...prev, note: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestions[selectedSuggestionIndex]}`) + eventPopUp.note.slice(cursorPosition) }));
             }
             setSuggestions([]);
             setSelectedSuggestionIndex(-1);
