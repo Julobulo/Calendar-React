@@ -413,7 +413,8 @@ const Day = () => {
                                 className={`text-xs ${isLightOrDark(colors[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
                                 onClick={(e) => {
                                     e.stopPropagation(); // Prevent handleClick from running
-                                    setEventPopUp({ state: "edit", activity: entry.activity, description: entry.description, note: "", variable: "", value: "" })
+                                    setSelectedForm("activity");
+                                    setEventPopUp({ state: "edit", activity: entry.activity, description: entry.description, note: "", variable: "", value: "" });
                                     setMobileShowForm(true);
                                 }}
                             >
