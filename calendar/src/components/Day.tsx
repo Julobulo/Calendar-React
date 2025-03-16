@@ -313,12 +313,17 @@ const Day = () => {
     };
 
     const handleSuggestionClick = (suggestion: string) => {
-        if (suggestionsTypeRef.current === "activity") {
-            setEventPopUp((prev) => ({ ...prev, activity: suggestion }));
-        }
-        else if (suggestionsTypeRef.current === "name") {
-            const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
-            setEventPopUp((prev) => ({ ...prev, description: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestion}`) + eventPopUp.description.slice(cursorPosition) }));
+        if (selectedForm === "activity") {
+            if (suggestionsTypeRef.current === "activity") {
+                setEventPopUp((prev) => ({ ...prev, activity: suggestion }));
+            }
+            else if (suggestionsTypeRef.current === "name") {
+                const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
+                setEventPopUp((prev) => ({ ...prev, description: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestion}`) + eventPopUp.description.slice(cursorPosition) }));
+            }
+        } else if (selectedForm === "note") {
+            const textBeforeCursor = eventPopUp.note.slice(0, cursorPosition);
+            setEventPopUp((prev) => ({ ...prev, note: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestion}`) + eventPopUp.note.slice(cursorPosition) }));
         }
         setSuggestions([]);
     };
