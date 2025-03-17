@@ -230,7 +230,7 @@ ActivityRoute.post('/new', async (c) => {
         const newEntry: ActivityEntry = { activity, duration: getTimeFromLongString(description), description };
 
         if (existingEntry) {
-            if (existingEntry.entries.some(e => e.activity === activity)) {
+            if (existingEntry.entries && existingEntry.entries.some(e => e.activity === activity)) {
                 return c.json({ message: "Activity already defined for this date" }, 400);
             }
             updateQuery = { $push: { entries: newEntry } };
@@ -337,7 +337,7 @@ ActivityRoute.patch('/edit', async (c) => {
         if (!activity || !description) return c.json({ message: "Missing activity fields" }, 400);
         const newEntry: ActivityEntry = { activity, duration: getTimeFromLongString(description), description };
 
-        if (!existingEntry.entries.some(e => e.activity === activity)) {
+        if (!existingEntry.entries || !existingEntry.entries.some(e => e.activity === activity)) {
             return c.json({ message: "Activity not defined for this date" }, 400);
         }
         updateQuery = {
