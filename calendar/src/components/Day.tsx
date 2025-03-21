@@ -327,17 +327,21 @@ const Day = () => {
                     .slice(0, 3);
             }
         } else if (selectedForm === "variable") {
-            setEventPopUp((prev) => ({ ...prev, variable: value }));
-            // Still dunno what to do here
+            if (suggestionsTypeRef.current === "variable") {
+                setEventPopUp((prev) => ({ ...prev, variable: value }));
+                // still don't know what to put here
+                // if (value.length === 0) {
+                //     setSuggestions([]);
+                //     return;
+                // }
 
-            // if (value.length === 0) {
-            //     setSuggestions([]);
-            //     return;
-            // }
-
-            // filteredSuggestions = Object.keys(colors)
-            //     .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
-            //     .slice(0, 3);
+                // filteredSuggestions = Object.keys(colors)
+                //     .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
+                //     .slice(0, 3);
+            }
+            else if (suggestionsTypeRef.current === "name") {
+                setEventPopUp((prev) => ({ ...prev, value: value }));
+            }
         }
 
         setSuggestions(filteredSuggestions);
@@ -393,7 +397,7 @@ const Day = () => {
                 const textBeforeCursor = eventPopUp.note.slice(0, cursorPosition);
                 setEventPopUp((prev) => ({ ...prev, note: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestions[selectedSuggestionIndex]}`) + eventPopUp.note.slice(cursorPosition) }));
             } else if (suggestionsTypeRef.current === "variable") {
-                setEventPopUp((prev) => ({...prev, variable: suggestions[selectedSuggestionIndex]}));
+                setEventPopUp((prev) => ({ ...prev, variable: suggestions[selectedSuggestionIndex] }));
             }
             setSuggestions([]);
             setSelectedSuggestionIndex(-1);
@@ -703,34 +707,12 @@ const Day = () => {
                                     ))}
                                 </ul>
                             )}
-                            <textarea
-                                placeholder="Value, e.g. 70kg"
+                            <input
+                                type="number"
+                                placeholder="Value, e.g. 70"
                                 className="w-full p-2 border mt-2 rounded"
                                 value={eventPopUp.value}
-                                onChange={(e) => { handleInputChange(e) }}
-                                onKeyDown={handleKeyDown}></textarea>
-                            {suggestions.length > 0 && suggestionsTypeRef.current === "name" && (
-                                <ul className="bg-white border rounded shadow-lg">
-                                    {suggestions.map((suggestion, index) => {
-                                        const textBeforeCursor = eventPopUp.value.slice(0, cursorPosition);
-                                        const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
-                                        return <li
-                                            key={suggestion}
-                                            className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
-                                                }`}
-                                            onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                                            onMouseLeave={() => setSelectedSuggestionIndex(-1)}
-                                            onClick={() => handleSuggestionClick(suggestion)}
-                                        >
-                                            {suggestion.split("").map((char, index) => (
-                                                <span key={index} className={match?.[1].toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
-                                                    {char}
-                                                </span>
-                                            ))}
-                                        </li>
-                                    })}
-                                </ul>
-                            )}
+                                onChange={(e) => { handleInputChange(e) }}></input>
                             {
                                 eventPopUp.state === "add" ? (
                                     actionLoading ? (
