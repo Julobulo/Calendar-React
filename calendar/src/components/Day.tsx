@@ -327,37 +327,17 @@ const Day = () => {
                     .slice(0, 3);
             }
         } else if (selectedForm === "variable") {
-            if (suggestionsTypeRef.current === "variable") {
-                setEventPopUp((prev) => ({ ...prev, variable: value }));
-                // Still dunno what to do here
+            setEventPopUp((prev) => ({ ...prev, variable: value }));
+            // Still dunno what to do here
 
-                // if (value.length === 0) {
-                //     setSuggestions([]);
-                //     return;
-                // }
+            // if (value.length === 0) {
+            //     setSuggestions([]);
+            //     return;
+            // }
 
-                // filteredSuggestions = Object.keys(colors)
-                //     .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
-                //     .slice(0, 3);
-            }
-            else if (suggestionsTypeRef.current === "name") {
-                setEventPopUp((prev) => ({ ...prev, value: value }));
-
-                if (value.length === 0) {
-                    setSuggestions([]);
-                    return;
-                }
-                const cursorPos = e.target.selectionStart || 0;
-                setCursorPosition(cursorPos);
-                const textBeforeCursor = value.slice(0, cursorPos);
-                const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
-
-                if (match) {
-                    filteredSuggestions = names
-                        .filter((name: string) => name.toLowerCase().includes(match[1].toLowerCase()))
-                        .slice(0, 3);
-                }
-            }
+            // filteredSuggestions = Object.keys(colors)
+            //     .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
+            //     .slice(0, 3);
         }
 
         setSuggestions(filteredSuggestions);
@@ -375,6 +355,8 @@ const Day = () => {
         } else if (selectedForm === "note") {
             const textBeforeCursor = eventPopUp.note.slice(0, cursorPosition);
             setEventPopUp((prev) => ({ ...prev, note: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestion}`) + eventPopUp.note.slice(cursorPosition) }));
+        } else if (selectedForm === "variable") {
+            setEventPopUp((prev) => ({ ...prev, variable: suggestion }));
         }
         setSuggestions([]);
     };
@@ -410,6 +392,8 @@ const Day = () => {
             } else if (selectedForm === "note") {
                 const textBeforeCursor = eventPopUp.note.slice(0, cursorPosition);
                 setEventPopUp((prev) => ({ ...prev, note: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestions[selectedSuggestionIndex]}`) + eventPopUp.note.slice(cursorPosition) }));
+            } else if (suggestionsTypeRef.current === "variable") {
+                setEventPopUp((prev) => ({...prev, variable: suggestions[selectedSuggestionIndex]}));
             }
             setSuggestions([]);
             setSelectedSuggestionIndex(-1);
@@ -723,7 +707,7 @@ const Day = () => {
                                 placeholder="Value, e.g. 70kg"
                                 className="w-full p-2 border mt-2 rounded"
                                 value={eventPopUp.value}
-                                onChange={(e) => { setSuggestionsType("name"); handleInputChange(e) }}
+                                onChange={(e) => { handleInputChange(e) }}
                                 onKeyDown={handleKeyDown}></textarea>
                             {suggestions.length > 0 && suggestionsTypeRef.current === "name" && (
                                 <ul className="bg-white border rounded shadow-lg">
