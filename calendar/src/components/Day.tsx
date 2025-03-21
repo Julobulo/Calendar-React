@@ -443,7 +443,7 @@ const Day = () => {
                         ))}
                         {(dayActivities.variables && dayActivities.variables.length > 0) && (
                             <div>
-                                <hr className="my-2" />
+                                {(dayActivities.entries && dayActivities.entries.length) && <hr className="my-2" />}
                                 {dayActivities.variables.map((entry, index) => (
                                     <div
                                         key={index}
@@ -465,7 +465,7 @@ const Day = () => {
                         )}
                         {dayActivities?.note && (
                             <div>
-                                <hr className="my-2" />
+                                {(dayActivities.entries && dayActivities.entries.length && dayActivities.variables && dayActivities.variables.length) && <hr className="my-2" />}
                                 <div
                                     style={{
                                         backgroundColor: colors["note"] || "#ffffff", // Default color if no match found
