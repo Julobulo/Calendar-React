@@ -682,8 +682,7 @@ const Day = () => {
                     <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
                         <h3 className="text-lg font-semibold">{eventPopUp.state} event</h3>
                         <div>
-                            <input type="text" placeholder="Variable, e.g. Weight" className="w-full p-2 border rounded" value={eventPopUp.activity}
-                                // onChange={(e) => { if (eventPopUp.state === "add") { setEventPopup((prev) => ({ ...eventPopUp, activity: e.target.value }) } }}
+                            <input type="text" placeholder="Variable, e.g. Weight" className="w-full p-2 border rounded" value={eventPopUp.variable}
                                 onChange={(e) => { setSuggestionsType("variable"); handleInputChange(e) }}
                                 onKeyDown={handleKeyDown}
                                 disabled={eventPopUp.state !== "add"} />
@@ -712,7 +711,7 @@ const Day = () => {
                                 placeholder="Value, e.g. 70"
                                 className="w-full p-2 border mt-2 rounded"
                                 value={eventPopUp.value}
-                                onChange={(e) => { handleInputChange(e) }}></input>
+                                onChange={(e) => { setSuggestionsType("name"); handleInputChange(e) }}></input>
                             {
                                 eventPopUp.state === "add" ? (
                                     actionLoading ? (
