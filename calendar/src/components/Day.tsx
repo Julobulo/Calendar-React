@@ -465,7 +465,7 @@ const Day = () => {
                         )}
                         {dayActivities?.note && (
                             <div>
-                                {(dayActivities.entries && dayActivities.entries.length && dayActivities.variables && dayActivities.variables.length) && <hr className="my-2" />}
+                                {((dayActivities.entries && dayActivities.entries.length) || (dayActivities.variables && dayActivities.variables.length)) && <hr className="my-2" />}
                                 <div
                                     style={{
                                         backgroundColor: colors["note"] || "#ffffff", // Default color if no match found
