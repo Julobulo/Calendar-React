@@ -326,6 +326,38 @@ const Day = () => {
                     .filter((name: string) => name.toLowerCase().includes(match[1].toLowerCase()))
                     .slice(0, 3);
             }
+        } else if (selectedForm === "variable") {
+            if (suggestionsTypeRef.current === "variable") {
+                // Still dunno what to do here
+                // setEventPopUp((prev) => ({ ...prev, activity: value }));
+
+                // if (value.length === 0) {
+                //     setSuggestions([]);
+                //     return;
+                // }
+
+                // filteredSuggestions = Object.keys(colors)
+                //     .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
+                //     .slice(0, 3);
+            }
+            else if (suggestionsTypeRef.current === "name") {
+                setEventPopUp((prev) => ({ ...prev, value: value }));
+
+                if (value.length === 0) {
+                    setSuggestions([]);
+                    return;
+                }
+                const cursorPos = e.target.selectionStart || 0;
+                setCursorPosition(cursorPos);
+                const textBeforeCursor = value.slice(0, cursorPos);
+                const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
+
+                if (match) {
+                    filteredSuggestions = names
+                        .filter((name: string) => name.toLowerCase().includes(match[1].toLowerCase()))
+                        .slice(0, 3);
+                }
+            }
         }
 
         setSuggestions(filteredSuggestions);
