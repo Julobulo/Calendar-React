@@ -525,7 +525,7 @@ const Day = () => {
                 {selectedForm === "activity" && (<div>
                     {/* Add Event Form */}
                     <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
-                        <h3 className="text-lg font-semibold">{eventPopUp.state} event</h3>
+                        <h3 className="text-lg font-semibold">{eventPopUp.state} activity</h3>
                         <div>
                             <input type="text" placeholder="Activity, e.g. Running" className="w-full p-2 border rounded" value={eventPopUp.activity}
                                 // onChange={(e) => { if (eventPopUp.state === "add") { setEventPopup((prev) => ({ ...eventPopUp, activity: e.target.value }) } }}
@@ -680,7 +680,7 @@ const Day = () => {
                 {selectedForm === "variable" && (<div>
                     {/* Add Event Form */}
                     <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
-                        <h3 className="text-lg font-semibold">{eventPopUp.state} event</h3>
+                        <h3 className="text-lg font-semibold">{eventPopUp.state} variable</h3>
                         <div>
                             <input type="text" placeholder="Variable, e.g. Weight" className="w-full p-2 border rounded" value={eventPopUp.variable}
                                 onChange={(e) => { setSuggestionsType("variable"); handleInputChange(e) }}
