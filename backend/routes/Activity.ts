@@ -259,7 +259,12 @@ ActivityRoute.post('/new', async (c) => {
         // checking if we need to create a new color
         const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
         if (!currentUser?.colors[activity]) {
-            const newColor = generateRandomColor();
+            let newColor;
+            const usedColors = new Set(Object.values(currentUser?.colors || {})); // Get existing colors
+            // Generate a new color that is not already in use
+            do {
+                newColor = generateRandomColor();
+            } while (usedColors.has(newColor));
             // Update user with the new color
             await userCollection.updateOne(
                 { _id: new ObjectId(id.toString()) },
