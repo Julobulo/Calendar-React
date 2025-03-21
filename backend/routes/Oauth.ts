@@ -214,7 +214,7 @@ OAuthRoute.get("/google/callback", async (c) => {
                 strategy: "google",
                 google_id: userInfo.sub,
             },
-            colors: {},
+            colors: {"note":"#D9EAFB"},
             names: [],
         })) as any;
         // Fetch the full user document using the insertedId
