@@ -458,7 +458,7 @@ const Day = () => {
                                             setMobileShowForm(true);
                                         }}
                                     >
-                                        {entry.variable} - <span dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(entry.variable) }}></span>
+                                        {entry.variable} - {entry.value}
                                     </div>
                                 ))}
                             </div>
