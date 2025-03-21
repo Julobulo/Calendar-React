@@ -328,8 +328,8 @@ const Day = () => {
             }
         } else if (selectedForm === "variable") {
             if (suggestionsTypeRef.current === "variable") {
+                setEventPopUp((prev) => ({ ...prev, variable: value }));
                 // Still dunno what to do here
-                // setEventPopUp((prev) => ({ ...prev, activity: value }));
 
                 // if (value.length === 0) {
                 //     setSuggestions([]);
