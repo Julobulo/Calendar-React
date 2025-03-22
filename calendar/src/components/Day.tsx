@@ -434,7 +434,7 @@ const Day = () => {
                                 style={{
                                     backgroundColor: colors.activities[entry.activity] || "#ffffff", // Default color if no match found
                                 }}
-                                className={`text-xs ${isLightOrDark(colors[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
+                                className={`text-xs ${isLightOrDark(colors.activities[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
                                 onClick={(e) => {
                                     e.stopPropagation(); // Prevent handleClick from running
                                     setSelectedForm("activity");
@@ -454,7 +454,7 @@ const Day = () => {
                                         style={{
                                             backgroundColor: colors.variables[entry.variable] || "#ffffff", // Default color if no match found
                                         }}
-                                        className={`text-xs ${isLightOrDark(colors[entry.variable]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
+                                        className={`text-xs ${isLightOrDark(colors.variables[entry.variable]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
                                         onClick={(e) => {
                                             e.stopPropagation(); // Prevent handleClick from running
                                             setSelectedForm("variable");
@@ -474,7 +474,7 @@ const Day = () => {
                                     style={{
                                         backgroundColor: colors.note || "#ffffff", // Default color if no match found
                                     }}
-                                    className={`text-xs ${isLightOrDark(colors["note"]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
+                                    className={`text-xs ${isLightOrDark(colors.note) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
                                     onClick={(e) => {
                                         e.stopPropagation(); // Prevent handleClick from running
                                         setSelectedForm("note");
