@@ -17,7 +17,11 @@ const Day = () => {
     const day = Number(searchParams.get("day"));
 
     const [dayActivities, setDayActivities] = useState<UserActivity>();
-    const [colors, setColors] = useState<Record<string, string>>({});
+    const [colors, setColors] = useState<{
+        activities: { [activity: string]: string };
+        note: string;
+        variables: { [variable: string]: string };
+    }>({ activities: {}, note: "", variables: {} });
     const [names, setNames] = useState<Array<string>>([]);
     const [reload, setReload] = useState(false);
 
@@ -428,7 +432,7 @@ const Day = () => {
                             <div
                                 key={index}
                                 style={{
-                                    backgroundColor: colors[entry.activity] || "#ffffff", // Default color if no match found
+                                    backgroundColor: colors.activities[entry.activity] || "#ffffff", // Default color if no match found
                                 }}
                                 className={`text-xs ${isLightOrDark(colors[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
                                 onClick={(e) => {
@@ -448,7 +452,7 @@ const Day = () => {
                                     <div
                                         key={index}
                                         style={{
-                                            backgroundColor: colors[entry.variable] || "#ffffff", // Default color if no match found
+                                            backgroundColor: colors.variables[entry.variable] || "#ffffff", // Default color if no match found
                                         }}
                                         className={`text-xs ${isLightOrDark(colors[entry.variable]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
                                         onClick={(e) => {
@@ -468,7 +472,7 @@ const Day = () => {
                                 {((dayActivities.entries && dayActivities.entries.length) || (dayActivities.variables && dayActivities.variables.length)) && <hr className="my-2" />}
                                 <div
                                     style={{
-                                        backgroundColor: colors["note"] || "#ffffff", // Default color if no match found
+                                        backgroundColor: colors.note || "#ffffff", // Default color if no match found
                                     }}
                                     className={`text-xs ${isLightOrDark(colors["note"]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
                                     onClick={(e) => {
