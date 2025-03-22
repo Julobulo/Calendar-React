@@ -333,15 +333,15 @@ const Day = () => {
         } else if (selectedForm === "variable") {
             if (suggestionsTypeRef.current === "variable") {
                 setEventPopUp((prev) => ({ ...prev, variable: value }));
-                // still don't know what to put here
-                // if (value.length === 0) {
-                //     setSuggestions([]);
-                //     return;
-                // }
 
-                // filteredSuggestions = Object.keys(colors)
-                //     .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
-                //     .slice(0, 3);
+                if (value.length === 0) {
+                    setSuggestions([]);
+                    return;
+                }
+
+                filteredSuggestions = Object.keys(colors.variables)
+                    .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
+                    .slice(0, 3);
             }
             else if (suggestionsTypeRef.current === "name") {
                 setEventPopUp((prev) => ({ ...prev, value: value }));
