@@ -80,7 +80,7 @@ ActivityRoute.get('/', async (c) => {
     const cookieHeader = c.req.header("Cookie");
     if (!cookieHeader) {
         c.status(400);
-        return c.json({ message: "no cookies found" });
+        return c.json({ message: "no cookie found" });
     }
 
     const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
@@ -131,7 +131,7 @@ ActivityRoute.get('/colors', async (c) => {
     const cookieHeader = c.req.header("Cookie");
     if (!cookieHeader) {
         c.status(400);
-        return c.json({ message: "no cookies found" });
+        return c.json({ message: "no cookie found" });
     }
 
     const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
@@ -170,7 +170,7 @@ ActivityRoute.get('/check-colors', async (c) => {
     const cookieHeader = c.req.header('Cookie');
     if (!cookieHeader) {
         c.status(400);
-        return c.json({ message: 'no cookies found' });
+        return c.json({ message: 'no cookie found' });
     }
     const cookies = cookieHeader.split(';').map((cookie) => cookie.trim());
     let token = cookies.find((cookie) => cookie.startsWith('token='));
@@ -266,7 +266,7 @@ ActivityRoute.get('/names', async (c) => {
     const cookieHeader = c.req.header("Cookie");
     if (!cookieHeader) {
         c.status(400);
-        return c.json({ message: "no cookies found" });
+        return c.json({ message: "no cookie found" });
     }
 
     const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
@@ -302,7 +302,7 @@ ActivityRoute.post('/new', async (c) => {
     const cookieHeader = c.req.header("Cookie");
     if (!cookieHeader) {
         c.status(400);
-        return c.json({ message: "no cookies found" });
+        return c.json({ message: "no cookie found" });
     }
 
     const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
@@ -435,7 +435,7 @@ ActivityRoute.patch('/edit', async (c) => {
     const cookieHeader = c.req.header("Cookie");
     if (!cookieHeader) {
         c.status(400);
-        return c.json({ message: "no cookies found" });
+        return c.json({ message: "no cookie found" });
     }
 
     const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
@@ -536,7 +536,7 @@ ActivityRoute.delete('/delete', async (c) => {
     const cookieHeader = c.req.header("Cookie");
     if (!cookieHeader) {
         c.status(400);
-        return c.json({ message: "no cookies found" });
+        return c.json({ message: "no cookie found" });
     }
 
     const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
