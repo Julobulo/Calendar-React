@@ -445,9 +445,9 @@ const Day = () => {
                                 {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - <span dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(entry.description) }}></span>
                             </div>
                         ))}
-                        {(dayActivities.variables && dayActivities.variables.length > 0) && (
+                        {(dayActivities.variables?.length ?? 0) > 0 && (
                             <div className="space-y-1">
-                                {(dayActivities.entries && dayActivities.entries.length) && <hr className="my-2" />}
+                                {(dayActivities.entries?.length ?? 0) > 0 && <hr className="my-2" />}
                                 {dayActivities.variables.map((entry, index) => (
                                     <div
                                         key={index}
@@ -469,7 +469,7 @@ const Day = () => {
                         )}
                         {dayActivities?.note && (
                             <div>
-                                {((dayActivities.entries && dayActivities.entries.length) || (dayActivities.variables && dayActivities.variables.length)) && <hr className="my-2" />}
+                                {((dayActivities.entries?.length ?? 0) > 0 || (dayActivities.variables?.length ?? 0) > 0) && <hr className="my-2" />}
                                 <div
                                     style={{
                                         backgroundColor: colors.note || "#ffffff", // Default color if no match found
