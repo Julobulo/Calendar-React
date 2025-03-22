@@ -149,8 +149,106 @@ ActivityRoute.get('/colors', async (c) => {
     }
     const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
     const colors = currentUser?.colors;
+    const usedColors = new Set([
+        ...Object.values(currentUser?.colors?.activities || {}),
+        ...(currentUser?.colors?.note || ""),
+        ...Object.values(currentUser?.colors?.variables || {})
+    ]);
+    console.log(`usedColors: ${JSON.stringify(usedColors)}`);
     return c.json(colors);
 })
+
+ActivityRoute.get('/check-colors', async (c) => {
+    App = App || new Realm.App(c.env.ATLAS_APPID);
+    const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
+    const user = await App.logIn(credentials);
+    const client = user.mongoClient('mongodb-atlas');
+    const userCollection = client.db('calendar').collection<User>('users');
+    const userActivityCollection = client.db('calendar').collection<UserActivity>('activity');
+
+    // Extract token from cookie
+    const cookieHeader = c.req.header('Cookie');
+    if (!cookieHeader) {
+        c.status(400);
+        return c.json({ message: 'no cookies found' });
+    }
+    const cookies = cookieHeader.split(';').map((cookie) => cookie.trim());
+    let token = cookies.find((cookie) => cookie.startsWith('token='));
+    if (!token) {
+        c.status(400);
+        return c.json({ message: 'no token found' });
+    }
+    token = token.split('=')[1].trim();
+
+    // Verify token
+    const id = await checkToken(token, c.env.JWT_SECRET);
+    if (!id) {
+        c.status(400);
+        return c.json({ message: 'bad token' });
+    }
+
+    // Get user data
+    const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
+    if (!currentUser) {
+        c.status(400);
+        return c.json({ message: 'user not found' });
+    }
+
+    // Get all activities and variables
+    const activities = await userActivityCollection.find({ userId: new ObjectId(id.toString()) });
+    const usedColors = new Set([
+        ...Object.values(currentUser?.colors?.activities || {}),
+        ...(currentUser?.colors?.note || ''),
+        ...Object.values(currentUser?.colors?.variables || {}),
+    ]);
+
+    // Generate colors for missing activities and variables
+    const newColors = { activities: {}, variables: {} };
+
+    // Check each activity entry
+    activities.forEach((activity) => {
+        if (activity.entries) {
+            activity.entries.forEach((entry) => {
+                if (!currentUser?.colors?.activities[entry.activity]) {
+                    let newColor = generateRandomColor();
+                    while (usedColors.has(newColor)) {
+                        newColor = generateRandomColor();
+                    }
+                    newColors.activities[entry.activity] = newColor;
+                    usedColors.add(newColor);
+                }
+            });
+        }
+
+        if (activity.variables) {
+            // Check each variable in the activity
+            activity.variables?.forEach((variable) => {
+                if (!currentUser?.colors?.variables[variable.variable]) {
+                    let newColor = generateRandomColor();
+                    while (usedColors.has(newColor)) {
+                        newColor = generateRandomColor();
+                    }
+                    newColors.variables[variable.variable] = newColor;
+                    usedColors.add(newColor);
+                }
+            });
+        }
+    });
+
+    // Update the user's color data with new colors
+    const updatedColors = {
+        activities: { ...currentUser.colors.activities, ...newColors.activities },
+        variables: { ...currentUser.colors.variables, ...newColors.variables },
+        note: currentUser.colors.note,
+    };
+
+    await userCollection.updateOne(
+        { _id: new ObjectId(id.toString()) },
+        { $set: { colors: updatedColors } }
+    );
+
+    return c.json({ message: 'Colors updated successfully', colors: updatedColors });
+});
 
 ActivityRoute.get('/names', async (c) => {
     App = App || new Realm.App(c.env.ATLAS_APPID);
@@ -258,9 +356,15 @@ ActivityRoute.post('/new', async (c) => {
     if (type === "activity") {
         // checking if we need to create a new color
         const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
-        if (!currentUser?.colors[activity]) {
+        if (!currentUser?.colors.activities[activity]) {
             let newColor;
-            const usedColors = new Set(Object.values(currentUser?.colors || {})); // Get existing colors
+            // const usedColors = new Set(Object.values(currentUser?.colors || {})); // Get existing colors
+            const usedColors = new Set([
+                ...Object.values(currentUser?.colors?.activities || {}),
+                ...(currentUser?.colors?.note || ""),
+                ...Object.values(currentUser?.colors?.variables || {})
+            ]);
+            console.log(`usedColors`);
             // Generate a new color that is not already in use
             do {
                 newColor = generateRandomColor();
