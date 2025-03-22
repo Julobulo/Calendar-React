@@ -203,7 +203,11 @@ ActivityRoute.get('/check-colors', async (c) => {
     ]);
 
     // Generate colors for missing activities and variables
-    const newColors = { activities: {}, variables: {} };
+    const newColors: {
+        activities: { [activity: string]: string };
+        note: string;
+        variables: { [variable: string]: string };
+    } = { activities: {}, variables: {}, note: "" };
 
     // Check each activity entry
     activities.forEach((activity) => {
