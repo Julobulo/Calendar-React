@@ -396,7 +396,7 @@ ActivityRoute.post('/new', async (c) => {
             // Update user with the new color
             await userCollection.updateOne(
                 { _id: new ObjectId(id.toString()) },
-                { $set: { [`colors.variables.${activity}`]: newColor } }
+                { $set: { [`colors.variables.${variable}`]: newColor } }
             );
         }
     }
