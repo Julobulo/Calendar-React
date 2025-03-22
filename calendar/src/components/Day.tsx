@@ -428,7 +428,7 @@ const Day = () => {
                 )}
                 {!loading && dayActivities && (
                     <div className="mt-2 flex flex-col space-y-1">
-                        {(dayActivities.entries && dayActivities.entries.length) && dayActivities.entries.map((entry, index) => (
+                        {(dayActivities.entries?.length ?? 0) > 0 && dayActivities.entries.map((entry, index) => (
                             <div
                                 key={index}
                                 style={{
