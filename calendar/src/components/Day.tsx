@@ -523,8 +523,8 @@ const Day = () => {
                     style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}
                 >
                     <option value="activity">Activity</option>
-                    <option value="note">Note</option>
                     <option value="variable">Variable</option>
+                    <option value="note">Note</option>
                 </select>
                 {selectedForm === "activity" && (<div>
                     {/* Add Event Form */}
