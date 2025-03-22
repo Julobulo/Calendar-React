@@ -16,7 +16,12 @@ export interface User {
     username: string;
     createdAt: Date;
     authentication: GoogleAuth | AppleAuth;
-    colors: { [id: string]: string; }; // stores colors in hex for each activity
+    // colors: { [id: string]: string; }; // stores colors in hex for each activity
+    colors: {
+        activities: { [activity: string]: string };
+        note: string;
+        variables: { [variable: string]: string };
+    };
     names: string[];
 }
 
