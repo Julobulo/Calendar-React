@@ -446,7 +446,7 @@ const Day = () => {
                             </div>
                         ))}
                         {(dayActivities.variables && dayActivities.variables.length > 0) && (
-                            <div>
+                            <div className="space-y-1">
                                 {(dayActivities.entries && dayActivities.entries.length) && <hr className="my-2" />}
                                 {dayActivities.variables.map((entry, index) => (
                                     <div
