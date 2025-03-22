@@ -292,7 +292,7 @@ const Day = () => {
                     return;
                 }
 
-                filteredSuggestions = Object.keys(colors)
+                filteredSuggestions = Object.keys(colors.activities)
                     .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
                     .slice(0, 3);
             }
