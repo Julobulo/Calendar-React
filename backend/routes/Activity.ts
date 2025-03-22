@@ -368,7 +368,6 @@ ActivityRoute.post('/new', async (c) => {
                 ...(currentUser?.colors?.note || ""),
                 ...Object.values(currentUser?.colors?.variables || {})
             ]);
-            console.log(`usedColors`);
             // Generate a new color that is not already in use
             do {
                 newColor = generateRandomColor();
@@ -376,7 +375,28 @@ ActivityRoute.post('/new', async (c) => {
             // Update user with the new color
             await userCollection.updateOne(
                 { _id: new ObjectId(id.toString()) },
-                { $set: { [`colors.${activity}`]: newColor } }
+                { $set: { [`colors.activities.${activity}`]: newColor } }
+            );
+        }
+    } else if (type === "variable") {
+        // checking if we need to create a new color
+        const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
+        if (!currentUser?.colors.variables[activity]) {
+            let newColor;
+            // const usedColors = new Set(Object.values(currentUser?.colors || {})); // Get existing colors
+            const usedColors = new Set([
+                ...Object.values(currentUser?.colors?.activities || {}),
+                ...(currentUser?.colors?.note || ""),
+                ...Object.values(currentUser?.colors?.variables || {})
+            ]);
+            // Generate a new color that is not already in use
+            do {
+                newColor = generateRandomColor();
+            } while (usedColors.has(newColor));
+            // Update user with the new color
+            await userCollection.updateOne(
+                { _id: new ObjectId(id.toString()) },
+                { $set: { [`colors.variables.${activity}`]: newColor } }
             );
         }
     }
