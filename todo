@@ -1,7 +1,6 @@
 Allow users to talk about locations using a special character
 Have a "note" for each day (not an activity) where users can put other info than just the activities
 Have other categories of info for each day like for ex: weight, height, ...
-Use localstorage to store current activity info
 Add statistic "average time per activity per day/week/month/year" and have list of activities that can be selected or not
 Make a better suggestion filter
 
