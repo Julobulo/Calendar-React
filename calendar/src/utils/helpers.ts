@@ -1,3 +1,5 @@
+import { intervalToDuration } from "date-fns";
+
 export const isLightOrDark = (hex: string): boolean => {
     if (!hex) return true;
     hex = hex.replace('#', '');
@@ -106,3 +108,24 @@ export type NewUserActivity = Omit<UserActivity, "_id">;
 export const generateRandomColor = () => {
     return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`
 }
+
+// Function to format total time (in minutes) into a more comprehensive format like: "1 year 2 months 3 days 4 hours 5 minutes"
+export const formatTime = (minutes: number) => {
+  // Convert minutes to milliseconds for intervalToDuration
+  const duration = intervalToDuration({
+    start: 0,
+    end: minutes * 60 * 1000, // Convert minutes to milliseconds
+  });
+
+  // Format the duration into a readable string
+  const parts = [];
+  if (duration.years) parts.push(`${duration.years} year${duration.years > 1 ? "s" : ""}`);
+  if (duration.months) parts.push(`${duration.months} month${duration.months > 1 ? "s" : ""}`);
+  if (duration.days) parts.push(`${duration.days} day${duration.days > 1 ? "s" : ""}`);
+  if (duration.hours) parts.push(`${duration.hours} hour${duration.hours > 1 ? "s" : ""}`);
+  if (duration.minutes) parts.push(`${duration.minutes} minute${duration.minutes > 1 ? "s" : ""}`);
+  if (duration.seconds) parts.push(`${duration.seconds} second${duration.seconds > 1 ? "s" : ""}`);
+
+  // Join the parts into a final string
+  return parts.join(" ") || "0 minutes";
+};
