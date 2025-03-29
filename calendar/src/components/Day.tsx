@@ -666,19 +666,46 @@ const Day = () => {
                                 </ul>
                             )}
                             {
-                                (eventPopUp.state === "add") ?
-                                    (<button className="w-full p-2 bg-blue-500 text-white rounded mt-2" onClick={async () => { await handleEventFinish(); }}>{eventPopUp.state}</button>)
-                                    :
-                                    (<div className="flex gap-2 mt-2">
-                                        <button className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                            onClick={async () => { await handleEventFinish(); }}>
+                                eventPopUp.state === "add" ? (
+                                    actionLoading ? (
+                                        <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
+                                            <Spinner />
+                                        </div>
+                                    ) : (
+                                        <button
+                                            className="w-full p-2 bg-blue-500 text-white rounded mt-2"
+                                            onClick={async () => {
+                                                await handleEventFinish();
+                                            }}
+                                        >
                                             {eventPopUp.state}
                                         </button>
-                                        <button className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
-                                            onClick={async () => { await handleDelete() }}>
-                                            <MdDelete className="text-xl" />
-                                        </button>
-                                    </div>)
+                                    )
+                                ) : (
+                                    actionLoading ? (
+                                        <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
+                                            <Spinner />
+                                        </div>
+                                    ) :
+                                        (<div className="flex gap-2 mt-2">
+                                            <button
+                                                className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                                onClick={async () => {
+                                                    await handleEventFinish();
+                                                }}
+                                            >
+                                                {eventPopUp.state}
+                                            </button>
+                                            <button
+                                                className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
+                                                onClick={async () => {
+                                                    await handleDelete();
+                                                }}
+                                            >
+                                                <MdDelete className="text-xl" />
+                                            </button>
+                                        </div>)
+                                )
                             }
                         </div>
                     </div>
