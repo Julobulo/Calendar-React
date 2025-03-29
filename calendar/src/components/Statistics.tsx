@@ -40,28 +40,32 @@ const Statistics = () => {
       {
         !loading && (
           <div>
-            <h2 className="text-lg font-semibold mb-2">Total Time Spent on Activities (since {format(firstActivityDate || "", "MMMM dd, yyyy")})</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={lifetimeActivity}>
-                <XAxis dataKey="activity" />
-                <YAxis />
-                <Tooltip
-                  content={({ payload }) => {
-                    if (payload && payload.length) {
-                      const { activity, totalTime } = payload[0].payload;
-                      return (
-                        <div className="bg-white p-2 border rounded shadow-lg">
-                          <p>{activity}</p>
-                          <p>{formatTime(totalTime)}</p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Bar dataKey="totalTime" fill="#6366F1" />
-              </BarChart>
-            </ResponsiveContainer>
+            {(lifetimeActivity?.length ?? 0) > 0 ? (<><h2 className="text-lg font-semibold mb-2">Total Time Spent on Activities (since {format(firstActivityDate || "", "MMMM dd, yyyy")})</h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={lifetimeActivity}>
+                  <XAxis dataKey="activity" />
+                  <YAxis />
+                  <Tooltip
+                    content={({ payload }) => {
+                      if (payload && payload.length) {
+                        const { activity, totalTime } = payload[0].payload;
+                        return (
+                          <div className="bg-white p-2 border rounded shadow-lg">
+                            <p>{activity}</p>
+                            <p>{formatTime(totalTime)}</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar dataKey="totalTime" fill="#6366F1" />
+                </BarChart>
+              </ResponsiveContainer></>) : (
+              <div className="text-center text-xl font-semibold text-gray-500">
+                No activities recorded yet. Start tracking your activities to see data here!
+              </div>
+            )}
           </div>
         )
       }
