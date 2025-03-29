@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 import Spinner from "./Spinner";
 import { formatTime } from "../utils/helpers";
 import { format } from "date-fns";
+import { Props } from "recharts/types/cartesian/Bar";
 
 
 const Statistics = () => {
@@ -82,9 +83,9 @@ const Statistics = () => {
                   />
                   <Bar
                     dataKey="totalTime"
-                    shape={(props) => {
+                    shape={(props: Props) => {
                       const { x, y, width, height, index } = props;
-                      const activity = lifetimeActivity[index]?.activity;
+                      const activity = lifetimeActivity[Number(index)]?.activity;
                       const color = colors.activities[activity] || "#6366F1"; // Default color
                       return <rect x={x} y={y} width={width} height={height} fill={color} />;
                     }}
