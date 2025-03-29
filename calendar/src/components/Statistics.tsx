@@ -28,7 +28,7 @@ const Statistics = () => {
   }, []);
 
   return (
-    <div className="p-10">
+    <div className="p-0 md:p-10">
       {loading && (
         <div className="flex justify-center">
           <Spinner />
