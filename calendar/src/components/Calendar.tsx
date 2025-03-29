@@ -98,7 +98,11 @@ const Calendar: React.FC = () => {
   const startDay: number = firstDayOfMonth(year, month);
   const previousMonthDays: number = lastMonthDays(year, month);
   const [activities, setActivities] = useState<UserActivity[]>([]);
-  const [colors, setColors] = useState<Record<string, string>>({});
+  const [colors, setColors] = useState<{
+    activities: { [activity: string]: string };
+    note: string;
+    variables: { [variable: string]: string };
+  }>({ activities: {}, note: "", variables: {} });
 
   useEffect(() => {
     const fetchActivities = async () => {
@@ -145,9 +149,9 @@ const Calendar: React.FC = () => {
               <div
                 key={index}
                 style={{
-                  backgroundColor: colors[entry.activity] || "#ffffff", // Default color if no match found
+                  backgroundColor: colors.activities[entry.activity] || "#ffffff", // Default color if no match found
                 }}
-                className={`text-[5px] md:text-sm ${isLightOrDark(colors[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
+                className={`text-[5px] md:text-sm ${isLightOrDark(colors.activities[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
               >
                 {entry.activity} - {getHumanTimeFromMinutes(entry.duration)}
               </div>
