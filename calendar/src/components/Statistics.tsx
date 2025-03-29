@@ -10,6 +10,11 @@ const Statistics = () => {
   const [lifetimeActivity, setLifetimeActivity] = useState<{ activity: string, totalTime: number }[]>([]);
   const [firstActivityDate, setFirstActivityDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [colors, setColors] = useState<{
+    activities: { [activity: string]: string };
+    note: string;
+    variables: { [variable: string]: string };
+  }>({ activities: {}, note: "", variables: {} });
 
   useEffect(() => {
     const fetchLifetimeActivity = async () => {
@@ -28,6 +33,22 @@ const Statistics = () => {
       setLoading(false);
     };
     fetchLifetimeActivity();
+  }, []);
+
+  useEffect(() => {
+    const fetchColors = async () => {
+      const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/colors`, {
+        method: "GET",
+        credentials: "include", // Include cookies in the request
+      });
+      if (!response.ok) {
+        toast.error(`Failed to fetch colors: ${(await response.json()).message}`);
+        setLoading(false);
+      }
+      const data = await response.json();
+      setColors(data);
+    };
+    fetchColors();
   }, []);
 
   return (
@@ -59,7 +80,15 @@ const Statistics = () => {
                       return null;
                     }}
                   />
-                  <Bar dataKey="totalTime" fill="#6366F1" />
+                  <Bar
+                    dataKey="totalTime"
+                    shape={(props) => {
+                      const { x, y, width, height, index } = props;
+                      const activity = lifetimeActivity[index]?.activity;
+                      const color = colors.activities[activity] || "#6366F1"; // Default color
+                      return <rect x={x} y={y} width={width} height={height} fill={color} />;
+                    }}
+                  />
                 </BarChart>
               </ResponsiveContainer></>) : (
               <div className="text-center text-xl font-semibold text-gray-500">
