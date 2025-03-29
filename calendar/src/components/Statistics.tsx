@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import Spinner from "./Spinner";
+import { formatTime } from "../utils/helpers";
 
 
 const Statistics = () => {
@@ -41,7 +42,20 @@ const Statistics = () => {
               <BarChart data={lifetimeActivity}>
                 <XAxis dataKey="activity" />
                 <YAxis />
-                <Tooltip />
+                <Tooltip
+                  content={({ payload }) => {
+                    if (payload && payload.length) {
+                      const { activity, totalTime } = payload[0].payload;
+                      return (
+                        <div className="bg-white p-2 border rounded shadow-lg">
+                          <p>{activity}</p>
+                          <p>{formatTime(totalTime)}</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
                 <Bar dataKey="totalTime" fill="#6366F1" />
               </BarChart>
             </ResponsiveContainer>
