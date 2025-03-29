@@ -1,11 +1,11 @@
 Allow users to talk about locations using a special character
-Have a "note" for each day (not an activity) where users can put other info than just the activities
 Have other categories of info for each day like for ex: weight, height, ...
 Add statistic "average time per activity per day/week/month/year" and have list of activities that can be selected or not
 Make a better suggestion filter
 
 DONE
 Trim activity names and descriptions - 29/03/2025 - 3pm
+Have a "note" for each day (not an activity) where users can put other info than just the activities - 13/03/2025
 Add loading and disable button when edit or add is clicked
 Making names bold in activities display - 05/03/2025 - 9:20pm
 Added names field in the user documents and updated routes to support name suggestion - 05/03/2025 - 4:00pm
