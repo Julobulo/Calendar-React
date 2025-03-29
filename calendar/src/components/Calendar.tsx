@@ -158,7 +158,7 @@ const Calendar: React.FC = () => {
             ))}
             {activitiesForDay.entries.length > 1 && (
               <button
-                className="text-[5px] md:text-sm text-blue-500 underline mt-1 bg-black"
+                className="text-[5px] md:text-sm text-blue-500 mt-1 rounded"
                 onClick={() => {
                   handleMoreActivitesClick(day);
                 }}
