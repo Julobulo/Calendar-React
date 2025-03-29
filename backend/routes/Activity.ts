@@ -319,7 +319,13 @@ ActivityRoute.post('/new', async (c) => {
         return c.json({ message: "bad token" });
     }
 
-    const { year, month, day, type, activity, description, note, variable, value } = await c.req.json();
+    let { year, month, day, type, activity, description, note, variable, value } = await c.req.json();
+    activity = (activity || "").trim();
+    description = (description || "").trim();
+    note = (note || "").trim();
+    variable = (variable || "").trim();
+    value = (value || "").trim();
+
     if (!year || !month || !day || !type) return c.json({ message: "Missing required fields" }, 400);
 
     const date = new Date(Date.UTC(parseInt(year), parseInt(month), parseInt(day)));
@@ -453,7 +459,12 @@ ActivityRoute.patch('/edit', async (c) => {
     }
 
     // Parse request body
-    const { year, month, day, type, activity, description, note, variable, value } = await c.req.json();
+    let { year, month, day, type, activity, description, note, variable, value } = await c.req.json();
+    activity = (activity || "").trim();
+    description = (description || "").trim();
+    note = (note || "").trim();
+    variable = (variable || "").trim();
+    value = (value || "").trim();
     if (!year || !month || !day || !type) return c.json({ message: "Missing required fields" }, 400);
 
     const date = new Date(Date.UTC(parseInt(year), parseInt(month), parseInt(day)));
