@@ -3,10 +3,12 @@ import { toast } from "react-toastify";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import Spinner from "./Spinner";
 import { formatTime } from "../utils/helpers";
+import { format } from "date-fns";
 
 
 const Statistics = () => {
   const [lifetimeActivity, setLifetimeActivity] = useState<{ activity: string, totalTime: number }[]>([]);
+  const [firstActivityDate, setFirstActivityDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -21,7 +23,8 @@ const Statistics = () => {
         setLoading(false);
       }
       const data = await response.json();
-      setLifetimeActivity(data);
+      setLifetimeActivity(data.activities);
+      setFirstActivityDate(data.firstActivityDate ? new Date(data.firstActivityDate).toLocaleDateString() : null);
       setLoading(false);
     };
     fetchLifetimeActivity();
@@ -37,7 +40,7 @@ const Statistics = () => {
       {
         !loading && (
           <div>
-            <h2 className="text-lg font-semibold mb-2">Time Spent on Activities (Lifetime)</h2>
+            <h2 className="text-lg font-semibold mb-2">Total Time Spent on Activities (since {format(firstActivityDate || "", "MMMM dd, yyyy")})</h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={lifetimeActivity}>
                 <XAxis dataKey="activity" />
