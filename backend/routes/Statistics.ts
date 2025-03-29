@@ -48,7 +48,15 @@ StatisticsRoute.get('/lifetime-activity', async (c) => {
         return c.json({ message: "bad token" });
     }
 
-    // Assuming a database structure where each entry has { activity: string, duration: number }
+    // Get the earliest recorded activity date (first time user used the website)
+    const firstActivity = await activityCollection
+        .aggregate([
+            { $match: { userId: new ObjectId(id.toString()) } }, // Filter by userId
+            { $unwind: "$entries" }, // Unwind the array of entries
+            { $sort: { "date": 1 } }, // Sort by date ascending to get the first date
+            { $limit: 1 }, // Get only the first entry
+            { $project: { _id: 0, firstActivityDate: "$date" } }
+        ]);
 
     const activities = await activityCollection.aggregate([
         { $match: { userId: new ObjectId(id.toString()) } }, // Filter by userId
@@ -62,10 +70,13 @@ StatisticsRoute.get('/lifetime-activity', async (c) => {
         
     console.log(`activities: ${JSON.stringify(activities)}`);
 
-    const result = activities.map(({ _id, totalTime }) => ({
-        activity: _id,
-        totalTime
-    }));
+    const result = {
+        activities: activities.map(({ _id, totalTime }) => ({
+            activity: _id,
+            totalTime
+        })),
+        firstActivityDate: firstActivity.length ? firstActivity[0].firstActivityDate : null
+    };
 
     return c.json(result);
 
