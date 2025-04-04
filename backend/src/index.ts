@@ -9,6 +9,7 @@ import { generateRandomColor, getTimeFromLongString } from "../../calendar/src/u
 import { ObjectId } from "bson";
 import { checkToken } from "../utils/helpers";
 import StatisticsRoute from "../routes/Statistics";
+import SettingsRoute from "../routes/Settings";
 
 // The Worker's environment bindings
 type Bindings = {
@@ -65,6 +66,7 @@ app.get("/", async (c, next) => {
 app.route('/oauth', OAuthRoute);
 app.route('/activity', ActivityRoute);
 app.route('/statistics', StatisticsRoute);
+app.route('/settings', SettingsRoute);
 
 app.post('/userColors', async (c) => {
   App = App || new Realm.App(c.env.ATLAS_APPID);
