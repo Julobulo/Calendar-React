@@ -8,6 +8,7 @@ import Cookies from "js-cookie";
 import { Analytics } from "@vercel/analytics/react"
 import Day from "./components/Day";
 import { ToastContainer, Bounce } from "react-toastify";
+import Settings from "./components/Settings";
 
 const App = () => {
   return (
@@ -42,6 +43,7 @@ const App = () => {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/calendar/day" element={<Day />} />
           <Route path="/statistics" element={<Statistics />} />
+          <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>
     </div>
