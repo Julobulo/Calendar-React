@@ -430,14 +430,14 @@ const Day = () => {
                     </div>
                 )}
                 {!loading && dayActivities && (
-                    <div className="mt-2 flex flex-col space-y-1">
+                    <div className="mt-2 flex flex-col space-y-2">
                         {(dayActivities.entries?.length ?? 0) > 0 && dayActivities.entries.map((entry, index) => (
                             <div
                                 key={index}
                                 style={{
                                     backgroundColor: colors.activities[entry.activity] || "#ffffff", // Default color if no match found
                                 }}
-                                className={`text-xs ${isLightOrDark(colors.activities[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
+                                className={`text-[14px] ${isLightOrDark(colors.activities[entry.activity]) ? 'text-black' : 'text-white'} rounded-lg px-3 py-2`}
                                 onClick={(e) => {
                                     e.stopPropagation(); // Prevent handleClick from running
                                     setSelectedForm("activity");
@@ -449,7 +449,7 @@ const Day = () => {
                             </div>
                         ))}
                         {(dayActivities.variables?.length ?? 0) > 0 && (
-                            <div className="space-y-1">
+                            <div className="space-y-2">
                                 {(dayActivities.entries?.length ?? 0) > 0 && <hr className="my-2" />}
                                 {dayActivities.variables.map((entry, index) => (
                                     <div
@@ -457,7 +457,7 @@ const Day = () => {
                                         style={{
                                             backgroundColor: colors.variables[entry.variable] || "#ffffff", // Default color if no match found
                                         }}
-                                        className={`text-xs ${isLightOrDark(colors.variables[entry.variable]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
+                                        className={`text-[14px] ${isLightOrDark(colors.variables[entry.variable]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
                                         onClick={(e) => {
                                             e.stopPropagation(); // Prevent handleClick from running
                                             setSelectedForm("variable");
@@ -477,7 +477,7 @@ const Day = () => {
                                     style={{
                                         backgroundColor: colors.note || "#ffffff", // Default color if no match found
                                     }}
-                                    className={`text-xs ${isLightOrDark(colors.note) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
+                                    className={`${isLightOrDark(colors.note) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
                                     onClick={(e) => {
                                         e.stopPropagation(); // Prevent handleClick from running
                                         setSelectedForm("note");
@@ -485,7 +485,7 @@ const Day = () => {
                                         setMobileShowForm(true);
                                     }}
                                 >
-                                    <span dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(dayActivities.note || "") }}></span>
+                                    <span className="text-[14px]" dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(dayActivities.note || "") }}></span>
                                 </div>
                             </div>
                         )}
