@@ -3,6 +3,7 @@ import { useState } from "react";
 import { FaBars, FaCalendar, FaChevronLeft } from "react-icons/fa";
 import { IoStatsChartSharp } from "react-icons/io5";
 import { GoHomeFill } from "react-icons/go";
+import { IoMdSettings } from "react-icons/io";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -62,6 +63,16 @@ const Sidebar = () => {
             {isOpen && <span>Statistics</span>}
           </div>
         </Link>
+        <Link
+          to="/settings"
+          className={`p-3 rounded-lg ${isActive("/settings") ? "bg-blue-500 text-white" : "hover:bg-blue-100 text-gray-700"
+            }`}
+        >
+          <div className="flex items-center space-x-2">
+            <IoMdSettings />
+            {isOpen && <span>Settings</span>}
+          </div>
+        </Link>
       </nav>
     </div>
     {/* Mobile Navbar (Hidden on desktop) */}
@@ -74,6 +85,9 @@ const Sidebar = () => {
     </Link>
     <Link to="/statistics" className={isActive("/statistics") ? "text-blue-500" : "text-gray-700"}>
       <IoStatsChartSharp className="text-2xl" />
+    </Link>
+    <Link to="/settings" className={isActive("/settings") ? "text-blue-500" : "text-gray-700"}>
+      <IoMdSettings className="text-2xl" />
     </Link>
   </div>
   </>
