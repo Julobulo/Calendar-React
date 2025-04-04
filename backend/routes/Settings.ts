@@ -110,7 +110,7 @@ SettingsRoute.post('/import', async (c) => {
             results.push(insertResult);
         }
     }
-    return c.json({ message: `${results.length} days imported successfully` });
+    return c.json({ message: `${results.length} day${results.length>1 ? 's' : ''} imported successfully` });
 })
 
 export default SettingsRoute
