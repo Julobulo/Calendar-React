@@ -326,7 +326,7 @@ ActivityRoute.post('/new', async (c) => {
     variable = (variable || "").trim();
     value = (value || "").trim();
 
-    if (!year || !month || !day || !type) return c.json({ message: "Missing required fields" }, 400);
+    if (year === undefined || month === undefined || day === undefined || !type) return c.json({ message: "Missing required fields" }, 400);
 
     const date = new Date(Date.UTC(parseInt(year), parseInt(month), parseInt(day)));
     const existingEntry = await activityCollection.findOne({ userId: new ObjectId(id.toString()), date });
@@ -465,7 +465,7 @@ ActivityRoute.patch('/edit', async (c) => {
     note = (note || "").trim();
     variable = (variable || "").trim();
     value = (value || "").trim();
-    if (!year || !month || !day || !type) return c.json({ message: "Missing required fields" }, 400);
+    if (year === undefined || month === undefined || day === undefined || !type) return c.json({ message: "Missing required fields" }, 400);
 
     const date = new Date(Date.UTC(parseInt(year), parseInt(month), parseInt(day)));
 
@@ -566,7 +566,7 @@ ActivityRoute.delete('/delete', async (c) => {
 
     // Parse request body
     const { year, month, day, type, activity, variable } = await c.req.json();
-    if (!year || !month || !day || !type) return c.json({ message: "Missing required fields" }, 400);
+    if (year === undefined || month === undefined || day === undefined || !type) return c.json({ message: "Missing required fields" }, 400);
 
     const date = new Date(Date.UTC(parseInt(year), parseInt(month), parseInt(day)));
     const existingEntry = await activityCollection.findOne({ userId: new ObjectId(id.toString()), date });
