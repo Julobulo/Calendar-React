@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import Spinner from "./Spinner";
 import { formatTime } from "../utils/helpers";
 import { format } from "date-fns";
@@ -62,40 +62,89 @@ const Statistics = () => {
       {
         !loading && (
           <div>
-            {(lifetimeActivity?.length ?? 0) > 0 ? (<><h2 className="text-lg font-semibold mb-2">Total Time Spent on Activities (since {format(firstActivityDate || "", "MMMM dd, yyyy")})</h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={lifetimeActivity}>
-                  <XAxis dataKey="activity" />
-                  <YAxis />
-                  <Tooltip
-                    content={({ payload }) => {
-                      if (payload && payload.length) {
-                        const { activity, totalTime } = payload[0].payload;
-                        return (
-                          <div className="bg-white p-2 border rounded shadow-lg">
-                            <p>{activity}</p>
-                            <p>{formatTime(totalTime)}</p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Bar
+            <div>
+              {(lifetimeActivity?.length ?? 0) > 0 ? (<><h2 className="text-lg font-semibold mb-2">Total Time Spent on Activities (since {format(firstActivityDate || "", "MMMM dd, yyyy")})</h2>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={lifetimeActivity}>
+                    <XAxis dataKey="activity" />
+                    <YAxis />
+                    <Tooltip
+                      content={({ payload }) => {
+                        if (payload && payload.length) {
+                          const { activity, totalTime } = payload[0].payload;
+                          return (
+                            <div className="bg-white p-2 border rounded shadow-lg">
+                              <p>{activity}</p>
+                              <p>{formatTime(totalTime)}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar
+                      dataKey="totalTime"
+                      shape={(props: Props) => {
+                        const { x, y, width, height, index } = props;
+                        const activity = lifetimeActivity[Number(index)]?.activity;
+                        const color = colors.activities[activity] || "#6366F1"; // Default color
+                        return <rect x={x} y={y} width={width} height={height} fill={color} />;
+                      }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer></>) : (
+                <div className="text-center text-xl font-semibold text-gray-500">
+                  No activities recorded yet. Start tracking your activities to see data here!
+                </div>
+              )}
+            </div>
+            <div className="mt-10 w-full h-96">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={lifetimeActivity}
                     dataKey="totalTime"
-                    shape={(props: Props) => {
-                      const { x, y, width, height, index } = props;
-                      const activity = lifetimeActivity[Number(index)]?.activity;
-                      const color = colors.activities[activity] || "#6366F1"; // Default color
-                      return <rect x={x} y={y} width={width} height={height} fill={color} />;
-                    }}
+                    nameKey="activity"
+                    cx="50%"
+                    cy="50%"
+                    // outerRadius={100}
+                    outerRadius={"80%"}
+                    labelLine={false}
+                  >
+                    {lifetimeActivity.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={
+                          colors.activities[entry.activity] ||
+                          ["#4F46E5", "#06B6D4", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"][index % 6]
+                        }
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    content={({ active, payload }) =>
+                      active && payload && payload.length ? (
+                        <div className="bg-white p-2 border rounded shadow">
+                          <p className="font-semibold">
+                            #{lifetimeActivity.findIndex((a) => a.activity === payload[0].payload.activity) + 1}{" "}
+                            {payload[0].payload.activity}
+                          </p>
+                          <p>
+                            {formatTime(payload[0].value)} (
+                            {(
+                              (payload[0].value /
+                                lifetimeActivity.reduce((acc, cur) => acc + cur.totalTime, 0)) *
+                              100
+                            ).toFixed(1)}
+                            %)
+                          </p>
+                        </div>
+                      ) : null
+                    }
                   />
-                </BarChart>
-              </ResponsiveContainer></>) : (
-              <div className="text-center text-xl font-semibold text-gray-500">
-                No activities recorded yet. Start tracking your activities to see data here!
-              </div>
-            )}
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         )
       }
