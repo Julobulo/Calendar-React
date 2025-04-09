@@ -130,9 +130,9 @@ const Statistics = () => {
                             {payload[0].payload.activity}
                           </p>
                           <p>
-                            {formatTime(payload[0].value)} (
+                            {formatTime(payload[0].value as number)} (
                             {(
-                              (payload[0].value /
+                              (payload[0].value as number /
                                 lifetimeActivity.reduce((acc, cur) => acc + cur.totalTime, 0)) *
                               100
                             ).toFixed(1)}
