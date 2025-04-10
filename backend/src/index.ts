@@ -139,17 +139,20 @@ app.post('/importActivities', async (c) => {
     c.status(400);
     return c.json({ message: "bad token" });
   }
-  const { userId, weekList }: { userId: ObjectId, weekList: any[] } = await c.req.json();
 
-  // 1. Erase all existing activities
-  console.log(`there are: ${(await activityCollection.find({ userId: new ObjectId(userId.toString()) })).length} documents in activity collection`);
-  await activityCollection.deleteMany({ userId: new ObjectId(userId.toString()) });
-  console.log(`now there are: ${(await activityCollection.find({ userId: new ObjectId(userId.toString()) })).length} documents in activity collection`);
+  const { userId, weekList, patching }: { userId: ObjectId, weekList: any[], patching?: boolean } = await c.req.json();
 
   const currentUser = await userCollection.findOne({ _id: new ObjectId(userId.toString()) });
 
   // Set the start date (January 1, 2024)
   const startDate = new Date(Date.UTC(2024, 0, 1));
+
+  if (!patching) {
+    // 1. Erase all existing activities if not patching
+    console.log(`there are: ${(await activityCollection.find({ userId: new ObjectId(userId.toString()) })).length} documents in activity collection`);
+    await activityCollection.deleteMany({ userId: new ObjectId(userId.toString()) });
+    console.log(`now there are: ${(await activityCollection.find({ userId: new ObjectId(userId.toString()) })).length} documents in activity collection`);
+  }
 
   // 2. Iterate over weekList and process each day's activities
   let currentDate = new Date(startDate); // Start from January 1, 2024
@@ -160,8 +163,25 @@ app.post('/importActivities', async (c) => {
     for (let j = 0; j < 7; j++) {
       const currentDayActivities = currentWeek[j];
       if (Object.keys(currentDayActivities).length > 0) {
-        // const date = new Date(currentDate); // Clone the current date object
         const date = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate()));
+
+        // Check if the activity for this date already exists in the database (in patching mode)
+        if (patching) {
+          const existingActivity = await activityCollection.findOne({
+            userId: new ObjectId(userId.toString()),
+            date: date,
+          });
+
+          if (existingActivity) {
+            console.log(`Skipping activity for ${date} (already exists)`);
+            currentDate = new Date(Date.UTC(
+              currentDate.getUTCFullYear(),
+              currentDate.getUTCMonth(),
+              currentDate.getUTCDate() + 1
+            ));
+            continue; // Skip to the next day
+          }
+        }
 
         const entries: ActivityEntry[] = [];
 
@@ -209,12 +229,12 @@ app.post('/importActivities', async (c) => {
         currentDate.getUTCMonth(),
         currentDate.getUTCDate() + 1
       ));
-
     }
   }
 
   c.status(200);
   return c.json({ message: "Activities imported successfully!" });
 });
+
 
 export default app;
