@@ -5,7 +5,7 @@ import Spinner from "./Spinner";
 import { formatTime } from "../utils/helpers";
 import { format } from "date-fns";
 import { Props } from "recharts/types/cartesian/Bar";
-import CalendarHeatmap from 'react-calendar-heatmap';
+import CalendarHeatmap, { ReactCalendarHeatmapValue, TooltipDataAttrs } from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
@@ -73,7 +73,7 @@ const Statistics = () => {
         if (!response.ok) {
           toast.error("Failed to fetch activity data");
         }
-        const data : { data: DailyActivity[] } = await response.json();
+        const data: { data: DailyActivity[] } = await response.json();
         setDailyActivityData(data.data);
         setMaxCount(Math.max(...data.data.map(d => d.count), 1));
         setLoading(false);
@@ -182,25 +182,25 @@ const Statistics = () => {
             <div className="p-4">
               <h2 className="text-xl font-bold mb-4">Activity Heatmap</h2>
               <div className="flex justify-center items-center mb-4">
-              <button
-                onClick={() => setSelectedYear(selectedYear - 1)}
-                className="px-2 mx-2 py-1 text-sm bg-gray-100 rounded-l"
-              >
-                &lt;
-              </button>
-              <span className="text-lg font-semibold">{selectedYear}</span>
-              <button
-                onClick={() => setSelectedYear(selectedYear + 1)}
-                className="px-2 mx-2 py-1 text-sm bg-gray-100 rounded-l"
-              >
-                &gt;
-              </button>
-            </div>
+                <button
+                  onClick={() => setSelectedYear(selectedYear - 1)}
+                  className="px-2 mx-2 py-1 text-sm bg-gray-100 rounded-l"
+                >
+                  &lt;
+                </button>
+                <span className="text-lg font-semibold">{selectedYear}</span>
+                <button
+                  onClick={() => setSelectedYear(selectedYear + 1)}
+                  className="px-2 mx-2 py-1 text-sm bg-gray-100 rounded-l"
+                >
+                  &gt;
+                </button>
+              </div>
               <CalendarHeatmap
                 startDate={new Date(selectedYear, 0, 1)}
                 endDate={new Date(selectedYear, 11, 31)}
                 values={dailyActivityData}
-                classForValue={(value: DailyActivity | null) => {
+                classForValue={(value: ReactCalendarHeatmapValue<string> | undefined) => {
                   if (!value || !value.count) return 'fill-gray-200';
                   const intensity = value.count / maxCount; // 0 → 1
                   if (intensity < 0.2) return 'fill-green-200';
@@ -208,13 +208,16 @@ const Statistics = () => {
                   if (intensity < 0.6) return 'fill-green-400';
                   if (intensity < 0.8) return 'fill-green-500';
                   return 'fill-green-600';
-                }}                
-                tooltipDataAttrs={(value: DailyActivity | null) => {
-                  if (!value || !value.date) return null;
+                }}
+                tooltipDataAttrs={(value: ReactCalendarHeatmapValue<string> | undefined): TooltipDataAttrs => {
+                  if (!value || !(value as DailyActivity).date) {
+                    return { 'data-tooltip-id': '', 'data-tooltip-content': '' } as TooltipDataAttrs;
+                  }
+                  const { date, count } = value as DailyActivity;
                   return {
                     'data-tooltip-id': 'heatmap-tooltip',
-                    'data-tooltip-content': `${value.date}: ${value.count} activit${value.count === 1 ? 'y' : 'ies'}`,
-                  };
+                    'data-tooltip-content': `${date}: ${count} activit${count === 1 ? 'y' : 'ies'}`,
+                  } as TooltipDataAttrs;
                 }}
               />
 
