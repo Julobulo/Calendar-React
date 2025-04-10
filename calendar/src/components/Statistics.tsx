@@ -25,6 +25,7 @@ const Statistics = () => {
     variables: { [variable: string]: string };
   }>({ activities: {}, note: "", variables: {} });
   const [dailyActivityData, setDailyActivityData] = useState<DailyActivity[]>([]);
+  const [maxCount, setMaxCount] = useState(1);
 
   useEffect(() => {
     const fetchLifetimeActivity = async () => {
@@ -71,8 +72,9 @@ const Statistics = () => {
         if (!response.ok) {
           toast.error("Failed to fetch activity data");
         }
-        const data = await response.json();
+        const data : { data: DailyActivity[] } = await response.json();
         setDailyActivityData(data.data);
+        setMaxCount(Math.max(...data.data.map(d => d.count), 1));
         setLoading(false);
       } catch (err) {
         toast.error("There was an error fetching the data.");
@@ -183,12 +185,14 @@ const Statistics = () => {
                 endDate={new Date()}
                 values={dailyActivityData}
                 classForValue={(value) => {
-                  if (!value) return 'color-empty';
-                  if (value.count < 1) return 'color-empty';
-                  if (value.count < 2) return 'color-scale-1';
-                  if (value.count < 5) return 'color-scale-2';
-                  return 'color-scale-3';
-                }}
+                  if (!value || !value.count) return 'fill-gray-200';
+                  const intensity = value.count / maxCount; // 0 → 1
+                  if (intensity < 0.2) return 'fill-green-200';
+                  if (intensity < 0.4) return 'fill-green-300';
+                  if (intensity < 0.6) return 'fill-green-400';
+                  if (intensity < 0.8) return 'fill-green-500';
+                  return 'fill-green-600';
+                }}                
                 tooltipDataAttrs={(value) => {
                   if (!value || !value.date) return null;
                   return {
