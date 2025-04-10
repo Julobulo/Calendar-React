@@ -26,6 +26,7 @@ const Statistics = () => {
   }>({ activities: {}, note: "", variables: {} });
   const [dailyActivityData, setDailyActivityData] = useState<DailyActivity[]>([]);
   const [maxCount, setMaxCount] = useState(1);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
 
   useEffect(() => {
     const fetchLifetimeActivity = async () => {
@@ -180,9 +181,24 @@ const Statistics = () => {
             </div>
             <div className="p-4">
               <h2 className="text-xl font-bold mb-4">Activity Heatmap</h2>
+              <div className="flex justify-center items-center mb-4">
+              <button
+                onClick={() => setSelectedYear(selectedYear - 1)}
+                className="px-2 mx-2 py-1 text-sm bg-gray-100 rounded-l"
+              >
+                &lt;
+              </button>
+              <span className="text-lg font-semibold">{selectedYear}</span>
+              <button
+                onClick={() => setSelectedYear(selectedYear + 1)}
+                className="px-2 mx-2 py-1 text-sm bg-gray-100 rounded-l"
+              >
+                &gt;
+              </button>
+            </div>
               <CalendarHeatmap
-                startDate={new Date(2024, 0, 1)}
-                endDate={new Date()}
+                startDate={new Date(selectedYear, 0, 1)}
+                endDate={new Date(selectedYear, 11, 31)}
                 values={dailyActivityData}
                 classForValue={(value) => {
                   if (!value || !value.count) return 'fill-gray-200';
