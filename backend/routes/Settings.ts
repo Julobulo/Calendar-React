@@ -101,10 +101,10 @@ SettingsRoute.post('/import', async (c) => {
             userId: new ObjectId(id.toString()),
             date: entry.date,
         });
-        console.log(`existing activity: ${JSON.stringify(existingActivity)}`);
+        console.log(`${entry.date} existing activity: ${JSON.stringify(existingActivity)}`);
 
         if (!existingActivity) {
-            console.log(`activity doesn't exist`);
+            console.log(`activity doesn't exist, inserting document`);
             // Insert if the day does not exist
             const insertResult = await activityCollection.insertOne(entry);
             results.push(insertResult);
