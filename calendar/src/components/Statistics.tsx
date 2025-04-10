@@ -5,7 +5,15 @@ import Spinner from "./Spinner";
 import { formatTime } from "../utils/helpers";
 import { format } from "date-fns";
 import { Props } from "recharts/types/cartesian/Bar";
+import CalendarHeatmap from 'react-calendar-heatmap';
+import 'react-calendar-heatmap/dist/styles.css';
+import { Tooltip as ReactTooltip } from 'react-tooltip';
+import 'react-tooltip/dist/react-tooltip.css';
 
+interface DailyActivity {
+  date: string;
+  count: number;
+}
 
 const Statistics = () => {
   const [lifetimeActivity, setLifetimeActivity] = useState<{ activity: string, totalTime: number }[]>([]);
@@ -16,6 +24,7 @@ const Statistics = () => {
     note: string;
     variables: { [variable: string]: string };
   }>({ activities: {}, note: "", variables: {} });
+  const [dailyActivityData, setDailyActivityData] = useState<DailyActivity[]>([]);
 
   useEffect(() => {
     const fetchLifetimeActivity = async () => {
@@ -50,6 +59,28 @@ const Statistics = () => {
       setColors(data);
     };
     fetchColors();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URI}/statistics/daily-activity-count`, {
+          method: "GET",
+          credentials: "include", // Include cookies in the request
+        });
+        if (!response.ok) {
+          toast.error("Failed to fetch activity data");
+        }
+        const data = await response.json();
+        setDailyActivityData(data.data);
+        setLoading(false);
+      } catch (err) {
+        toast.error("There was an error fetching the data.");
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   return (
@@ -144,6 +175,30 @@ const Statistics = () => {
                   />
                 </PieChart>
               </ResponsiveContainer>
+            </div>
+            <div className="p-4">
+              <h2 className="text-xl font-bold mb-4">Activity Heatmap</h2>
+              <CalendarHeatmap
+                startDate={new Date(2024, 0, 1)}
+                endDate={new Date()}
+                values={dailyActivityData}
+                classForValue={(value) => {
+                  if (!value) return 'color-empty';
+                  if (value.count < 1) return 'color-empty';
+                  if (value.count < 2) return 'color-scale-1';
+                  if (value.count < 5) return 'color-scale-2';
+                  return 'color-scale-3';
+                }}
+                tooltipDataAttrs={(value) => {
+                  if (!value || !value.date) return null;
+                  return {
+                    'data-tooltip-id': 'heatmap-tooltip',
+                    'data-tooltip-content': `${value.date}: ${value.count} activit${value.count === 1 ? 'y' : 'ies'}`,
+                  };
+                }}
+              />
+
+              <ReactTooltip id="heatmap-tooltip" /> {/* attaches to all elements with data-tooltip-id="heatmap-tooltip" */}
             </div>
           </div>
         )
