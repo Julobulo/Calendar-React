@@ -94,9 +94,9 @@ app.post('/userColors', async (c) => {
 
   for (const activity of currentUserActivities) {
     for (const entry of activity.entries) {
-      if (!(entry.activity in currentUser.colors)) {
+      if (!(entry.activity in currentUser.colors.activities)) {
         const randomColor = generateRandomColor();
-        currentUser.colors[entry.activity] = randomColor; // update currentUser so for next iterations
+        currentUser.colors.activities[entry.activity] = randomColor; // update currentUser so for next iterations
         await userCollection.updateOne( // Update the user's colors in the database
           { _id: currentUser._id },
           { $set: { [`colors.${entry.activity}`]: randomColor } }
@@ -191,12 +191,12 @@ app.post('/importActivities', async (c) => {
             const description = currentDayActivities[activityName];
 
             // Check if the user already has a color for this activity
-            let color = currentUser?.colors[activityName];
+            let color = currentUser?.colors.activities[activityName];
             if (!color) {
               // Update the user's colors collection to include the new color
               await userCollection.updateOne(
                 { _id: userId },
-                { $set: { [`colors.${activityName}`]: generateRandomColor() } }
+                { $set: { [`colors.activities.${activityName}`]: generateRandomColor() } }
               );
             }
 
