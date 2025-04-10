@@ -75,7 +75,7 @@ const Statistics = () => {
         }
         const data: { data: DailyActivity[] } = await response.json();
         setDailyActivityData(data.data);
-        setMaxCount(Math.max(...data.data.map(d => d.count), 1));
+        setMaxCount(Math.max(...data.data.map(d => d.count), 10));
         setLoading(false);
       } catch (err) {
         toast.error("There was an error fetching the data.");
