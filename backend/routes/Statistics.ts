@@ -155,7 +155,7 @@ StatisticsRoute.get("/daily-activity-count", async (c) => {
     // Format the result into a usable format for frontend (date as string, activity count)
     const formattedData = activityCounts.map((item : AggregatedActivity) => ({
         date: item._id.date.toISOString().split("T")[0], // Format as YYYY-MM-DD
-        activityCount: item.totalActivityCount
+        count: item.totalActivityCount
     }));
 
     return c.json({ data: formattedData });
