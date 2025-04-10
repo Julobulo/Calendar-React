@@ -200,7 +200,7 @@ const Statistics = () => {
                 startDate={new Date(selectedYear, 0, 1)}
                 endDate={new Date(selectedYear, 11, 31)}
                 values={dailyActivityData}
-                classForValue={(value) => {
+                classForValue={(value: DailyActivity | null) => {
                   if (!value || !value.count) return 'fill-gray-200';
                   const intensity = value.count / maxCount; // 0 → 1
                   if (intensity < 0.2) return 'fill-green-200';
@@ -209,7 +209,7 @@ const Statistics = () => {
                   if (intensity < 0.8) return 'fill-green-500';
                   return 'fill-green-600';
                 }}                
-                tooltipDataAttrs={(value) => {
+                tooltipDataAttrs={(value: DailyActivity | null) => {
                   if (!value || !value.date) return null;
                   return {
                     'data-tooltip-id': 'heatmap-tooltip',
