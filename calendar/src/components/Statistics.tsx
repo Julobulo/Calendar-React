@@ -27,103 +27,7 @@ const Statistics = () => {
   const [dailyActivityData, setDailyActivityData] = useState<DailyActivity[]>([]);
   const [maxCount, setMaxCount] = useState(1);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-  const [dataLineGraph, setDataLineGraph] = useState([
-    {
-      "time": 40,
-      "date": "2024-01-03T00:00:00.000Z"
-    },
-    {
-      "time": 75,
-      "date": "2024-01-04T00:00:00.000Z"
-    },
-    {
-      "time": 30,
-      "date": "2024-01-05T00:00:00.000Z"
-    },
-    {
-      "time": 60,
-      "date": "2024-01-06T00:00:00.000Z"
-    },
-    {
-      "time": 90,
-      "date": "2024-01-07T00:00:00.000Z"
-    },
-    {
-      "time": 30,
-      "date": "2024-01-08T00:00:00.000Z"
-    },
-    {
-      "time": 100,
-      "date": "2024-01-09T00:00:00.000Z"
-    },
-    {
-      "time": 120,
-      "date": "2024-01-10T00:00:00.000Z"
-    },
-    {
-      "time": 120,
-      "date": "2024-01-11T00:00:00.000Z"
-    },
-    {
-      "time": 180,
-      "date": "2024-01-12T00:00:00.000Z"
-    },
-    {
-      "time": 120,
-      "date": "2024-01-13T00:00:00.000Z"
-    },
-    {
-      "time": 180,
-      "date": "2024-01-14T00:00:00.000Z"
-    },
-    {
-      "time": 180,
-      "date": "2024-01-15T00:00:00.000Z"
-    },
-    {
-      "time": 30,
-      "date": "2024-01-16T00:00:00.000Z"
-    },
-    {
-      "time": 60,
-      "date": "2024-01-17T00:00:00.000Z"
-    },
-    {
-      "time": 70,
-      "date": "2024-01-18T00:00:00.000Z"
-    },
-    {
-      "time": 20,
-      "date": "2024-01-22T00:00:00.000Z"
-    },
-    {
-      "time": 20,
-      "date": "2024-01-23T00:00:00.000Z"
-    },
-    {
-      "time": 180,
-      "date": "2024-02-12T00:00:00.000Z"
-    },
-    {
-      "time": 90,
-      "date": "2024-02-13T00:00:00.000Z"
-    },
-    {
-      "time": 90,
-      "date": "2024-02-14T00:00:00.000Z"
-    },
-    {
-      "time": 100,
-      "date": "2024-02-15T00:00:00.000Z"
-    },
-    {
-      "time": 120,
-      "date": "2024-02-16T00:00:00.000Z"
-    },
-    {
-      "time": 120,
-      "date": "2024-02-17T00:00:00.000Z"
-    },]);
+  const [lineGraphData, setLineGraphData] = useState<{ date: Date, duration: number }[]>([]);
 
   useEffect(() => {
     const fetchLifetimeActivity = async () => {
@@ -181,6 +85,29 @@ const Statistics = () => {
     };
 
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchLineGraphData = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URI}/statistics/line-graph`, {
+          method: "POST",
+          credentials: "include", // Include cookies in the request
+          body: JSON.stringify({ activity: "Programming" })
+        });
+        if (!response.ok) {
+          toast.error("Failed to fetch line graph data");
+        }
+        const data: { date: Date, duration: number }[] = await response.json();
+        setLineGraphData(data);
+        setLoading(false);
+      } catch (err) {
+        toast.error("There was an error fetching the line graph data.");
+        setLoading(false);
+      }
+    };
+
+    fetchLineGraphData();
   }, []);
 
   return (
@@ -320,9 +247,9 @@ const Statistics = () => {
 
               <ReactTooltip id="heatmap-tooltip" /> {/* attaches to all elements with data-tooltip-id="heatmap-tooltip" */}
             </div>
-            <div>
+            {(lineGraphData?.length ?? 0) > 0 ? (<div>
               <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={dataLineGraph.map(item => ({
+                <LineChart data={lineGraphData.map(item => ({
                   ...item,
                   date: format(new Date(item.date), "yyyy-MM-dd")  // clean x-axis
                 }))}>
@@ -333,7 +260,10 @@ const Statistics = () => {
                   <Line type="monotone" dataKey="time" stroke="#8884d8" strokeWidth={2} dot={{ r: 3 }} />
                 </LineChart>
               </ResponsiveContainer>
-            </div>
+            </div>) : (
+              <div className="text-center text-xl font-semibold text-gray-500">
+                No data for this activity recorded yet. Start tracking this activity to see data here!
+              </div>)}
           </div>
         )
       }
