@@ -27,7 +27,7 @@ const Statistics = () => {
   const [dailyActivityData, setDailyActivityData] = useState<DailyActivity[]>([]);
   const [maxCount, setMaxCount] = useState(1);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-  const [lineGraphData, setLineGraphData] = useState<{ date: Date, duration: number }[]>([]);
+  const [lineGraphData, setLineGraphData] = useState<{ date: Date, value : number | null }[]>([]);
 
   useEffect(() => {
     const fetchLifetimeActivity = async () => {
@@ -87,28 +87,31 @@ const Statistics = () => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const fetchLineGraphData = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URI}/statistics/line-graph`, {
-          method: "POST",
-          credentials: "include", // Include cookies in the request
-          body: JSON.stringify({ activity: "Programming" })
-        });
-        if (!response.ok) {
-          toast.error("Failed to fetch line graph data");
-        }
-        const data: { date: Date, duration: number }[] = await response.json();
-        setLineGraphData(data);
-        setLoading(false);
-      } catch (err) {
-        toast.error("There was an error fetching the line graph data.");
-        setLoading(false);
-      }
-    };
+  const [lineGraphSelected, setLineGraphSelected] = useState<{ type: "activity" | "variable", name: string } | null>(null);
 
+  const fetchLineGraphData = async () => {
+    if (!lineGraphData) return;
+    setLoading(true);
+    try {
+      console.log(`debugging: ${JSON.stringify({ type: lineGraphSelected?.type, name: lineGraphSelected?.name })}`);
+      const res = await fetch(`${import.meta.env.VITE_API_URI}/statistics/line-graph`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: lineGraphSelected?.type, name: lineGraphSelected?.name }),
+      });
+      const json = await res.json();
+      setLineGraphData(json.data || []);
+    } catch (err) {
+      console.error(err);
+      toast.error(err?.toString());
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
     fetchLineGraphData();
-  }, []);
+  }, [lineGraphSelected]);
 
   return (
     <div className="p-0 md:p-10">
@@ -247,23 +250,50 @@ const Statistics = () => {
 
               <ReactTooltip id="heatmap-tooltip" /> {/* attaches to all elements with data-tooltip-id="heatmap-tooltip" */}
             </div>
-            {(lineGraphData?.length ?? 0) > 0 ? (<div>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={lineGraphData.map(item => ({
-                  ...item,
-                  date: format(new Date(item.date), "yyyy-MM-dd")  // clean x-axis
-                }))}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="time" stroke="#8884d8" strokeWidth={2} dot={{ r: 3 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>) : (
-              <div className="text-center text-xl font-semibold text-gray-500">
-                No data for this activity recorded yet. Start tracking this activity to see data here!
-              </div>)}
+            <div className="bg-white shadow rounded-2xl p-4 space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Activity / Variable Over Time</h2>
+                <select
+                  className="border rounded px-2 py-1"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const [type, name] = value.split("||");
+                    console.log(`type: ${type}, name: ${name}`);
+                    setLineGraphSelected({ type: type as "activity" | "variable", name });
+                  }}
+                >
+                  <option value="Select...">{lineGraphSelected?.type} || {lineGraphSelected?.name}</option>
+                  <optgroup label="Activities">
+                    {Object.keys(colors.activities).map((activity) => (
+                      <option key={activity} value={`activity||${activity}`}>{activity}</option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Variables">
+                    {Object.keys(colors.variables).map((variable) => (
+                      <option key={variable} value={`variable||${variable}`}>{variable}</option>
+                    ))}
+                  </optgroup>
+                </select>
+              </div>
+
+              {loading ? (
+                <Spinner />
+              ) : (
+                <ResponsiveContainer width="100%" height={400}>
+  <LineChart data={lineGraphData.map(item => ({
+    ...item,
+    date: format(new Date(item.date), "yyyy-MM-dd")
+  }))}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="date" />
+    <YAxis />
+    <Tooltip />
+    <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={2} dot={{ r: 3 }} />
+  </LineChart>
+</ResponsiveContainer>
+
+              )}
+            </div>
           </div>
         )
       }
