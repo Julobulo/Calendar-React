@@ -192,34 +192,38 @@ StatisticsRoute.post("/line-graph", async (c) => {
     }
 
     const body = await c.req.json();
-    const activityName = body.activity;
+    const { type, name } = body;
 
-    if (!activityName) {
-        c.status(400);
-        return c.json({ message: "no activity provided" });
+    if (!type || !name) {
+        return c.json({ message: "type and name required" }, 400);
     }
+
+    const matchField = type === "activity" ? "entries.activity" : "variables.variable"; // Correct field for match
 
     const activityData = await activityCollection.aggregate([
         { $match: { userId: new ObjectId(id.toString()) } },
-        { $unwind: "$entries" },
-        { $match: { "entries.activity": activityName } },
+        { $unwind: type === "activity" ? "$entries" : "$variables" }, // Unwind entries or variables
+        { $match: { [matchField]: name } },
         {
             $group: {
                 _id: "$date",
-                time: { $sum: "$entries.duration" },
+                value: type === "activity"
+                    ? { $first: "$entries.duration" }  // Use $first to take the first found value for activity
+                    : { $first: "$variables.value" },   // Use $first to take the first found value for variable
             },
         },
         {
             $project: {
                 _id: 0,
                 date: "$_id",
-                time: 1,
+                value: 1, // return date and value (either direct value for activity or variable)
             },
         },
         { $sort: { date: 1 } },
     ]);
 
-    return c.json(activityData);
+
+    return c.json({ data: activityData });
 });
 
 
