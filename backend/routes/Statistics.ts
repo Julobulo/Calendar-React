@@ -112,52 +112,62 @@ StatisticsRoute.get("/daily-activity-count", async (c) => {
         return c.json({ message: "bad token" });
     }
 
-    // Aggregate the data by counting the number of activities in 'entries'
-    const activityCounts = await activityCollection.aggregate([
-        // Match documents where userId matches the extracted user ID
-        {
-            $match: { userId: new ObjectId(id.toString()) }
-        },
-        // Project: Count activities in 'entries'
+    const entriesCounts = await activityCollection.aggregate([
+        { $match: { userId: new ObjectId(id.toString()) } },
         {
             $project: {
                 date: 1,
                 activityCount: {
                     $cond: [
-                        { $eq: [{ $type: "$entries" }, "array"] },  // Check if 'entries' is an array
-                        { $size: "$entries" },  // If 'entries' is an array, count its size
-                        0  // If 'entries' is not an array or is missing, set count to 0
+                        { $eq: [{ $type: "$entries" }, "array"] },
+                        { $size: "$entries" },
+                        0
+                    ]
+                },
+                variableCount: {
+                    $cond: [
+                        { $eq: [{ $type: "$variables" }, "array"] },
+                        { $size: "$variables" },
+                        0
+                    ]
+                },
+                noteExists: {
+                    $cond: [
+                        { $gt: [{ $strLenCP: { $ifNull: ["$note", ""] } }, 0] },
+                        1,
+                        0
                     ]
                 }
             }
         },
-        // Group by date and calculate the total activity count
         {
             $group: {
-                _id: { date: { $toDate: "$date" } }, // Group by date
-                totalActivityCount: { $sum: "$activityCount" }
+                _id: { date: { $toDate: "$date" } },
+                totalActivityCount: { $sum: "$activityCount" },
+                totalVariableCount: { $sum: "$variableCount" },
+                totalNote: { $sum: "$noteExists" }
             }
         },
-        // Sort by date
-        {
-            $sort: { "_id.date": 1 }
-        }
+        { $sort: { "_id.date": 1 } }
     ]);
 
-    // Explicitly define the type for the items in activityCounts
-    type AggregatedActivity = {
-        _id: { date: Date };  // The date field in the _id object
-        totalActivityCount: number;  // The total activity count
+    type DailyCount = {
+        _id: { date: Date };
+        totalActivityCount: number;
+        totalVariableCount: number;
+        totalNote: 0 | 1 | number;
     };
 
-
-    // Format the result into a usable format for frontend (date as string, activity count)
-    const formattedData = activityCounts.map((item: AggregatedActivity) => ({
-        date: item._id.date.toISOString().split("T")[0], // Format as YYYY-MM-DD
-        count: item.totalActivityCount
+    const formattedData = entriesCounts.map((item: DailyCount) => ({
+        date: item._id.date.toISOString().split("T")[0],
+        count: {
+            activityCount: item.totalActivityCount,
+            variableCount: item.totalVariableCount,
+            note: item.totalNote > 0 ? 1 : 0
+        }
     }));
 
-    return c.json({ data: formattedData });
+    return c.json(formattedData);
 });
 
 StatisticsRoute.post("/line-graph", async (c) => {
