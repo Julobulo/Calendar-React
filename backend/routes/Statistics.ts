@@ -73,7 +73,7 @@ StatisticsRoute.get('/lifetime-activity', async (c) => {
     console.log(`activities: ${JSON.stringify(activities)}`);
 
     const result = {
-        activities: activities.map(({ _id, totalTime }) => ({
+        activities: activities.map(({ _id, totalTime }: { _id: string; totalTime: number }) => ({
             activity: _id,
             totalTime
         })),
@@ -81,7 +81,6 @@ StatisticsRoute.get('/lifetime-activity', async (c) => {
     };
 
     return c.json(result);
-
 })
 
 StatisticsRoute.get("/daily-activity-count", async (c) => {
