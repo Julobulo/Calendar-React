@@ -207,7 +207,7 @@ const Statistics = () => {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="p-4">
+            <div className="bg-white shadow rounded-2xl p-4 space-y-4 my-4">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold">Activity Heatmap</h2>
                 <select
