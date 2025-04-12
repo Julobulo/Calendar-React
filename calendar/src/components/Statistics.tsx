@@ -260,7 +260,7 @@ const Statistics = () => {
                   onChange={(e) => {
                     const value = e.target.value;
                     // Set the type dynamically based on the selected option (activity/variable)
-                    const newSelection : {type: "activity" | "variable", name: string} = {
+                    const newSelection: { type: "activity" | "variable", name: string } = {
                       type: value.startsWith('activity') ? 'activity' : 'variable',
                       name: value,
                     };
@@ -297,7 +297,32 @@ const Statistics = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
                     <YAxis />
-                    <Tooltip />
+                    <Tooltip content={({ payload }) => {
+                      if (payload && payload.length) {
+                        if (lineGraphSelected?.type === "activity") {
+                          console.log(`payload[0].payload: ${JSON.stringify(payload[0].payload)}`);
+                          const { activity, totalTime } = payload[0].payload;
+                          return (
+                            <div className="bg-white p-2 border rounded shadow-lg">
+                              <p>{lineGraphSelected?.type} - {lineGraphSelected?.name.split("-")[1]}</p>
+                              <p>{activity}</p>
+                              <p>{formatTime(totalTime)}</p> {/* Use the formatted time here */}
+                            </div>
+                          );
+                        } else if (lineGraphSelected?.type === "variable") {
+                          console.log(`payload[0].payload: ${JSON.stringify(payload[0].payload)}`);
+                          const { date, value } = payload[0].payload;
+                          return (
+                            <div className="bg-white p-2 border rounded shadow-lg">
+                              <p>{lineGraphSelected?.type} - {lineGraphSelected?.name.split("-")[1]}</p>
+                              <p>{value}</p>
+                              <p>{date}</p>
+                            </div>
+                          );
+                        }
+                      }
+                      return null;
+                    }} />
                     <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={2} dot={{ r: 3 }} />
                   </LineChart>
                 </ResponsiveContainer>) : (<div className="text-center text-xl font-semibold text-gray-500">
