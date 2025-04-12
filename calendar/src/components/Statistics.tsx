@@ -300,18 +300,16 @@ const Statistics = () => {
                     <Tooltip content={({ payload }) => {
                       if (payload && payload.length) {
                         if (lineGraphSelected?.type === "activity") {
-                          console.log(`payload[0].payload: ${JSON.stringify(payload[0].payload)}`);
-                          const { activity, totalTime } = payload[0].payload;
+                          const { value, date } = payload[0].payload;
                           return (
                             <div className="bg-white p-2 border rounded shadow-lg">
                               <p>{lineGraphSelected?.type} - {lineGraphSelected?.name.split("-")[1]}</p>
-                              <p>{activity}</p>
-                              <p>{formatTime(totalTime)}</p> {/* Use the formatted time here */}
+                              <p>{formatTime(value)}</p>
+                              <p>{date}</p>
                             </div>
                           );
                         } else if (lineGraphSelected?.type === "variable") {
-                          console.log(`payload[0].payload: ${JSON.stringify(payload[0].payload)}`);
-                          const { date, value } = payload[0].payload;
+                          const { value, date } = payload[0].payload;
                           return (
                             <div className="bg-white p-2 border rounded shadow-lg">
                               <p>{lineGraphSelected?.type} - {lineGraphSelected?.name.split("-")[1]}</p>
