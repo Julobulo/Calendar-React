@@ -94,7 +94,6 @@ const Statistics = () => {
     if (!lineGraphData) return;
     setLineChartLoading(true);
     try {
-      console.log(`debugging: ${JSON.stringify({ type: lineGraphSelected?.type, name: lineGraphSelected?.name })}`);
       const res = await fetch(`${import.meta.env.VITE_API_URI}/statistics/line-graph`, {
         method: "POST",
         credentials: "include",
@@ -264,7 +263,6 @@ const Statistics = () => {
                       type: value.startsWith('activity') ? 'activity' : 'variable',
                       name: value,
                     };
-                    console.log(`newSelection: ${JSON.stringify(newSelection)}`);
                     setLineGraphSelected(newSelection);
                   }}
                 >
