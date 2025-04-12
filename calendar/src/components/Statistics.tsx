@@ -12,7 +12,7 @@ import 'react-tooltip/dist/react-tooltip.css';
 
 interface DailyActivity {
   date: string;
-  count: number;
+  count: { activityCount: number, variableCount: number, note: 0 | 1 };
 }
 
 const Statistics = () => {
@@ -28,6 +28,7 @@ const Statistics = () => {
   const [maxCount, setMaxCount] = useState(1);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [lineGraphData, setLineGraphData] = useState<{ date: Date, value: number | null }[]>([]);
+  const [heatmapType, setHeatmapType] = useState<"all" | "activities" | "variables" | "notes">("all");
 
   useEffect(() => {
     const fetchLifetimeActivity = async () => {
@@ -74,9 +75,9 @@ const Statistics = () => {
         if (!response.ok) {
           toast.error("Failed to fetch activity data");
         }
-        const data: { data: DailyActivity[] } = await response.json();
-        setDailyActivityData(data.data);
-        setMaxCount(Math.max(...data.data.map(d => d.count), 10));
+        const data = await response.json();
+        setDailyActivityData(data);
+        setMaxCount(Math.max(...data.map(d => d.count.activityCount + d.count.variableCount + d.count.note), 10));
         setLoading(false);
       } catch (err) {
         toast.error("There was an error fetching the data.");
@@ -207,29 +208,46 @@ const Statistics = () => {
               </ResponsiveContainer>
             </div>
             <div className="p-4">
-              <h2 className="text-xl font-bold mb-4">Activity Heatmap</h2>
-              <div className="flex justify-center items-center mb-4">
-                <button
-                  onClick={() => setSelectedYear(selectedYear - 1)}
-                  className="px-2 mx-2 py-1 text-sm bg-gray-100 rounded-l"
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Activity Heatmap</h2>
+                <select
+                  className="p-2 border rounded-md"
+                  value={heatmapType}
+                  onChange={(e) => setHeatmapType(e.target.value as "all" | "activities" | "variables" | "notes")}
                 >
-                  &lt;
-                </button>
-                <span className="text-lg font-semibold">{selectedYear}</span>
-                <button
-                  onClick={() => setSelectedYear(selectedYear + 1)}
-                  className="px-2 mx-2 py-1 text-sm bg-gray-100 rounded-l"
-                >
-                  &gt;
-                </button>
+                  <option value="all">All Entries</option>
+                  <option value="activities">Activities</option>
+                  <option value="variables">Variables</option>
+                  <option value="notes">Notes</option>
+                </select>
+                <div className="flex justify-center items-center mb-4">
+                  <button
+                    onClick={() => setSelectedYear(selectedYear - 1)}
+                    className="px-2 mx-2 py-1 text-sm bg-gray-100 rounded-l"
+                  >
+                    &lt;
+                  </button>
+                  <span className="text-lg font-semibold">{selectedYear}</span>
+                  <button
+                    onClick={() => setSelectedYear(selectedYear + 1)}
+                    className="px-2 mx-2 py-1 text-sm bg-gray-100 rounded-l"
+                  >
+                    &gt;
+                  </button>
+                </div>
               </div>
               <CalendarHeatmap
                 startDate={new Date(selectedYear, 0, 1)}
                 endDate={new Date(selectedYear, 11, 31)}
-                values={dailyActivityData}
+                values={dailyActivityData ?? []}
                 classForValue={(value: ReactCalendarHeatmapValue<string> | undefined) => {
-                  if (!value || !value.count) return 'fill-gray-200';
-                  const intensity = value.count / maxCount; // 0 → 1
+                  console.log(`value: ${JSON.stringify(value)}`);
+                  let count = 0;
+                  if (heatmapType === "all" || heatmapType === "activities") count += value?.count.activityCount
+                  if (heatmapType === "all" || heatmapType === "variables") count += value?.count.variableCount
+                  if (heatmapType === "all" || heatmapType === "notes") count += value?.count.note
+                  if (!value || !count) return 'fill-gray-200';
+                  const intensity = count / maxCount; // 0 → 1
                   if (intensity < 0.2) return 'fill-green-200';
                   if (intensity < 0.4) return 'fill-green-300';
                   if (intensity < 0.6) return 'fill-green-400';
@@ -240,16 +258,33 @@ const Statistics = () => {
                   if (!value || !(value as DailyActivity).date) {
                     return { 'data-tooltip-id': '', 'data-tooltip-content': '' } as TooltipDataAttrs;
                   }
-                  const { date, count } = value as DailyActivity;
+                  let entriesCount = 0;
+                  if (heatmapType === "all" || heatmapType === "activities") entriesCount += value?.count.activityCount
+                  if (heatmapType === "all" || heatmapType === "variables") entriesCount += value?.count.variableCount
+                  if (heatmapType === "all" || heatmapType === "notes") entriesCount += value?.count.note
+                  if (!entriesCount) return { 'data-tooltip-id': '', 'data-tooltip-content': '' } as TooltipDataAttrs
+
+                  let label = '';
+                  if (heatmapType === 'all') {
+                    label = `entr${entriesCount === 1 ? 'y' : 'ies'}`;
+                  } else if (heatmapType === 'activities') {
+                    label = `activit${entriesCount === 1 ? 'y' : 'ies'}`;
+                  } else if (heatmapType === 'variables') {
+                    label = `variable${entriesCount === 1 ? '' : 's'}`;
+                  } else if (heatmapType === 'notes') {
+                    label = `note${entriesCount === 1 ? '' : 's'}`;
+                  }
+
                   return {
                     'data-tooltip-id': 'heatmap-tooltip',
-                    'data-tooltip-content': `${date}: ${count} activit${count === 1 ? 'y' : 'ies'}`,
+                    'data-tooltip-content': `${value.date}: ${entriesCount} ${label}`,
                   } as TooltipDataAttrs;
                 }}
               />
 
               <ReactTooltip id="heatmap-tooltip" /> {/* attaches to all elements with data-tooltip-id="heatmap-tooltip" */}
             </div>
+
             <div className="bg-white shadow rounded-2xl p-4 space-y-4">
               <div className="w-full mb-3 flex justify-between items-center">
                 <h2 className="text-xl font-semibold">Activity / Variable Over Time</h2>
