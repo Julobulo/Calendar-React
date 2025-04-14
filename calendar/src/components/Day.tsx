@@ -90,7 +90,6 @@ const Day = () => {
     const navigate = useNavigate();
     const handleClick = () => {
         if (window.innerWidth < 768) {
-            // navigate(`/calendar/day/details?year=${year}&month=${month}&day=${day}`);
             setMobileShowForm(true);
             setEventPopUp({ state: "add", activity: "", description: "", note: "", variable: "", value: "" });
         }
@@ -119,6 +118,7 @@ const Day = () => {
             setActionLoading(true);
             let body;
             if (selectedForm === "activity") {
+                if (!eventPopUp.activity || !eventPopUp.description) {toast.error('Please fill in both activity and description'); setActionLoading(false); return}
                 body = {
                     year: year,
                     month: month,
@@ -128,6 +128,7 @@ const Day = () => {
                     description: eventPopUp.description,
                 }
             } else if (selectedForm === "note") {
+                if (!eventPopUp.note) {toast.error('Please fill in the note'); setActionLoading(false); return}
                 body = {
                     year: year,
                     month: month,
@@ -136,6 +137,7 @@ const Day = () => {
                     note: eventPopUp.note,
                 }
             } else if (selectedForm === "variable") {
+                if (!eventPopUp.variable || !eventPopUp.value) {toast.error('Please fill in both variable and value'); setActionLoading(false); return}
                 body = {
                     year: year,
                     month: month,
@@ -168,6 +170,7 @@ const Day = () => {
             setActionLoading(true);
             let body;
             if (selectedForm === "activity") {
+                if (!eventPopUp.activity || !eventPopUp.description) {toast.error('Please fill in both activity and description'); setActionLoading(false); return}
                 body = {
                     year: year,
                     month: month,
@@ -177,6 +180,7 @@ const Day = () => {
                     description: eventPopUp.description,
                 }
             } else if (selectedForm === "note") {
+                if (!eventPopUp.note) {toast.error('Please fill in the note'); setActionLoading(false); return}
                 body = {
                     year: year,
                     month: month,
@@ -185,6 +189,7 @@ const Day = () => {
                     note: eventPopUp.note,
                 }
             } else if (selectedForm === "variable") {
+                if (!eventPopUp.variable || !eventPopUp.value) {toast.error('Please fill in both variable and value'); setActionLoading(false); return}
                 body = {
                     year: year,
                     month: month,
