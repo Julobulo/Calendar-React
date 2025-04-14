@@ -141,7 +141,7 @@ const Statistics = () => {
       // setLineGraphData(filledData);
 
       // 1. Calculate average (ignoring nulls if needed)
-      const total = filledData.reduce((sum, entry) => sum + (entry.value ?? 0), 0);
+      const total = filledData.reduce((sum, entry) => sum + (Number(entry.value) ?? 0), 0);
       const count = filledData.filter(entry => entry.value !== null).length;
       const average = count > 0 ? total / count : 0;
 
