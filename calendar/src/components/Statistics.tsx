@@ -89,11 +89,11 @@ const Statistics = () => {
   }, []);
 
   const [lineGraphSelected, setLineGraphSelected] = useState<{ type: "activity" | "variable", name: string } | null>(null);
-  const [lineGraphLoading, setLineChartLoading] = useState<boolean>(false);
+  const [lineGraphLoading, setLineGraphLoading] = useState<boolean>(false);
 
   const fetchLineGraphData = async () => {
     if (!lineGraphData) return;
-    setLineChartLoading(true);
+    setLineGraphLoading(true);
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URI}/statistics/line-graph`, {
         method: "POST",
@@ -102,12 +102,46 @@ const Statistics = () => {
         body: JSON.stringify({ type: lineGraphSelected?.type, name: lineGraphSelected?.name.split("-")[1] }),
       });
       const json = await res.json();
-      setLineGraphData(json.data || []);
+      // setLineGraphData(json.data || []);
+      const rawData: { date: string; value: number | null }[] = json.data || [];
+
+      // Convert date strings to Date objects
+      const parsedData = rawData.map(entry => ({
+        date: new Date(entry.date),
+        value: entry.value ?? 0,
+      }));
+
+      // Find min and max dates (by converting to timestamps)
+      const timestamps = parsedData.map(entry => entry.date.getTime());
+      const minDate = new Date(Math.min(...timestamps));
+      const maxDate = new Date(Math.max(...timestamps));
+
+      // Generate all dates in the range
+      const allDates: Date[] = [];
+      const current = new Date(minDate);
+      while (current <= maxDate) {
+        allDates.push(new Date(current));
+        current.setDate(current.getDate() + 1);
+      }
+
+      // Map existing dates to strings for easier lookup
+      const dataMap = new Map(parsedData.map(d => [d.date.toISOString().split("T")[0], d.value]));
+
+      // Fill in missing dates
+      const filledData = allDates.map(date => {
+        const key = date.toISOString().split("T")[0];
+        return {
+          date,
+          value: dataMap.has(key) ? dataMap.get(key)! : 0,
+        };
+      });
+
+      setLineGraphData(filledData);
     } catch (err) {
       console.error(err);
       toast.error(err?.toString());
     }
-    setLineChartLoading(false);
+    setLineGraphLoading(false);
   };
 
   useEffect(() => {
