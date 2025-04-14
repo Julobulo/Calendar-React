@@ -114,7 +114,8 @@ const Statistics = () => {
       // Find min and max dates (by converting to timestamps)
       const timestamps = parsedData.map(entry => entry.date.getTime());
       const minDate = new Date(Math.min(...timestamps));
-      const maxDate = new Date(Math.max(...timestamps));
+      // const maxDate = new Date(Math.max(...timestamps));
+      const maxDate = new Date();
 
       // Generate all dates in the range
       const allDates: Date[] = [];
@@ -136,7 +137,20 @@ const Statistics = () => {
         };
       });
 
-      setLineGraphData(filledData);
+      // setLineGraphData(filledData);
+
+      // 1. Calculate average (ignoring nulls if needed)
+      const total = filledData.reduce((sum, entry) => sum + (entry.value ?? 0), 0);
+      const count = filledData.filter(entry => entry.value !== null).length;
+      const average = count > 0 ? total / count : 0;
+
+      // 2. Add average to each data point
+      const withAverage = filledData.map(entry => ({
+        ...entry,
+        average,
+      }));
+
+      setLineGraphData(withAverage);
     } catch (err) {
       console.error(err);
       toast.error(err?.toString());
@@ -282,7 +296,6 @@ const Statistics = () => {
                   endDate={new Date(selectedYear, 11, 31)}
                   values={entryCountData ?? []}
                   classForValue={(value: ReactCalendarHeatmapValue<string> | undefined) => {
-                    console.log(`value: ${JSON.stringify(value)}`);
                     let count = 0;
                     if (heatmapType === "all" || heatmapType === "activities") count += value?.count.activityCount
                     if (heatmapType === "all" || heatmapType === "variables") count += value?.count.variableCount
@@ -374,12 +387,14 @@ const Statistics = () => {
                     <Tooltip content={({ payload }) => {
                       if (payload && payload.length) {
                         if (lineGraphSelected?.type === "activity") {
-                          const { value, date } = payload[0].payload;
+                          const { value, date, average } = payload[0].payload;
                           return (
                             <div className="bg-white p-2 border rounded shadow-lg">
                               <p>{lineGraphSelected?.type} - {lineGraphSelected?.name.split("-")[1]}</p>
                               <p>{formatTime(value)}</p>
                               <p>{date}</p>
+                              <p>Avg/day: {formatTime(average)}</p>
+                              <p>Avg/week: {formatTime(average*7)}</p>
                             </div>
                           );
                         } else if (lineGraphSelected?.type === "variable") {
@@ -396,6 +411,9 @@ const Statistics = () => {
                       return null;
                     }} />
                     <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={2} dot={{ r: 3 }} />
+                    <Line type="monotone" dataKey="average" stroke="#ff0000"
+                    // strokeDasharray="5 5"
+                    />
                   </LineChart>
                 </ResponsiveContainer>) : (<div className="text-center text-xl font-semibold text-gray-500">
                   No data for this {lineGraphSelected?.type || "activity"} recorded yet. Start tracking data for this {lineGraphSelected?.type || "activity"} to see data here!
