@@ -227,7 +227,7 @@ OAuthRoute.get("/google/callback", async (c) => {
     c.res.headers.append(
         // set a cookie to a token generated and signed
         "Set-Cookie",
-        `token=${cookieToken}; Expires=${new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)}; Path=/; Domain=calendar.jules.tf; Secure; SameSite=None`,
+        `token=${cookieToken}; Expires=${new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toUTCString()}}; Path=/; Domain=calendar.jules.tf; Secure; SameSite=None`,
     );
 
     // return c.redirect("http://localhost:5173");
