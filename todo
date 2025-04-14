@@ -1,8 +1,8 @@
-Allow users to talk about locations using a special character
 Add statistic "average time per activity per day/week/month/year" and have list of activities that can be selected or not
 Make a better suggestion filter
 Show variables and note in calendar view
 Add/Edit/Delete activity names and colors
+Allow users to add their location for each day
 
 DONE
 Added frontend checks before adding/editing entries in frontend - 14/04/2025 - 8pm
