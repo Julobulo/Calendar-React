@@ -183,10 +183,10 @@ const Statistics = () => {
         </div>
       )}
       {!loading && (<div>
-        <div>
+        <div className="bg-white shadow rounded-2xl p-4 space-y-4 my-4">
+          <h2 className="text-xl font-bold">Total Time Spent on Activities {(!lifetimeActivityLoading && (lifetimeActivity?.length ?? 0) > 0) && `(since {format(firstActivityDate || "", "MMMM dd, yyyy")})`}</h2>
           {(!lifetimeActivityLoading && (lifetimeActivity?.length ?? 0) > 0) ? (
-            <div className="bg-white shadow rounded-2xl p-4 space-y-4 my-4">
-              <h2 className="text-lg font-semibold mb-2">Total Time Spent on Activities (since {format(firstActivityDate || "", "MMMM dd, yyyy")})</h2>
+            <>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={lifetimeActivity}>
                   <XAxis dataKey="activity" />
@@ -263,7 +263,7 @@ const Statistics = () => {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-            </div>) : (
+            </>) : (
             <div className="text-center text-xl font-semibold text-gray-500">
               No activities recorded yet. Start tracking your activities to see data here!
             </div>
@@ -346,13 +346,12 @@ const Statistics = () => {
                 } as TooltipDataAttrs;
               }}
             />)}
-
           <ReactTooltip id="heatmap-tooltip" /> {/* attaches to all elements with data-tooltip-id="heatmap-tooltip" */}
         </div>
 
         <div className="bg-white shadow rounded-2xl p-4 space-y-4">
           <div className="w-full mb-3 flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Activity / Variable Over Time</h2>
+            <h2 className="text-xl font-bold">Activity / Variable Over Time</h2>
             <select
               className="p-2 border rounded-md"
               value={lineGraphSelected?.name}
