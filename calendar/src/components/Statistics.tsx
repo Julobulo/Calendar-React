@@ -43,9 +43,10 @@ const Statistics = () => {
       if (!response.ok) {
         toast.error(`Failed to fetch lifetime activity: ${(await response.json()).message}`);
         setLifetimeActivityLoading(false);
+        return
       }
       const data = await response.json();
-      if (!data.activities || !Array.isArray(data.activities)) { toast.error(`Invalid data format`); setLifetimeActivityLoading(false); return }
+      if (!data.activities || !Array.isArray(data.activities)) { toast.error(`Invalid data format for lifetime activity graphs`); setLifetimeActivityLoading(false); return }
       setLifetimeActivity(data.activities);
       setFirstActivityDate(data.firstActivityDate ? new Date(data.firstActivityDate).toLocaleDateString() : null);
       setLifetimeActivityLoading(false);
@@ -62,8 +63,10 @@ const Statistics = () => {
       if (!response.ok) {
         toast.error(`Failed to fetch colors: ${(await response.json()).message}`);
         setLoading(false);
+        return
       }
       const data = await response.json();
+      if (!data || typeof data !== "object") { setLoading(false); toast.error(`no data or bad data type for colors`); return }
       setColors(data);
     };
     fetchColors();
@@ -79,6 +82,7 @@ const Statistics = () => {
         });
         if (!response.ok) {
           toast.error("Failed to fetch activity data");
+          return
         }
         const data: DailyActivity[] = await response.json();
         setEntryCountData(data);
@@ -99,13 +103,17 @@ const Statistics = () => {
     if (!lineGraphData) return;
     setLineGraphLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URI}/statistics/line-graph`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URI}/statistics/line-graph`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: lineGraphSelected?.type, name: lineGraphSelected?.name.split("-")[1] }),
       });
-      const json = await res.json();
+      if (!response.ok) {
+        toast.error("Failed to fetch line graph data");
+        return
+      }
+      const json = await response.json();
       // setLineGraphData(json.data || []);
       const rawData: { date: string; value: number | null }[] = json.data || [];
 
