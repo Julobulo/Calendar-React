@@ -68,6 +68,13 @@ const Statistics = () => {
       const data = await response.json();
       if (!data || typeof data !== "object") { setLoading(false); toast.error(`no data or bad data type for colors`); return }
       setColors(data);
+      const firstActivity = Object.keys(data.activities)[0];
+      const firstVariable = Object.keys(data.variables)[0];
+      if (firstActivity) {
+        setLineGraphSelected({ type: "activity", name: `activity-${firstActivity}` });
+      } else if (firstVariable) {
+        setLineGraphSelected({ type: "variable", name: `variable-${firstVariable}` });
+      }
     };
     fetchColors();
   }, []);
@@ -100,7 +107,7 @@ const Statistics = () => {
   const [showAverageLineGraph, setShowAverageLineGraph] = useState<boolean>(false);
 
   const fetchLineGraphData = async () => {
-    if (!lineGraphData) return;
+    if (!lineGraphSelected) return;
     setLineGraphLoading(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URI}/statistics/line-graph`, {
@@ -184,7 +191,7 @@ const Statistics = () => {
       )}
       {!loading && (<div>
         <div className="bg-white shadow rounded-2xl p-4 space-y-4 my-4">
-          <h2 className="text-xl font-bold">Total Time Spent on Activities {(!lifetimeActivityLoading && (lifetimeActivity?.length ?? 0) > 0) && `(since {format(firstActivityDate || "", "MMMM dd, yyyy")})`}</h2>
+          <h2 className="text-xl font-bold">Total Time Spent on Activities {(!lifetimeActivityLoading && (lifetimeActivity?.length ?? 0) > 0) && `(since ${format(firstActivityDate || "", "MMMM dd, yyyy")})`}</h2>
           {(!lifetimeActivityLoading && (lifetimeActivity?.length ?? 0) > 0) ? (
             <>
               <ResponsiveContainer width="100%" height={300}>
