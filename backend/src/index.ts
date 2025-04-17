@@ -68,44 +68,120 @@ app.route('/activity', ActivityRoute);
 app.route('/statistics', StatisticsRoute);
 app.route('/settings', SettingsRoute);
 
-app.post('/userColors', async (c) => {
+app.get('/checkUserColors', async (c) => {
   App = App || new Realm.App(c.env.ATLAS_APPID);
   const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
-  const user = await App.logIn(credentials); // Attempt to authenticate
+  const user = await App.logIn(credentials);
   const client = user.mongoClient("mongodb-atlas");
-  const userCollection = client
-    .db("calendar")
-    .collection<User>("users");
-  const activityCollection = client
-    .db("calendar")
-    .collection<UserActivity>("activity");
 
-  const { userId } = await c.req.parseBody();
-  const currentUser = await userCollection.findOne({ _id: new ObjectId(userId.toString()) });
+  const userCollection = client.db("calendar").collection<User>("users");
+  const activityCollection = client.db("calendar").collection<UserActivity>("activity");
+
+  const cookieHeader = c.req.header("Cookie");
+  if (!cookieHeader) {
+    c.status(400);
+    return c.json({ message: "no cookies found" });
+  }
+
+  const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
+  let token = cookies.find((cookie) => cookie.startsWith(`token=`));
+  if (!token) {
+    c.status(400);
+    return c.json({ message: "no token found" });
+  }
+  token = token.split("=")[1].trim();
+
+  const id = await checkToken(token, c.env.JWT_SECRET);
+  if (!id) {
+    c.status(400);
+    return c.json({ message: "bad token" });
+  }
+  const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
+
   if (!currentUser) {
-    c.status(400)
+    c.status(400);
     return c.json({ message: "Failed to retrieve user" });
   }
-  const currentUserActivities: UserActivity[] = await activityCollection.find({ userId: new ObjectId(userId.toString()) });
+
+  const currentUserActivities: UserActivity[] = await activityCollection.find({ userId: new ObjectId(id.toString()) });
+
   if (!currentUserActivities.length) {
-    c.status(400)
+    c.status(400);
     return c.json({ message: "User doesn't have any activities" });
   }
 
+  const usedColors = new Set<string>([
+    ...Object.values(currentUser.colors.activities || {}),
+    ...Object.values(currentUser.colors.variables || {}),
+    currentUser.colors.note,
+  ]);
+
+  const getUniqueColor = () => {
+    let color;
+    do {
+      color = generateRandomColor();
+    } while (usedColors.has(color));
+    usedColors.add(color);
+    return color;
+  };
+
+  let numberActivityColorCreated = 0, numberVariableColorCreated = 0, numberNoteColorCreated = 0;
+
   for (const activity of currentUserActivities) {
     for (const entry of activity.entries) {
+      // Assign activity color if missing
       if (!(entry.activity in currentUser.colors.activities)) {
-        const randomColor = generateRandomColor();
-        currentUser.colors.activities[entry.activity] = randomColor; // update currentUser so for next iterations
-        await userCollection.updateOne( // Update the user's colors in the database
+        numberActivityColorCreated += 1;
+        const color = getUniqueColor();
+        currentUser.colors.activities[entry.activity] = color;
+        await userCollection.updateOne(
           { _id: currentUser._id },
-          { $set: { [`colors.${entry.activity}`]: randomColor } }
+          { $set: { [`colors.activities.${entry.activity}`]: color } }
         );
       }
     }
+
+    // Assign variable colors if missing
+    for (const variableEntry of activity.variables || []) {
+      if (!(variableEntry.variable in currentUser.colors.variables)) {
+        numberVariableColorCreated += 1;
+        const color = getUniqueColor();
+        currentUser.colors.variables[variableEntry.variable] = color;
+        await userCollection.updateOne(
+          { _id: currentUser._id },
+          { $set: { [`colors.variables.${variableEntry.variable}`]: color } }
+        );
+      }
+    }
+
+    // Assign note color if missing
+    if (activity.note && !currentUser.colors.note) {
+      numberNoteColorCreated = 1;
+      const color = getUniqueColor();
+      currentUser.colors.note = color;
+      await userCollection.updateOne(
+        { _id: currentUser._id },
+        { $set: { "colors.note": color } }
+      );
+    }
   }
-  return c.json({ message: "successfully updated user's colors" });
-})
+
+  let createdParts = [];
+
+  if (numberActivityColorCreated) {
+    createdParts.push(`${numberActivityColorCreated} activity color${numberActivityColorCreated > 1 ? 's' : ''}`);
+  }
+  if (numberVariableColorCreated) {
+    createdParts.push(`${numberVariableColorCreated} variable color${numberVariableColorCreated > 1 ? 's' : ''}`);
+  }
+  if (numberNoteColorCreated) {
+    createdParts.push(`1 note color`);
+  }
+
+  const createdSummary = createdParts.length > 0 ? `, creating ${createdParts.join(', ')}` : '';
+
+  return c.json({ message: `Successfully updated user's colors${createdSummary}.` });
+});
 
 // Route to process the weekList and create new activities
 app.post('/importActivities', async (c) => {
