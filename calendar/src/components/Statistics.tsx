@@ -18,7 +18,6 @@ interface DailyActivity {
 const Statistics = () => {
   const [lifetimeActivity, setLifetimeActivity] = useState<{ activity: string, totalTime: number }[]>([]);
   const [firstActivityDate, setFirstActivityDate] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [colors, setColors] = useState<{
     activities: { [activity: string]: string };
     note: string;
@@ -62,11 +61,10 @@ const Statistics = () => {
       });
       if (!response.ok) {
         toast.error(`Failed to fetch colors: ${(await response.json()).message}`);
-        setLoading(false);
         return
       }
       const data = await response.json();
-      if (!data || typeof data !== "object") { setLoading(false); toast.error(`no data or bad data type for colors`); return }
+      if (!data || typeof data !== "object") { toast.error(`no data or bad data type for colors`); return }
       setColors(data);
       const firstActivity = Object.keys(data.activities)[0];
       const firstVariable = Object.keys(data.variables)[0];
@@ -184,15 +182,13 @@ const Statistics = () => {
 
   return (
     <div className="p-0 md:p-10">
-      {loading && (
-        <div className="flex justify-center">
-          <Spinner />
-        </div>
-      )}
-      {!loading && (<div>
         <div className="bg-white shadow rounded-2xl p-4 space-y-4 my-4">
           <h2 className="text-xl font-bold">Total Time Spent on Activities {(!lifetimeActivityLoading && (lifetimeActivity?.length ?? 0) > 0) && `(since ${format(firstActivityDate || "", "MMMM dd, yyyy")})`}</h2>
-          {(!lifetimeActivityLoading && (lifetimeActivity?.length ?? 0) > 0) ? (
+          {lifetimeActivityLoading ? (
+            <div className="flex justify-center">
+              <Spinner />
+            </div>
+          ) : (lifetimeActivity?.length ?? 0) > 0 ? (
             <>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={lifetimeActivity}>
@@ -307,7 +303,9 @@ const Statistics = () => {
             </div>
           </div>
           {heatmapLoading ? (
-            <Spinner />
+            <div className="flex justify-center">
+              <Spinner />
+            </div>
           ) : (
             <CalendarHeatmap
               startDate={new Date(selectedYear, 0, 1)}
@@ -391,7 +389,9 @@ const Statistics = () => {
           </div>
 
           {lineGraphLoading ? (
-            <Spinner />
+            <div className="flex justify-center">
+              <Spinner />
+            </div>
           ) : (
             (lineGraphData?.length ?? 0) > 0 ? (
               <>
@@ -456,8 +456,6 @@ const Statistics = () => {
             </div>)
           )}
         </div>
-      </div>
-      )}
     </div>
   );
 };
