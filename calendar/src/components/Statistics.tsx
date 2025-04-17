@@ -81,7 +81,7 @@ const Statistics = () => {
           credentials: "include", // Include cookies in the request
         });
         if (!response.ok) {
-          toast.error("Failed to fetch activity data");
+          toast.error(`Failed to fetch activity data: ${(await response.json()).message}`);
           return
         }
         const data: DailyActivity[] = await response.json();
@@ -110,7 +110,8 @@ const Statistics = () => {
         body: JSON.stringify({ type: lineGraphSelected?.type, name: lineGraphSelected?.name.split("-")[1] }),
       });
       if (!response.ok) {
-        toast.error("Failed to fetch line graph data");
+        toast.error(`Failed to fetch line graph data: ${(await response.json()).message}`);
+        setLineGraphLoading(false);
         return
       }
       const json = await response.json();
