@@ -1,6 +1,8 @@
 import { format } from "date-fns";
 import React, { useState, useEffect } from "react";
 import { FaLocationDot } from "react-icons/fa6";
+import { MapContainer, Marker, TileLayer } from "react-leaflet";
+import L from "leaflet";
 
 // Types
 interface Location {
@@ -20,6 +22,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     selectedLocation,
     onLocationChange,
 }) => {
+
     const [inputValue, setInputValue] = useState("");
     const [savedLocations, setSavedLocations] = useState<Location[]>([]);
     const [osmSuggestions, setOsmSuggestions] = useState<Location[]>([]);
@@ -114,11 +117,26 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                     </div>
 
                     {/* Right: Map display (basic map with Leaflet or placeholder) */}
+                    {/* Right: Map display */}
                     <div className="w-1/2 p-4">
-                        {/* TODO: Replace with a real map component like react-leaflet */}
-                        <div className="bg-gray-200 w-full h-64 flex items-center justify-center text-gray-500">
-                            [Map showing pin at selected location]
-                        </div>
+                        {selectedLocation ? (
+                            <MapContainer
+                                center={[selectedLocation.lat, selectedLocation.lng]}
+                                zoom={13}
+                                scrollWheelZoom={false}
+                                className="h-64 w-full rounded-lg"
+                            >
+                                <TileLayer
+                                    attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                />
+                                <Marker position={[selectedLocation.lat, selectedLocation.lng]} />
+                            </MapContainer>
+                        ) : (
+                            <div className="bg-gray-100 w-full h-64 flex items-center justify-center text-gray-500 rounded-lg">
+                                Select a location to preview on the map
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
