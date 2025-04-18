@@ -1,9 +1,8 @@
 import { format } from "date-fns";
 import React, { useState, useEffect } from "react";
 import { FaLocationDot } from "react-icons/fa6";
-import { MapContainer, Marker, TileLayer } from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer, useMapEvents } from "react-leaflet";
 
-// Types
 interface Location {
     name: string;
     lat: number;
@@ -11,24 +10,32 @@ interface Location {
 }
 
 interface LocationPickerProps {
-    date: Date,
+    date: Date;
     selectedLocation: Location | null;
     onLocationChange: (location: Location) => void;
 }
+
+const ClickHandler: React.FC<{ onClick: (lat: number, lng: number) => void }> = ({ onClick }) => {
+    useMapEvents({
+        click(e) {
+            onClick(e.latlng.lat, e.latlng.lng);
+        }
+    });
+    return null;
+};
 
 export const LocationPicker: React.FC<LocationPickerProps> = ({
     date,
     selectedLocation,
     onLocationChange,
 }) => {
-
     const [inputValue, setInputValue] = useState("");
     const [savedLocations, setSavedLocations] = useState<Location[]>([]);
     const [osmSuggestions, setOsmSuggestions] = useState<Location[]>([]);
     const [showMenu, setShowMenu] = useState(false);
+    const [currentPos, setCurrentPos] = useState<Location | null>(null);
 
     useEffect(() => {
-        // Load saved locations (stub example)
         setSavedLocations([
             { name: "Home in Paris", lat: 48.8566, lng: 2.3522 },
             { name: "Home in NY", lat: 40.7128, lng: -74.006 },
@@ -63,6 +70,16 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
         setShowMenu(false);
     };
 
+    const handleMapClick = (lat: number, lng: number) => {
+        const newLocation: Location = {
+            name: `Custom location at (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
+            lat,
+            lng,
+        };
+        setCurrentPos(newLocation);
+        onLocationChange(newLocation);
+    };
+
     return (
         <div className="relative">
             <div className="flex items-center justify-between">
@@ -78,7 +95,6 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
             {showMenu && (
                 <div className="mt-2 bg-white border shadow-xl rounded-lg w-full max-w-3xl flex">
-                    {/* Left: Input + Suggestions */}
                     <div className="w-1/2 p-4 space-y-4">
                         <input
                             type="text"
@@ -115,27 +131,31 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                         </div>
                     </div>
 
-                    {/* Right: Map display (basic map with Leaflet or placeholder) */}
-                    {/* Right: Map display */}
                     <div className="w-1/2 p-4">
-                        {selectedLocation ? (
-                            <MapContainer
-                                center={[selectedLocation.lat, selectedLocation.lng]}
-                                zoom={13}
-                                scrollWheelZoom={false}
-                                className="h-64 w-full rounded-lg"
-                            >
-                                <TileLayer
-                                    attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                />
-                                <Marker position={[selectedLocation.lat, selectedLocation.lng]} />
-                            </MapContainer>
-                        ) : (
-                            <div className="bg-gray-100 w-full h-64 flex items-center justify-center text-gray-500 rounded-lg">
-                                Select a location to preview on the map
-                            </div>
-                        )}
+                        <MapContainer
+                            center={[currentPos ? currentPos.lat : selectedLocation?.lat ?? 48.8566, currentPos ? currentPos.lng : selectedLocation?.lng ?? 2.3522]}
+                            zoom={13}
+                            scrollWheelZoom={false}
+                            className="h-64 w-full rounded-lg"
+                        >
+                            <TileLayer
+                                attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            />
+                            <ClickHandler onClick={handleMapClick} />
+                            {selectedLocation && (
+                                <Marker position={[selectedLocation.lat, selectedLocation.lng]}>
+                                    <Popup>Selected location</Popup>
+                                </Marker>
+                            )}
+                            {currentPos && (
+                                <Marker position={[currentPos.lat, currentPos.lng]}>
+                                    <Popup>
+                                        Current location: <pre>{JSON.stringify(currentPos, null, 2)}</pre>
+                                    </Popup>
+                                </Marker>
+                            )}
+                        </MapContainer>
                     </div>
                 </div>
             )}
