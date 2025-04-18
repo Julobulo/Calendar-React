@@ -2,7 +2,6 @@ import { format } from "date-fns";
 import React, { useState, useEffect } from "react";
 import { FaLocationDot } from "react-icons/fa6";
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
-import L from "leaflet";
 
 // Types
 interface Location {
