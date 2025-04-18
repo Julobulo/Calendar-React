@@ -9,6 +9,13 @@ import Spinner from "./Spinner";
 import { toast } from "react-toastify";
 import { MdDelete } from "react-icons/md";
 import { FaRegCalendarTimes } from "react-icons/fa";
+import { LocationPicker } from "./LocationPicker";
+
+interface Location {
+    name: string;
+    lat: number;
+    lng: number;
+}
 
 const Day = () => {
     const [searchParams] = useSearchParams();
@@ -118,7 +125,7 @@ const Day = () => {
             setActionLoading(true);
             let body;
             if (selectedForm === "activity") {
-                if (!eventPopUp.activity || !eventPopUp.description) {toast.error('Please fill in both activity and description'); setActionLoading(false); return}
+                if (!eventPopUp.activity || !eventPopUp.description) { toast.error('Please fill in both activity and description'); setActionLoading(false); return }
                 body = {
                     year: year,
                     month: month,
@@ -128,7 +135,7 @@ const Day = () => {
                     description: eventPopUp.description,
                 }
             } else if (selectedForm === "note") {
-                if (!eventPopUp.note) {toast.error('Please fill in the note'); setActionLoading(false); return}
+                if (!eventPopUp.note) { toast.error('Please fill in the note'); setActionLoading(false); return }
                 body = {
                     year: year,
                     month: month,
@@ -137,7 +144,7 @@ const Day = () => {
                     note: eventPopUp.note,
                 }
             } else if (selectedForm === "variable") {
-                if (!eventPopUp.variable || !eventPopUp.value) {toast.error('Please fill in both variable and value'); setActionLoading(false); return}
+                if (!eventPopUp.variable || !eventPopUp.value) { toast.error('Please fill in both variable and value'); setActionLoading(false); return }
                 body = {
                     year: year,
                     month: month,
@@ -170,7 +177,7 @@ const Day = () => {
             setActionLoading(true);
             let body;
             if (selectedForm === "activity") {
-                if (!eventPopUp.activity || !eventPopUp.description) {toast.error('Please fill in both activity and description'); setActionLoading(false); return}
+                if (!eventPopUp.activity || !eventPopUp.description) { toast.error('Please fill in both activity and description'); setActionLoading(false); return }
                 body = {
                     year: year,
                     month: month,
@@ -180,7 +187,7 @@ const Day = () => {
                     description: eventPopUp.description,
                 }
             } else if (selectedForm === "note") {
-                if (!eventPopUp.note) {toast.error('Please fill in the note'); setActionLoading(false); return}
+                if (!eventPopUp.note) { toast.error('Please fill in the note'); setActionLoading(false); return }
                 body = {
                     year: year,
                     month: month,
@@ -189,7 +196,7 @@ const Day = () => {
                     note: eventPopUp.note,
                 }
             } else if (selectedForm === "variable") {
-                if (!eventPopUp.variable || !eventPopUp.value) {toast.error('Please fill in both variable and value'); setActionLoading(false); return}
+                if (!eventPopUp.variable || !eventPopUp.value) { toast.error('Please fill in both variable and value'); setActionLoading(false); return }
                 body = {
                     year: year,
                     month: month,
@@ -424,380 +431,391 @@ const Day = () => {
 
     const [selectedForm, setSelectedForm] = useState<"activity" | "note" | "variable">("activity");
 
+    const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+
     return (
         <div className="flex flex-col md:flex-row h-screen p-3">
             {/* Events List */}
-            {((window.innerWidth < 768 && !mobileShowForm) || (window.innerWidth >= 768)) && (<div className="w-full h-full overflow-y-auto p-4 bg-gray-100" onClick={handleClick}>
-                <h2 className="text-xl font-bold mb-4">Events for {format(new Date(year, month, day), "EEEE, MMMM do yyyy")}</h2>
-                {loading && (
-                    <div className="flex justify-center">
-                        <Spinner />
-                    </div>
-                )}
-                {!loading && dayActivities && (
-                    <div className="mt-2 flex flex-col space-y-2">
-                        {(dayActivities.entries?.length ?? 0) > 0 && dayActivities.entries.map((entry, index) => (
-                            <div
-                                key={index}
-                                style={{
-                                    backgroundColor: colors.activities[entry.activity] || "#ffffff", // Default color if no match found
-                                }}
-                                className={`text-[14px] ${isLightOrDark(colors.activities[entry.activity]) ? 'text-black' : 'text-white'} rounded-lg px-3 py-2`}
-                                onClick={(e) => {
-                                    e.stopPropagation(); // Prevent handleClick from running
-                                    setSelectedForm("activity");
-                                    setEventPopUp({ state: "edit", activity: entry.activity, description: entry.description, note: "", variable: "", value: "" });
-                                    setMobileShowForm(true);
-                                }}
-                            >
-                                {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - <span dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(entry.description) }}></span>
-                            </div>
-                        ))}
-                        {(dayActivities.variables?.length ?? 0) > 0 && (
-                            <div className="space-y-2">
-                                {(dayActivities.entries?.length ?? 0) > 0 && <hr className="my-2" />}
-                                {dayActivities.variables.map((entry, index) => (
-                                    <div
-                                        key={index}
-                                        style={{
-                                            backgroundColor: colors.variables[entry.variable] || "#ffffff", // Default color if no match found
-                                        }}
-                                        className={`text-[14px] ${isLightOrDark(colors.variables[entry.variable]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
-                                        onClick={(e) => {
-                                            e.stopPropagation(); // Prevent handleClick from running
-                                            setSelectedForm("variable");
-                                            setEventPopUp({ state: "edit", activity: "", description: "", variable: entry.variable, value: entry.value, note: "" })
-                                            setMobileShowForm(true);
-                                        }}
-                                    >
-                                        {entry.variable} - {entry.value}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        {dayActivities?.note && (
-                            <div>
-                                {((dayActivities.entries?.length ?? 0) > 0 || (dayActivities.variables?.length ?? 0) > 0) && <hr className="my-2" />}
+            {((window.innerWidth < 768 && !mobileShowForm) || (window.innerWidth >= 768)) && (
+                <div className="w-full h-full overflow-y-auto p-4 bg-gray-100" onClick={handleClick}>
+                    {/* <h2 className="text-xl font-bold mb-4">Events for {format(new Date(year, month, day), "EEEE, MMMM do yyyy")}</h2> */}
+                    <LocationPicker
+                        date={new Date(year, month, day)}
+                        selectedLocation={selectedLocation}
+                        onLocationChange={setSelectedLocation}
+                    />
+                    {loading && (
+                        <div className="flex justify-center">
+                            <Spinner />
+                        </div>
+                    )}
+                    {!loading && dayActivities && (
+                        <div className="mt-2 flex flex-col space-y-2">
+                            {(dayActivities.entries?.length ?? 0) > 0 && dayActivities.entries.map((entry, index) => (
                                 <div
+                                    key={index}
                                     style={{
-                                        backgroundColor: colors.note || "#ffffff", // Default color if no match found
+                                        backgroundColor: colors.activities[entry.activity] || "#ffffff", // Default color if no match found
                                     }}
-                                    className={`${isLightOrDark(colors.note) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
+                                    className={`text-[14px] ${isLightOrDark(colors.activities[entry.activity]) ? 'text-black' : 'text-white'} rounded-lg px-3 py-2`}
                                     onClick={(e) => {
                                         e.stopPropagation(); // Prevent handleClick from running
-                                        setSelectedForm("note");
-                                        setEventPopUp({ state: "edit", activity: "", description: "", note: dayActivities?.note || "", variable: "", value: "" })
+                                        setSelectedForm("activity");
+                                        setEventPopUp({ state: "edit", activity: entry.activity, description: entry.description, note: "", variable: "", value: "" });
                                         setMobileShowForm(true);
                                     }}
                                 >
-                                    <span className="text-[14px]" dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(dayActivities.note || "") }}></span>
+                                    {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - <span dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(entry.description) }}></span>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-                {!loading && !dayActivities && (
-                    <div className="flex items-center gap-2 text-gray-500 text-sm p-2">
-                        <FaRegCalendarTimes className="text-lg" />
-                        No activities recorded for today.
-                    </div>
-                )
-                }
-            </div>)}
+                            ))}
+                            {(dayActivities.variables?.length ?? 0) > 0 && (
+                                <div className="space-y-2">
+                                    {(dayActivities.entries?.length ?? 0) > 0 && <hr className="my-2" />}
+                                    {dayActivities.variables.map((entry, index) => (
+                                        <div
+                                            key={index}
+                                            style={{
+                                                backgroundColor: colors.variables[entry.variable] || "#ffffff", // Default color if no match found
+                                            }}
+                                            className={`text-[14px] ${isLightOrDark(colors.variables[entry.variable]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // Prevent handleClick from running
+                                                setSelectedForm("variable");
+                                                setEventPopUp({ state: "edit", activity: "", description: "", variable: entry.variable, value: entry.value, note: "" })
+                                                setMobileShowForm(true);
+                                            }}
+                                        >
+                                            {entry.variable} - {entry.value}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {dayActivities?.note && (
+                                <div>
+                                    {((dayActivities.entries?.length ?? 0) > 0 || (dayActivities.variables?.length ?? 0) > 0) && <hr className="my-2" />}
+                                    <div
+                                        style={{
+                                            backgroundColor: colors.note || "#ffffff", // Default color if no match found
+                                        }}
+                                        className={`${isLightOrDark(colors.note) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // Prevent handleClick from running
+                                            setSelectedForm("note");
+                                            setEventPopUp({ state: "edit", activity: "", description: "", note: dayActivities?.note || "", variable: "", value: "" })
+                                            setMobileShowForm(true);
+                                        }}
+                                    >
+                                        <span className="text-[14px]" dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(dayActivities.note || "") }}></span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    {!loading && !dayActivities && (
+                        <div className="flex items-center gap-2 text-gray-500 text-sm p-2">
+                            <FaRegCalendarTimes className="text-lg" />
+                            No activities recorded for today.
+                        </div>
+                    )
+                    }
+                </div>
+            )}
 
             {/* Calendar & Form (Hidden on mobile) */}
-            {((window.innerWidth < 768 && mobileShowForm) || (window.innerWidth >= 768)) && (<div className="md:inline-flex flex-col px-4 bg-white max-w-fit">
-                {/* Simple Calendar */}
-                <div ref={calendarRef} className="p-4 border rounded mb-4 w-max">
-                    <DayPicker
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={(date) => {
-                            if (!date) return; // Prevent clearing the date
-                            setSelectedDate(date!);
-                            setCurrentMonth(date!); // Update the month when a date is selected
-                            navigate(`/calendar/day?year=${date?.getFullYear()}&month=${date?.getMonth()}&day=${date?.getDate()}`);
-                        }}
-                        captionLayout="dropdown"
-                        month={currentMonth}
-                        onMonthChange={setCurrentMonth}
-                    />
+            {((window.innerWidth < 768 && mobileShowForm) || (window.innerWidth >= 768)) && (
+                <div className="md:inline-flex flex-col px-4 bg-white max-w-fit">
+                    {/* Simple Calendar */}
+                    <div ref={calendarRef} className="p-4 border rounded mb-4 w-max">
+                        <DayPicker
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={(date) => {
+                                if (!date) return; // Prevent clearing the date
+                                setSelectedDate(date!);
+                                setCurrentMonth(date!); // Update the month when a date is selected
+                                navigate(`/calendar/day?year=${date?.getFullYear()}&month=${date?.getMonth()}&day=${date?.getDate()}`);
+                            }}
+                            captionLayout="dropdown"
+                            month={currentMonth}
+                            onMonthChange={setCurrentMonth}
+                        />
+                    </div>
+                    {/* Dropdown to select form type */}
+                    <select
+                        value={selectedForm}
+                        onChange={(e) => { setSelectedForm(e.target.value as "activity" | "note" | "variable"); setEventPopUp({ state: "add", activity: "", description: "", note: "", variable: "", value: "" }) }}
+                        className="p-4 border mb-4 rounded w-full mx-auto lg:mr-2 xl:mr-14 bg-white focus:bg-gray-200"
+                        style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}
+                    >
+                        <option value="activity">Activity</option>
+                        <option value="variable">Variable</option>
+                        <option value="note">Note</option>
+                    </select>
+                    {selectedForm === "activity" && (<div>
+                        {/* Add Event Form */}
+                        <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
+                            <h3 className="text-lg font-semibold">{eventPopUp.state} activity</h3>
+                            <div>
+                                <input type="text" placeholder="Activity, e.g. Running" className="w-full p-2 border rounded" value={eventPopUp.activity}
+                                    // onChange={(e) => { if (eventPopUp.state === "add") { setEventPopup((prev) => ({ ...eventPopUp, activity: e.target.value }) } }}
+                                    onChange={(e) => { setSuggestionsType("activity"); handleInputChange(e) }}
+                                    onKeyDown={handleKeyDown}
+                                    disabled={eventPopUp.state !== "add"} />
+                                {suggestions.length > 0 && suggestionsTypeRef.current === "activity" && (
+                                    <ul className="bg-white border rounded shadow-lg">
+                                        {suggestions.map((suggestion, index) => (
+                                            <li
+                                                key={suggestion}
+                                                className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
+                                                    }`}
+                                                onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                                                onMouseLeave={() => setSelectedSuggestionIndex(-1)}
+                                                onClick={() => handleSuggestionClick(suggestion)}
+                                            >
+                                                {suggestion.split("").map((char, index) => (
+                                                    <span key={index} className={eventPopUp.activity.toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
+                                                        {char}
+                                                    </span>
+                                                ))}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                                <textarea
+                                    placeholder="Description, e.g. 1h22min morning run, followed by a 15min evening run"
+                                    className="w-full p-2 border mt-2 rounded"
+                                    value={eventPopUp.description}
+                                    onChange={(e) => { setSuggestionsType("name"); handleInputChange(e) }}
+                                    onKeyDown={handleKeyDown}></textarea>
+                                {suggestions.length > 0 && suggestionsTypeRef.current === "name" && (
+                                    <ul className="bg-white border rounded shadow-lg">
+                                        {suggestions.map((suggestion, index) => {
+                                            const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
+                                            const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
+                                            return <li
+                                                key={suggestion}
+                                                className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
+                                                    }`}
+                                                onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                                                onMouseLeave={() => setSelectedSuggestionIndex(-1)}
+                                                onClick={() => handleSuggestionClick(suggestion)}
+                                            >
+                                                {suggestion.split("").map((char, index) => (
+                                                    <span key={index} className={match?.[1].toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
+                                                        {char}
+                                                    </span>
+                                                ))}
+                                            </li>
+                                        })}
+                                    </ul>
+                                )}
+                                {
+                                    eventPopUp.state === "add" ? (
+                                        actionLoading ? (
+                                            <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
+                                                <Spinner />
+                                            </div>
+                                        ) : (
+                                            <button
+                                                className="w-full p-2 bg-blue-500 text-white rounded mt-2"
+                                                onClick={async () => {
+                                                    await handleEventFinish();
+                                                }}
+                                            >
+                                                {eventPopUp.state}
+                                            </button>
+                                        )
+                                    ) : (
+                                        actionLoading ? (
+                                            <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
+                                                <Spinner />
+                                            </div>
+                                        ) :
+                                            (<div className="flex gap-2 mt-2">
+                                                <button
+                                                    className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                                    onClick={async () => {
+                                                        await handleEventFinish();
+                                                    }}
+                                                >
+                                                    {eventPopUp.state}
+                                                </button>
+                                                <button
+                                                    className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
+                                                    onClick={async () => {
+                                                        await handleDelete();
+                                                    }}
+                                                >
+                                                    <MdDelete className="text-xl" />
+                                                </button>
+                                            </div>)
+                                    )
+                                }
+                            </div>
+                        </div>
+                        <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
+                    </div>)}
+                    {selectedForm === "note" && (<div>
+                        <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
+                            <h3 className="text-lg font-semibold">{eventPopUp.state} note</h3>
+                            <div>
+                                <textarea
+                                    placeholder="Note for the day, e.g. visited @Michael and saw an aligator on my way home"
+                                    className="w-full p-2 border mt-2 rounded"
+                                    value={eventPopUp.note}
+                                    onChange={(e) => { handleInputChange(e) }}
+                                    onKeyDown={handleKeyDown}></textarea>
+                                {suggestions.length > 0 && (
+                                    <ul className="bg-white border rounded shadow-lg">
+                                        {suggestions.map((suggestion, index) => {
+                                            const textBeforeCursor = eventPopUp.note.slice(0, cursorPosition);
+                                            const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
+                                            return <li
+                                                key={suggestion}
+                                                className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
+                                                    }`}
+                                                onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                                                onMouseLeave={() => setSelectedSuggestionIndex(-1)}
+                                                onClick={() => handleSuggestionClick(suggestion)}
+                                            >
+                                                {suggestion.split("").map((char, index) => (
+                                                    <span key={index} className={match?.[1].toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
+                                                        {char}
+                                                    </span>
+                                                ))}
+                                            </li>
+                                        })}
+                                    </ul>
+                                )}
+                                {
+                                    eventPopUp.state === "add" ? (
+                                        actionLoading ? (
+                                            <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
+                                                <Spinner />
+                                            </div>
+                                        ) : (
+                                            <button
+                                                className="w-full p-2 bg-blue-500 text-white rounded mt-2"
+                                                onClick={async () => {
+                                                    await handleEventFinish();
+                                                }}
+                                            >
+                                                {eventPopUp.state}
+                                            </button>
+                                        )
+                                    ) : (
+                                        actionLoading ? (
+                                            <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
+                                                <Spinner />
+                                            </div>
+                                        ) :
+                                            (<div className="flex gap-2 mt-2">
+                                                <button
+                                                    className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                                    onClick={async () => {
+                                                        await handleEventFinish();
+                                                    }}
+                                                >
+                                                    {eventPopUp.state}
+                                                </button>
+                                                <button
+                                                    className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
+                                                    onClick={async () => {
+                                                        await handleDelete();
+                                                    }}
+                                                >
+                                                    <MdDelete className="text-xl" />
+                                                </button>
+                                            </div>)
+                                    )
+                                }
+                            </div>
+                        </div>
+                        <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
+                    </div>)}
+                    {selectedForm === "variable" && (<div>
+                        {/* Add Event Form */}
+                        <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
+                            <h3 className="text-lg font-semibold">{eventPopUp.state} variable</h3>
+                            <div>
+                                <input type="text" placeholder="Variable, e.g. Weight" className="w-full p-2 border rounded" value={eventPopUp.variable}
+                                    onChange={(e) => { setSuggestionsType("variable"); handleInputChange(e) }}
+                                    onKeyDown={handleKeyDown}
+                                    disabled={eventPopUp.state !== "add"} />
+                                {suggestions.length > 0 && suggestionsTypeRef.current === "variable" && (
+                                    <ul className="bg-white border rounded shadow-lg">
+                                        {suggestions.map((suggestion, index) => (
+                                            <li
+                                                key={suggestion}
+                                                className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
+                                                    }`}
+                                                onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                                                onMouseLeave={() => setSelectedSuggestionIndex(-1)}
+                                                onClick={() => handleSuggestionClick(suggestion)}
+                                            >
+                                                {suggestion.split("").map((char, index) => (
+                                                    <span key={index} className={eventPopUp.variable.toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
+                                                        {char}
+                                                    </span>
+                                                ))}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                                <input
+                                    type="number"
+                                    placeholder="Value, e.g. 70"
+                                    className="w-full p-2 border mt-2 rounded"
+                                    value={eventPopUp.value}
+                                    onChange={(e) => { setSuggestionsType("name"); handleInputChange(e) }}></input>
+                                {
+                                    eventPopUp.state === "add" ? (
+                                        actionLoading ? (
+                                            <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
+                                                <Spinner />
+                                            </div>
+                                        ) : (
+                                            <button
+                                                className="w-full p-2 bg-blue-500 text-white rounded mt-2"
+                                                onClick={async () => {
+                                                    await handleEventFinish();
+                                                }}
+                                            >
+                                                {eventPopUp.state}
+                                            </button>
+                                        )
+                                    ) : (
+                                        actionLoading ? (
+                                            <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
+                                                <Spinner />
+                                            </div>
+                                        ) :
+                                            (<div className="flex gap-2 mt-2">
+                                                <button
+                                                    className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                                    onClick={async () => {
+                                                        await handleEventFinish();
+                                                    }}
+                                                >
+                                                    {eventPopUp.state}
+                                                </button>
+                                                <button
+                                                    className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
+                                                    onClick={async () => {
+                                                        await handleDelete();
+                                                    }}
+                                                >
+                                                    <MdDelete className="text-xl" />
+                                                </button>
+                                            </div>)
+                                    )
+                                }
+                            </div>
+                        </div>
+                        <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
+                    </div>)}
                 </div>
-                {/* Dropdown to select form type */}
-                <select
-                    value={selectedForm}
-                    onChange={(e) => { setSelectedForm(e.target.value as "activity" | "note" | "variable"); setEventPopUp({ state: "add", activity: "", description: "", note: "", variable: "", value: "" }) }}
-                    className="p-4 border mb-4 rounded w-full mx-auto lg:mr-2 xl:mr-14 bg-white focus:bg-gray-200"
-                    style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}
-                >
-                    <option value="activity">Activity</option>
-                    <option value="variable">Variable</option>
-                    <option value="note">Note</option>
-                </select>
-                {selectedForm === "activity" && (<div>
-                    {/* Add Event Form */}
-                    <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
-                        <h3 className="text-lg font-semibold">{eventPopUp.state} activity</h3>
-                        <div>
-                            <input type="text" placeholder="Activity, e.g. Running" className="w-full p-2 border rounded" value={eventPopUp.activity}
-                                // onChange={(e) => { if (eventPopUp.state === "add") { setEventPopup((prev) => ({ ...eventPopUp, activity: e.target.value }) } }}
-                                onChange={(e) => { setSuggestionsType("activity"); handleInputChange(e) }}
-                                onKeyDown={handleKeyDown}
-                                disabled={eventPopUp.state !== "add"} />
-                            {suggestions.length > 0 && suggestionsTypeRef.current === "activity" && (
-                                <ul className="bg-white border rounded shadow-lg">
-                                    {suggestions.map((suggestion, index) => (
-                                        <li
-                                            key={suggestion}
-                                            className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
-                                                }`}
-                                            onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                                            onMouseLeave={() => setSelectedSuggestionIndex(-1)}
-                                            onClick={() => handleSuggestionClick(suggestion)}
-                                        >
-                                            {suggestion.split("").map((char, index) => (
-                                                <span key={index} className={eventPopUp.activity.toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
-                                                    {char}
-                                                </span>
-                                            ))}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                            <textarea
-                                placeholder="Description, e.g. 1h22min morning run, followed by a 15min evening run"
-                                className="w-full p-2 border mt-2 rounded"
-                                value={eventPopUp.description}
-                                onChange={(e) => { setSuggestionsType("name"); handleInputChange(e) }}
-                                onKeyDown={handleKeyDown}></textarea>
-                            {suggestions.length > 0 && suggestionsTypeRef.current === "name" && (
-                                <ul className="bg-white border rounded shadow-lg">
-                                    {suggestions.map((suggestion, index) => {
-                                        const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
-                                        const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
-                                        return <li
-                                            key={suggestion}
-                                            className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
-                                                }`}
-                                            onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                                            onMouseLeave={() => setSelectedSuggestionIndex(-1)}
-                                            onClick={() => handleSuggestionClick(suggestion)}
-                                        >
-                                            {suggestion.split("").map((char, index) => (
-                                                <span key={index} className={match?.[1].toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
-                                                    {char}
-                                                </span>
-                                            ))}
-                                        </li>
-                                    })}
-                                </ul>
-                            )}
-                            {
-                                eventPopUp.state === "add" ? (
-                                    actionLoading ? (
-                                        <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
-                                            <Spinner />
-                                        </div>
-                                    ) : (
-                                        <button
-                                            className="w-full p-2 bg-blue-500 text-white rounded mt-2"
-                                            onClick={async () => {
-                                                await handleEventFinish();
-                                            }}
-                                        >
-                                            {eventPopUp.state}
-                                        </button>
-                                    )
-                                ) : (
-                                    actionLoading ? (
-                                        <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
-                                            <Spinner />
-                                        </div>
-                                    ) :
-                                        (<div className="flex gap-2 mt-2">
-                                            <button
-                                                className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                                onClick={async () => {
-                                                    await handleEventFinish();
-                                                }}
-                                            >
-                                                {eventPopUp.state}
-                                            </button>
-                                            <button
-                                                className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
-                                                onClick={async () => {
-                                                    await handleDelete();
-                                                }}
-                                            >
-                                                <MdDelete className="text-xl" />
-                                            </button>
-                                        </div>)
-                                )
-                            }
-                        </div>
-                    </div>
-                    <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
-                </div>)}
-                {selectedForm === "note" && (<div>
-                    <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
-                        <h3 className="text-lg font-semibold">{eventPopUp.state} note</h3>
-                        <div>
-                            <textarea
-                                placeholder="Note for the day, e.g. visited @Michael and saw an aligator on my way home"
-                                className="w-full p-2 border mt-2 rounded"
-                                value={eventPopUp.note}
-                                onChange={(e) => { handleInputChange(e) }}
-                                onKeyDown={handleKeyDown}></textarea>
-                            {suggestions.length > 0 && (
-                                <ul className="bg-white border rounded shadow-lg">
-                                    {suggestions.map((suggestion, index) => {
-                                        const textBeforeCursor = eventPopUp.note.slice(0, cursorPosition);
-                                        const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
-                                        return <li
-                                            key={suggestion}
-                                            className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
-                                                }`}
-                                            onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                                            onMouseLeave={() => setSelectedSuggestionIndex(-1)}
-                                            onClick={() => handleSuggestionClick(suggestion)}
-                                        >
-                                            {suggestion.split("").map((char, index) => (
-                                                <span key={index} className={match?.[1].toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
-                                                    {char}
-                                                </span>
-                                            ))}
-                                        </li>
-                                    })}
-                                </ul>
-                            )}
-                            {
-                                eventPopUp.state === "add" ? (
-                                    actionLoading ? (
-                                        <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
-                                            <Spinner />
-                                        </div>
-                                    ) : (
-                                        <button
-                                            className="w-full p-2 bg-blue-500 text-white rounded mt-2"
-                                            onClick={async () => {
-                                                await handleEventFinish();
-                                            }}
-                                        >
-                                            {eventPopUp.state}
-                                        </button>
-                                    )
-                                ) : (
-                                    actionLoading ? (
-                                        <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
-                                            <Spinner />
-                                        </div>
-                                    ) :
-                                        (<div className="flex gap-2 mt-2">
-                                            <button
-                                                className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                                onClick={async () => {
-                                                    await handleEventFinish();
-                                                }}
-                                            >
-                                                {eventPopUp.state}
-                                            </button>
-                                            <button
-                                                className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
-                                                onClick={async () => {
-                                                    await handleDelete();
-                                                }}
-                                            >
-                                                <MdDelete className="text-xl" />
-                                            </button>
-                                        </div>)
-                                )
-                            }
-                        </div>
-                    </div>
-                    <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
-                </div>)}
-                {selectedForm === "variable" && (<div>
-                    {/* Add Event Form */}
-                    <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
-                        <h3 className="text-lg font-semibold">{eventPopUp.state} variable</h3>
-                        <div>
-                            <input type="text" placeholder="Variable, e.g. Weight" className="w-full p-2 border rounded" value={eventPopUp.variable}
-                                onChange={(e) => { setSuggestionsType("variable"); handleInputChange(e) }}
-                                onKeyDown={handleKeyDown}
-                                disabled={eventPopUp.state !== "add"} />
-                            {suggestions.length > 0 && suggestionsTypeRef.current === "variable" && (
-                                <ul className="bg-white border rounded shadow-lg">
-                                    {suggestions.map((suggestion, index) => (
-                                        <li
-                                            key={suggestion}
-                                            className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
-                                                }`}
-                                            onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                                            onMouseLeave={() => setSelectedSuggestionIndex(-1)}
-                                            onClick={() => handleSuggestionClick(suggestion)}
-                                        >
-                                            {suggestion.split("").map((char, index) => (
-                                                <span key={index} className={eventPopUp.variable.toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
-                                                    {char}
-                                                </span>
-                                            ))}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                            <input
-                                type="number"
-                                placeholder="Value, e.g. 70"
-                                className="w-full p-2 border mt-2 rounded"
-                                value={eventPopUp.value}
-                                onChange={(e) => { setSuggestionsType("name"); handleInputChange(e) }}></input>
-                            {
-                                eventPopUp.state === "add" ? (
-                                    actionLoading ? (
-                                        <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
-                                            <Spinner />
-                                        </div>
-                                    ) : (
-                                        <button
-                                            className="w-full p-2 bg-blue-500 text-white rounded mt-2"
-                                            onClick={async () => {
-                                                await handleEventFinish();
-                                            }}
-                                        >
-                                            {eventPopUp.state}
-                                        </button>
-                                    )
-                                ) : (
-                                    actionLoading ? (
-                                        <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
-                                            <Spinner />
-                                        </div>
-                                    ) :
-                                        (<div className="flex gap-2 mt-2">
-                                            <button
-                                                className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                                onClick={async () => {
-                                                    await handleEventFinish();
-                                                }}
-                                            >
-                                                {eventPopUp.state}
-                                            </button>
-                                            <button
-                                                className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
-                                                onClick={async () => {
-                                                    await handleDelete();
-                                                }}
-                                            >
-                                                <MdDelete className="text-xl" />
-                                            </button>
-                                        </div>)
-                                )
-                            }
-                        </div>
-                    </div>
-                    <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
-                </div>)}
-            </div>)}
+            )}
         </div>
     );
 };
