@@ -15,7 +15,7 @@ interface Location {
 interface LocationPickerProps {
     date: Date;
     selectedLocation: Location | null;
-    onLocationChange: (location: Location) => void;
+    onLocationChange: (location: Location | null) => void;
     isSavingLocation: boolean;
 }
 
