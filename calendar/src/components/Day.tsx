@@ -433,9 +433,14 @@ const Day = () => {
     const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
 
     const [isSavingLocation, setIsSavingLocation] = useState(false);
+    const isInitialLocationLoad = useRef(true);
 
     useEffect(() => {
         const setLocation = async () => {
+            if (isInitialLocationLoad.current) {
+                isInitialLocationLoad.current = false;
+                return; // skip saving on initial load
+            }
             if (!selectedLocation) return;
 
             setIsSavingLocation(true);
@@ -491,6 +496,7 @@ const Day = () => {
                 }),
             });
             if (res.ok) {
+                isInitialLocationLoad.current = true; // flag that this is initial data
                 const data = await res.json();
                 setSelectedLocation(data.location);
             } else {
