@@ -76,7 +76,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     useEffect(() => {
         const filterSavedLocations = () => {
             if (!inputValue.trim()) {
-                setFilteredSavedLocations([]);
+                setFilteredSavedLocations(savedLocations.slice(0, 3));
                 return;
             }
             const filtered = matchSorter(savedLocations, inputValue, { keys: ["name"] });
