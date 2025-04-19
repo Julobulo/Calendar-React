@@ -219,7 +219,13 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                         </button>
                         <button
                             className="text-gray-500 hover:underline text-sm"
-                            onClick={() => setShowSavePrompt(null)}
+                            onClick={() => {
+                                onLocationChange(showSavePrompt); // ✅ Set as selected even if not saved
+                                setShowSavePrompt(null);
+                                setShowMenu(false);
+                                setInputValue("");
+                                setOsmSuggestions([]);
+                            }}
                         >
                             No
                         </button>
