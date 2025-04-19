@@ -2,7 +2,8 @@ import { format } from "date-fns";
 import React, { useState, useEffect, useRef } from "react";
 import { FaLocationDot } from "react-icons/fa6";
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
-import {matchSorter} from "match-sorter";
+import { matchSorter } from "match-sorter";
+import { toast } from "react-toastify";
 
 interface Location {
     name: string;
@@ -54,10 +55,18 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     const [showMenu, setShowMenu] = useState(false);
 
     useEffect(() => {
-        setSavedLocations([
-            { name: "Home in Paris", lat: 48.8566, lng: 2.3522 },
-            { name: "Home in NY", lat: 40.7128, lng: -74.006 },
-        ]);
+        const fetchSavedLocations = async () => {
+            const response = await fetch(`${import.meta.env.VITE_API_URI}/location/savedLocations`, {
+                method: "GET",
+                credentials: "include", // Include cookies in the request
+            });
+            if (!response.ok) {
+                toast.error(`Failed to fetch saved locations: ${(await response.json()).message}`);
+            }
+            const data: Location[] = await response.json();
+            setSavedLocations(data);
+        };
+        fetchSavedLocations();
     }, []);
 
     useEffect(() => {
