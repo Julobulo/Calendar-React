@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import React, { useState, useEffect } from "react";
 import { FaLocationDot } from "react-icons/fa6";
-import { MapContainer, Marker, Popup, TileLayer, useMapEvents } from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 
 interface Location {
     name: string;
@@ -17,10 +17,18 @@ interface LocationPickerProps {
 
 const ClickHandler: React.FC<{ onClick: (lat: number, lng: number) => void }> = ({ onClick }) => {
     useMapEvents({
-        click(e) {
+        click(e: any) {
             onClick(e.latlng.lat, e.latlng.lng);
         }
     });
+    return null;
+};
+
+const MapCenterer: React.FC<{ center: [number, number] }> = ({ center }) => {
+    const map = useMap();
+    useEffect(() => {
+        map.setView(center);
+    }, [center, map]);
     return null;
 };
 
@@ -33,7 +41,6 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     const [savedLocations, setSavedLocations] = useState<Location[]>([]);
     const [osmSuggestions, setOsmSuggestions] = useState<Location[]>([]);
     const [showMenu, setShowMenu] = useState(false);
-    const [currentPos, setCurrentPos] = useState<Location | null>(null);
 
     useEffect(() => {
         setSavedLocations([
@@ -67,7 +74,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
     const handleSelectLocation = (location: Location) => {
         onLocationChange(location);
-        setShowMenu(false);
+        // setShowMenu(false);
     };
 
     const handleMapClick = (lat: number, lng: number) => {
@@ -76,9 +83,12 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
             lat,
             lng,
         };
-        setCurrentPos(newLocation);
         onLocationChange(newLocation);
     };
+
+    const mapCenter: [number, number] = selectedLocation
+        ? [selectedLocation.lat, selectedLocation.lng]
+        : [48.8566, 2.3522];
 
     return (
         <div className="relative">
@@ -133,9 +143,9 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
                     <div className="w-1/2 p-4">
                         <MapContainer
-                            center={[currentPos ? currentPos.lat : selectedLocation?.lat ?? 48.8566, currentPos ? currentPos.lng : selectedLocation?.lng ?? 2.3522]}
+                            center={mapCenter}
                             zoom={13}
-                            scrollWheelZoom={false}
+                            scrollWheelZoom={true}
                             className="h-64 w-full rounded-lg"
                         >
                             <TileLayer
@@ -143,16 +153,10 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             />
                             <ClickHandler onClick={handleMapClick} />
+                            <MapCenterer center={mapCenter} />
                             {selectedLocation && (
                                 <Marker position={[selectedLocation.lat, selectedLocation.lng]}>
                                     <Popup>Selected location</Popup>
-                                </Marker>
-                            )}
-                            {currentPos && (
-                                <Marker position={[currentPos.lat, currentPos.lng]}>
-                                    <Popup>
-                                        Current location: <pre>{JSON.stringify(currentPos, null, 2)}</pre>
-                                    </Popup>
                                 </Marker>
                             )}
                         </MapContainer>
