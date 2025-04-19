@@ -67,7 +67,7 @@ LocationRoute.post('/newLocation', async (c) => {
             { _id: new ObjectId(userId.toString()) },
             {
                 $push: {
-                    savedLocations: { name, latitude, longitude }
+                    savedLocations: { name, lat: latitude, lng: longitude }
                 }
             }
         );
