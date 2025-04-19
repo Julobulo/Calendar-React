@@ -154,9 +154,18 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                         )}
                     </button>
                     {selectedLocation && <button
-                        onClick={(e) => {
+                        onClick={async (e) => {
                             e.stopPropagation(); // prevent opening the menu
                             onLocationChange(null); // clear location
+                            const res = await fetch(`${import.meta.env.VITE_API_URI}/location/dayLocation/delete`, {
+                                method: "DELETE",
+                                credentials: "include",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({year: date.getFullYear(), month: date.getMonth(), day: date.getDate(), })
+                            });
+                            if (!res.ok) {
+                                toast.error("Failed to delete location for this day.");
+                            }
                         }}
                         className="ml-1 text-gray-400 hover:text-red-500 hover:no-underline"
                         title="Clear location"
@@ -191,9 +200,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify(showSavePrompt)
                                 });
-                                if (res.ok) {
-                                    setSavedLocations((prev) => [...prev, showSavePrompt]);
-                                } else {
+                                if (!res.ok) {
                                     toast.error("Failed to save location.");
                                 }
                                 setShowSavePrompt(null);
