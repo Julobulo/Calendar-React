@@ -134,16 +134,36 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
         <div className="relative">
             <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">{format(date, "EEEE, MMMM do yyyy")}</h2>
-                <button
-                    className="flex items-center gap-1 text-blue-600 hover:underline"
-                    onClick={() => setShowMenu((prev) => !prev)}
-                >
-                    {isSavingLocation ? <Spinner /> :
-                        (<>
-                            <FaLocationDot />
-                            {selectedLocation ? selectedLocation.name : "Set location"}
-                        </>)}
-                </button>
+                <div className="flex items-center gap-1">
+                    <button
+                        className="flex items-center gap-1 text-blue-600 hover:underline"
+                        onClick={() => setShowMenu((prev) => !prev)}
+                    >
+                        {isSavingLocation ? (
+                            <Spinner />
+                        ) : selectedLocation ? (
+                            <>
+                                <FaLocationDot />
+                                <span>{selectedLocation.name}</span>
+                            </>
+                        ) : (
+                            <>
+                                <FaLocationDot />
+                                Set location
+                            </>
+                        )}
+                    </button>
+                    {selectedLocation && <button
+                        onClick={(e) => {
+                            e.stopPropagation(); // prevent opening the menu
+                            onLocationChange(null); // clear location
+                        }}
+                        className="ml-1 text-gray-400 hover:text-red-500 hover:no-underline"
+                        title="Clear location"
+                    >
+                        ❌
+                    </button>}
+                </div>
             </div>
             {showSavePrompt && (
                 <div className="bg-white shadow-lg border rounded p-3 flex flex-col gap-2 w-full">
