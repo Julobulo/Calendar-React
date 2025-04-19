@@ -75,11 +75,11 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     useEffect(() => {
         const filterSavedLocations = () => {
             if (!inputValue.trim()) {
-                setFilteredSavedLocations(savedLocations.slice(0, 3));
+                setFilteredSavedLocations([]);
                 return;
             }
             const filtered = matchSorter(savedLocations, inputValue, { keys: ["name"] });
-            setFilteredSavedLocations(filtered);
+            setFilteredSavedLocations(filtered.slice(3));
         };
 
         const fetchOSMSuggestions = async () => {
