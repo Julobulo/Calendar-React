@@ -83,6 +83,8 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
     const handleSelectLocation = (location: Location) => {
         onLocationChange(location);
+        setInputValue("");
+        setOsmSuggestions([]);
     };
 
     const handleMapClick = (lat: number, lng: number) => {
@@ -103,7 +105,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
             <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">{format(date, "EEEE, MMMM do yyyy")}</h2>
                 <button
-                    className="flex items-center gap-2 text-blue-600 hover:underline"
+                    className="flex items-center gap-1 text-blue-600 hover:underline"
                     onClick={() => setShowMenu((prev) => !prev)}
                 >
                     <FaLocationDot />
