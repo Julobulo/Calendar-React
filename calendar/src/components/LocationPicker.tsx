@@ -56,6 +56,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     const [filteredSavedLocations, setFilteredSavedLocations] = useState<Location[]>([]);
     const [osmSuggestions, setOsmSuggestions] = useState<Location[]>([]);
     const [showMenu, setShowMenu] = useState(false);
+    const [reloadSavedLocations, setReloadSavedLocations] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchSavedLocations = async () => {
@@ -70,7 +71,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
             setSavedLocations(data);
         };
         fetchSavedLocations();
-    }, []);
+    }, [reloadSavedLocations]);
 
     useEffect(() => {
         const filterSavedLocations = () => {
@@ -79,7 +80,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                 return;
             }
             const filtered = matchSorter(savedLocations, inputValue, { keys: ["name"] });
-            setFilteredSavedLocations(filtered.slice(3));
+            setFilteredSavedLocations(filtered.slice(0, 3));
         };
 
         const fetchOSMSuggestions = async () => {
@@ -176,6 +177,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                                     toast.error("Failed to save location.");
                                 }
                                 setShowSavePrompt(null);
+                                setReloadSavedLocations(!reloadSavedLocations);
                             }}
                         >
                             Save
