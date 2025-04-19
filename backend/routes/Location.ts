@@ -93,7 +93,7 @@ LocationRoute.delete('/deleteLocation', async (c) => {
 
         const { userCollection, userId, currentUser } = await getUser(c);
 
-        if (!currentUser.savedLocations?.some(loc => loc.name === name)) { c.status(400); return c.json({ message: `Location '${name}' isn't a saved location` })}
+        if (!currentUser.savedLocations?.some(loc => loc.name === name)) { c.status(400); return c.json({ message: `Location '${name}' isn't a saved location` }) }
 
         await userCollection.updateOne(
             { _id: new ObjectId(userId.toString()) },
@@ -158,6 +158,39 @@ LocationRoute.put('/updateLocation', async (c) => {
         );
 
         return c.json({ message: `Location '${oldName}' updated to '${newName}' with new coordinates successfully` });
+    } catch (err: any) {
+        c.status(400);
+        return c.json({ message: err.message });
+    }
+});
+
+LocationRoute.put('/dayLocation/add', async (c) => {
+    try {
+        const body = await c.req.json();
+        const { year, month, day, name, lat, lng } = body;
+
+        if (year === undefined || month === undefined || day === undefined || !name || typeof lat !== "number" || typeof lng !== "number") {
+            c.status(400);
+            return c.json({ message: "Missing date or location data" });
+        }
+
+        const { activityCollection, userId } = await getUser(c);
+
+        const res = await activityCollection.updateOne(
+            { userId: new ObjectId(userId.toString()), date: new Date(Date.UTC(year, month, day)) },
+            {
+                $set: {
+                    location: { name, lat, lng }
+                }
+            }
+        );
+
+        if (res.matchedCount === 0) {
+            c.status(404);
+            return c.json({ message: "No activity entry found for that date" });
+        }
+
+        return c.json({ message: "Location added to day" });
     } catch (err: any) {
         c.status(400);
         return c.json({ message: err.message });
