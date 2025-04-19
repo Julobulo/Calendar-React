@@ -109,6 +109,9 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
         onLocationChange(location);
         setInputValue("");
         setOsmSuggestions([]);
+        if (!savedLocations.some((loc) => loc.name === location.name)) {
+            setShowSavePrompt(location);
+        }
     };
 
     const handleMapClick = (lat: number, lng: number) => {
@@ -123,6 +126,8 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     const mapCenter: [number, number] | null = selectedLocation
         ? [selectedLocation.lat, selectedLocation.lng]
         : null;
+
+    const [showSavePrompt, setShowSavePrompt] = useState<Location | null>(null);
 
     return (
         <div className="relative">
@@ -139,7 +144,51 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                         </>)}
                 </button>
             </div>
-
+            {showSavePrompt && (
+                <div className="bg-white shadow-lg border rounded p-3 flex flex-col gap-2 w-full">
+                    <span className="text-sm">
+                        💾 Save this location?
+                    </span>
+                    <input
+                        type="text"
+                        value={showSavePrompt.name}
+                        onChange={(e) =>
+                            setShowSavePrompt((prev) =>
+                                prev ? { ...prev, name: e.target.value } : prev
+                            )
+                        }
+                        className="p-2 border rounded text-sm"
+                        placeholder="Location name"
+                    />
+                    <div className="flex justify-end gap-2">
+                        <button
+                            className="text-blue-600 hover:underline text-sm"
+                            onClick={async () => {
+                                const res = await fetch(`${import.meta.env.VITE_API_URI}/location/newLocation`, {
+                                    method: "POST",
+                                    credentials: "include",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify(showSavePrompt)
+                                });
+                                if (res.ok) {
+                                    setSavedLocations((prev) => [...prev, showSavePrompt]);
+                                } else {
+                                    toast.error("Failed to save location.");
+                                }
+                                setShowSavePrompt(null);
+                            }}
+                        >
+                            Save
+                        </button>
+                        <button
+                            className="text-gray-500 hover:underline text-sm"
+                            onClick={() => setShowSavePrompt(null)}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
             {showMenu && (
                 <div className="mt-2 bg-white border shadow-xl rounded-lg w-full max-w-3xl flex">
                     <div className="w-1/2 p-4 space-y-4">
