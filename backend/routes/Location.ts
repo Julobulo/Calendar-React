@@ -57,8 +57,8 @@ LocationRoute.get('/savedLocations', async (c) => {
 LocationRoute.post('/newLocation', async (c) => {
     try {
         const body = await c.req.json(); // use json() instead of parseBody() for application/json
-        const { name, latitude, longitude } = body;
-        if (!name || typeof latitude !== "number" || typeof longitude !== "number") {
+        const { name, lat, lng } = body;
+        if (!name || typeof lat !== "number" || typeof lng !== "number") {
             c.status(400);
             return c.json({ message: "Please send all required fields" });
         }
@@ -69,7 +69,7 @@ LocationRoute.post('/newLocation', async (c) => {
             { _id: new ObjectId(userId.toString()) },
             {
                 $push: {
-                    savedLocations: { name, lat: latitude, lng: longitude }
+                    savedLocations: { name, lat, lng }
                 }
             }
         );
