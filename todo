@@ -5,6 +5,7 @@ Add/Edit/Delete activity names and colors
 Allow users to add their location for each day
 
 DONE
+Can add/edit/delete location for each day and save location - 19/04/2025 - 11:30pm
 Can choose location (saved locations, OSM suggestions and clicking on map) in frontend - 19/04/2025
 Added frontend checks before adding/editing entries in frontend - 14/04/2025 - 8pm
 Added average to line graph - 13/04/2025
