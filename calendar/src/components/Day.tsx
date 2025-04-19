@@ -462,7 +462,7 @@ const Day = () => {
                     toast.error(`Failed to set location: ${message}`);
                     setSelectedLocation(null);
                 }
-            } catch (err) {
+            } catch (err: any) {
                 if (err.name === "AbortError") {
                     toast.error("Request timed out while setting location");
                 } else {
@@ -477,6 +477,30 @@ const Day = () => {
 
         setLocation();
     }, [selectedLocation]);
+
+    useEffect(() => {
+        const fetchLocation = async () => {
+            const res = await fetch(`${import.meta.env.VITE_API_URI}/location/dayLocation/get`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    year: year,
+                    month: month,
+                    day: day,
+                }),
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setSelectedLocation(data.location);
+            } else {
+                setSelectedLocation(null);
+                toast.error(`there was an error fetching the location: ${(await res.json()).message}`)
+            }
+        };
+    
+        fetchLocation();
+    }, [year, month, day]);
 
     return (
         <div className="flex flex-col md:flex-row h-screen p-3">
