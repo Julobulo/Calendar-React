@@ -233,4 +233,32 @@ LocationRoute.delete('/dayLocation/delete', async (c) => {
     }
 });
 
+LocationRoute.post('/dayLocation/get', async (c) => {
+    try {
+        const { year, month, day } = await c.req.json();
+
+        if (year === undefined || month === undefined || day === undefined) {
+            c.status(400);
+            return c.json({ message: "Missing date" });
+        }
+
+        const { activityCollection, userId } = await getUser(c);
+
+        const activity = await activityCollection.findOne({
+            userId: new ObjectId(userId.toString()),
+            date: new Date(Date.UTC(year, month, day)),
+        });
+
+        if (!activity) {
+            c.status(404);
+            return c.json({ message: "No activity entry found for that date" });
+        }
+
+        return c.json({ location: activity.location || null });
+    } catch (err: any) {
+        c.status(400);
+        return c.json({ message: err.message });
+    }
+});
+
 export default LocationRoute
