@@ -197,5 +197,37 @@ LocationRoute.put('/dayLocation/add', async (c) => {
     }
 });
 
+LocationRoute.put('/dayLocation/edit', async (c) => {
+    try {
+        const body = await c.req.json();
+        const { year, month, day, name, lat, lng } = body;
+
+        if (year === undefined || month === undefined || day === undefined || !name || typeof lat !== "number" || typeof lng !== "number") {
+            c.status(400);
+            return c.json({ message: "Missing date or location data" });
+        }
+
+        const { activityCollection, userId } = await getUser(c);
+
+        const res = await activityCollection.updateOne(
+            { userId: new ObjectId(userId.toString()), date: new Date(Date.UTC(year, month, day)), location: { $exists: true } },
+            {
+                $set: {
+                    location: { name, lat, lng }
+                }
+            }
+        );
+
+        if (res.matchedCount === 0) {
+            c.status(404);
+            return c.json({ message: "No activity entry with a location found for that date" });
+        }
+
+        return c.json({ message: "Location updated for the day" });
+    } catch (err: any) {
+        c.status(400);
+        return c.json({ message: err.message });
+    }
+});
 
 export default LocationRoute
