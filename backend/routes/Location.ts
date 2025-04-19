@@ -176,19 +176,28 @@ LocationRoute.put('/dayLocation/add', async (c) => {
 
         const { activityCollection, userId } = await getUser(c);
 
-        const res = await activityCollection.updateOne(
-            { userId: new ObjectId(userId.toString()), date: new Date(Date.UTC(year, month, day)) },
+        const activity = await activityCollection.findOne({
+            userId: new ObjectId(userId.toString()),
+            date: new Date(Date.UTC(year, month, day))
+        });
+
+        if (!activity) {
+            c.status(404);
+            return c.json({ message: "No activity entry found for that date" });
+        }
+
+        if (activity.location) {
+            return c.json({ message: "Location already exists for that day" });
+        }
+
+        await activityCollection.updateOne(
+            { _id: activity._id },
             {
                 $set: {
                     location: { name, lat, lng }
                 }
             }
         );
-
-        if (res.matchedCount === 0) {
-            c.status(404);
-            return c.json({ message: "No activity entry found for that date" });
-        }
 
         return c.json({ message: "Location added to day" });
     } catch (err: any) {
