@@ -413,7 +413,7 @@ const Statistics = () => {
                           <div className="bg-white p-2 border rounded shadow-lg">
                             <p>{lineGraphSelected?.type} - {lineGraphSelected?.name.split("-")[1]}</p>
                             <p>{formatTime(value)}</p>
-                            <p>{date}</p>
+                            <p>{format(date, "MMMM dd, yyyy")}</p>
                             {showAverageLineGraph && (<><p>Avg/day: {formatTime(average)}</p>
                               <p>Avg/week: {formatTime(average * 7)}</p></>)}
                           </div>
