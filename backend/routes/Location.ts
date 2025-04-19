@@ -164,50 +164,7 @@ LocationRoute.put('/updateLocation', async (c) => {
     }
 });
 
-LocationRoute.put('/dayLocation/add', async (c) => {
-    try {
-        const body = await c.req.json();
-        const { year, month, day, name, lat, lng } = body;
-
-        if (year === undefined || month === undefined || day === undefined || !name || typeof lat !== "number" || typeof lng !== "number") {
-            c.status(400);
-            return c.json({ message: "Missing date or location data" });
-        }
-
-        const { activityCollection, userId } = await getUser(c);
-
-        const activity = await activityCollection.findOne({
-            userId: new ObjectId(userId.toString()),
-            date: new Date(Date.UTC(year, month, day))
-        });
-
-        if (!activity) {
-            c.status(404);
-            return c.json({ message: "No activity entry found for that date" });
-        }
-
-        if (activity.location) {
-            c.status(400);
-            return c.json({ message: "Location already exists for that day" });
-        }
-
-        await activityCollection.updateOne(
-            { _id: activity._id },
-            {
-                $set: {
-                    location: { name, lat, lng }
-                }
-            }
-        );
-
-        return c.json({ message: "Location added to day" });
-    } catch (err: any) {
-        c.status(400);
-        return c.json({ message: err.message });
-    }
-});
-
-LocationRoute.put('/dayLocation/edit', async (c) => {
+LocationRoute.put('/dayLocation', async (c) => { // route to add and edit location
     try {
         const body = await c.req.json();
         const { year, month, day, name, lat, lng } = body;
@@ -220,20 +177,26 @@ LocationRoute.put('/dayLocation/edit', async (c) => {
         const { activityCollection, userId } = await getUser(c);
 
         const res = await activityCollection.updateOne(
-            { userId: new ObjectId(userId.toString()), date: new Date(Date.UTC(year, month, day)), location: { $exists: true } },
+            {
+                userId: new ObjectId(userId.toString()),
+                date: new Date(Date.UTC(year, month, day))
+            },
             {
                 $set: {
                     location: { name, lat, lng }
                 }
-            }
-        );
+            });
 
         if (res.matchedCount === 0) {
             c.status(404);
-            return c.json({ message: "No activity entry with a location found for that date" });
+            return c.json({ message: "No activity entry found for that date" });
         }
 
-        return c.json({ message: "Location updated for the day" });
+        const message = res.modifiedCount === 1
+            ? "Location added or updated for the day"
+            : "Location was already up to date";
+
+        return c.json({ message });
     } catch (err: any) {
         c.status(400);
         return c.json({ message: err.message });
