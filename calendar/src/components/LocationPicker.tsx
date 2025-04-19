@@ -161,7 +161,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                                 method: "DELETE",
                                 credentials: "include",
                                 headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({year: date.getFullYear(), month: date.getMonth(), day: date.getDate(), })
+                                body: JSON.stringify({ year: date.getFullYear(), month: date.getMonth(), day: date.getDate(), })
                             });
                             if (!res.ok) {
                                 toast.error("Failed to delete location for this day.");
@@ -262,10 +262,12 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                             zoom={13}
                             scrollWheelZoom={true}
                             className="h-64 w-full rounded-lg"
+                            {...({} as any)}
                         >
                             <TileLayer
                                 attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
                                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                {...({} as any)}
                             />
                             <ClickHandler onClick={handleMapClick} />
                             {mapCenter && <MapCenterer center={mapCenter} />}
