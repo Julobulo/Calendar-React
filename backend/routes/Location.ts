@@ -187,6 +187,7 @@ LocationRoute.put('/dayLocation/add', async (c) => {
         }
 
         if (activity.location) {
+            c.status(400);
             return c.json({ message: "Location already exists for that day" });
         }
 
@@ -233,6 +234,36 @@ LocationRoute.put('/dayLocation/edit', async (c) => {
         }
 
         return c.json({ message: "Location updated for the day" });
+    } catch (err: any) {
+        c.status(400);
+        return c.json({ message: err.message });
+    }
+});
+
+LocationRoute.delete('/dayLocation/delete', async (c) => {
+    try {
+        const { year, month, day } = await c.req.json();
+
+        if (year === undefined || month === undefined || day === undefined) {
+            c.status(400);
+            return c.json({ message: "Missing date" });
+        }
+
+        const { activityCollection, userId } = await getUser(c);
+
+        const res = await activityCollection.updateOne(
+            { userId: new ObjectId(userId.toString()), date: new Date(Date.UTC(year, month, day)) },
+            {
+                $unset: { location: "" }
+            }
+        );
+
+        if (res.matchedCount === 0) {
+            c.status(404);
+            return c.json({ message: "No activity entry found for that date" });
+        }
+
+        return c.json({ message: "Location removed from the day" });
     } catch (err: any) {
         c.status(400);
         return c.json({ message: err.message });
