@@ -3,6 +3,7 @@ import * as Realm from "realm-web";
 import { checkToken } from "../utils/helpers";
 import { User } from "../models/UserModel";
 import { ObjectId } from "bson";
+import { UserActivity } from "../models/UserActivityModel";
 
 // The Worker's environment bindings
 type Bindings = {
@@ -24,6 +25,7 @@ async function getUser(c: any) {
     const user = await App.logIn(credentials);
     const client = user.mongoClient("mongodb-atlas");
     const userCollection = client.db("calendar").collection<User>("users");
+    const activityCollection = client.db("calendar").collection<UserActivity>("activity")
 
     const cookieHeader = c.req.header("Cookie");
     if (!cookieHeader) throw new Error("no cookie found");
@@ -39,7 +41,7 @@ async function getUser(c: any) {
     const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
     if (!currentUser) throw new Error("no user found");
 
-    return { userCollection, currentUser, userId: id };
+    return { userCollection, activityCollection, currentUser, userId: id };
 }
 
 LocationRoute.get('/savedLocations', async (c) => {
@@ -119,7 +121,7 @@ LocationRoute.put('/updateLocation', async (c) => {
             return c.json({ message: "Please provide all required fields" });
         }
 
-        const { userCollection, userId, currentUser } = await getUser(c);
+        const { userCollection, activityCollection, userId, currentUser } = await getUser(c);
 
         if (!currentUser.savedLocations?.find(loc => loc.name === oldName)) { c.status(400); return c.json({ message: `Location '${oldName}' not found` }) }
 
@@ -134,6 +136,24 @@ LocationRoute.put('/updateLocation', async (c) => {
             },
             {
                 arrayFilters: [{ "loc.name": oldName }]
+            }
+        );
+
+        if (!activityCollection) {
+            throw new Error("Could not access activity collection");
+        }
+
+        await activityCollection.updateMany(
+            {
+                userId: new ObjectId(userId.toString()),
+                "location.name": oldName
+            },
+            {
+                $set: {
+                    "location.name": newName,
+                    "location.lat": latitude,
+                    "location.lng": longitude
+                }
             }
         );
 
