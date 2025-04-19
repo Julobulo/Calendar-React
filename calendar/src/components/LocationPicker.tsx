@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import React, { useState, useEffect, useRef } from "react";
 import { FaLocationDot } from "react-icons/fa6";
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import {matchSorter} from "match-sorter";
 
 interface Location {
     name: string;
@@ -48,6 +49,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 }) => {
     const [inputValue, setInputValue] = useState("");
     const [savedLocations, setSavedLocations] = useState<Location[]>([]);
+    const [filteredSavedLocations, setFilteredSavedLocations] = useState<Location[]>([]);
     const [osmSuggestions, setOsmSuggestions] = useState<Location[]>([]);
     const [showMenu, setShowMenu] = useState(false);
 
@@ -59,6 +61,15 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     }, []);
 
     useEffect(() => {
+        const filterSavedLocations = () => {
+            if (!inputValue.trim()) {
+                setFilteredSavedLocations(savedLocations.slice(0, 3));
+                return;
+            }
+            const filtered = matchSorter(savedLocations, inputValue, { keys: ["name"] });
+            setFilteredSavedLocations(filtered);
+        };
+
         const fetchOSMSuggestions = async () => {
             if (!inputValue.trim()) {
                 setOsmSuggestions([]);
@@ -77,9 +88,10 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
             );
         };
 
+        filterSavedLocations();
         const timeout = setTimeout(fetchOSMSuggestions, 300);
         return () => clearTimeout(timeout);
-    }, [inputValue]);
+    }, [inputValue, savedLocations]);
 
     const handleSelectLocation = (location: Location) => {
         onLocationChange(location);
@@ -126,7 +138,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
                         <div>
                             <h4 className="font-bold text-sm text-gray-500 mb-1">Saved Locations</h4>
-                            {savedLocations.map((loc, idx) => (
+                            {filteredSavedLocations.map((loc, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => handleSelectLocation(loc)}
