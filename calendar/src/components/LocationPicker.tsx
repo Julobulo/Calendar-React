@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FaLocationDot } from "react-icons/fa6";
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 
@@ -24,11 +24,20 @@ const ClickHandler: React.FC<{ onClick: (lat: number, lng: number) => void }> = 
     return null;
 };
 
-const MapCenterer: React.FC<{ center: [number, number] }> = ({ center }) => {
+const MapCenterer: React.FC<{ center: [number, number] | null }> = ({ center }) => {
     const map = useMap();
+    const prevCenter = useRef<string | null>(null);
+
     useEffect(() => {
-        map.setView(center);
+        if (center) {
+            const centerKey = `${center[0]}-${center[1]}`;
+            if (centerKey !== prevCenter.current) {
+                map.setView(center);
+                prevCenter.current = centerKey;
+            }
+        }
     }, [center, map]);
+
     return null;
 };
 
@@ -74,7 +83,6 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
     const handleSelectLocation = (location: Location) => {
         onLocationChange(location);
-        // setShowMenu(false);
     };
 
     const handleMapClick = (lat: number, lng: number) => {
@@ -86,9 +94,9 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
         onLocationChange(newLocation);
     };
 
-    const mapCenter: [number, number] = selectedLocation
+    const mapCenter: [number, number] | null = selectedLocation
         ? [selectedLocation.lat, selectedLocation.lng]
-        : [48.8566, 2.3522];
+        : null;
 
     return (
         <div className="relative">
@@ -143,7 +151,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
                     <div className="w-1/2 p-4">
                         <MapContainer
-                            center={mapCenter}
+                            center={selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : [48.8566, 2.3522]}
                             zoom={13}
                             scrollWheelZoom={true}
                             className="h-64 w-full rounded-lg"
@@ -153,7 +161,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             />
                             <ClickHandler onClick={handleMapClick} />
-                            <MapCenterer center={mapCenter} />
+                            {mapCenter && <MapCenterer center={mapCenter} />}
                             {selectedLocation && (
                                 <Marker position={[selectedLocation.lat, selectedLocation.lng]}>
                                     <Popup>Selected location</Popup>
