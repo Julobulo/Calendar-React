@@ -18,39 +18,65 @@ const LocationRoute = new Hono<{ Bindings: Bindings }>();
 
 let App: Realm.App;
 
-LocationRoute.get('/savedLocations', async (c) => {
+async function getUser(c: any) {
     App = App || new Realm.App(c.env.ATLAS_APPID);
     const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
     const user = await App.logIn(credentials);
     const client = user.mongoClient("mongodb-atlas");
-    const userCollection = client
-        .db("calendar")
-        .collection<User>("users")
+    const userCollection = client.db("calendar").collection<User>("users");
 
     const cookieHeader = c.req.header("Cookie");
-    if (!cookieHeader) {
-        c.status(400);
-        return c.json({ message: "no cookie found" });
-    }
+    if (!cookieHeader) throw new Error("no cookie found");
 
-    const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
-    let token = cookies.find((cookie) => cookie.startsWith(`token=`));
-    if (!token) {
-        c.status(400);
-        return c.json({ message: "no token found" });
-    }
+    const cookies = cookieHeader.split(";").map((cookie: string) => cookie.trim());
+    let token = cookies.find((cookie: string) => cookie.startsWith(`token=`));
+    if (!token) throw new Error("no token found");
+
     token = token.split("=")[1].trim();
-
     const id = await checkToken(token, c.env.JWT_SECRET);
-    if (!id) {
+    if (!id) throw new Error("bad token");
+
+    const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
+    if (!currentUser) throw new Error("no user found");
+
+    return { userCollection, currentUser, userId: id };
+}
+
+LocationRoute.get('/savedLocations', async (c) => {
+    try {
+        const { currentUser } = await getUser(c);
+        return c.json(currentUser.savedLocations || []);
+    } catch (err: any) {
         c.status(400);
-        return c.json({ message: "bad token" });
+        return c.json({ message: err.message });
     }
+});
 
-    const currentUser: User | null = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
-    if (!currentUser) { c.status(400); return c.json({ message: "no user found" })}
+LocationRoute.post('/newLocation', async (c) => {
+    try {
+        const body = await c.req.json(); // use json() instead of parseBody() for application/json
+        const { name, latitude, longitude } = body;
+        if (!name || typeof latitude !== "number" || typeof longitude !== "number") {
+            c.status(400);
+            return c.json({ message: "Please send all required fields" });
+        }
 
-    return c.json(currentUser.savedLocations || []);
-})
+        const { userCollection, userId } = await getUser(c);
+
+        await userCollection.updateOne(
+            { _id: new ObjectId(userId.toString()) },
+            {
+                $push: {
+                    savedLocations: { name, latitude, longitude }
+                }
+            }
+        );
+
+        return c.json({ message: "Location added successfully" });
+    } catch (err: any) {
+        c.status(400);
+        return c.json({ message: err.message });
+    }
+});
 
 export default LocationRoute
