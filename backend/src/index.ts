@@ -10,6 +10,7 @@ import { ObjectId } from "bson";
 import { checkToken } from "../utils/helpers";
 import StatisticsRoute from "../routes/Statistics";
 import SettingsRoute from "../routes/Settings";
+import LocationRoute from "../routes/Location";
 
 // The Worker's environment bindings
 type Bindings = {
@@ -67,6 +68,7 @@ app.route('/oauth', OAuthRoute);
 app.route('/activity', ActivityRoute);
 app.route('/statistics', StatisticsRoute);
 app.route('/settings', SettingsRoute);
+app.route('/location', LocationRoute);
 
 app.get('/checkUserColors', async (c) => {
   App = App || new Realm.App(c.env.ATLAS_APPID);
