@@ -108,6 +108,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
     const handleSelectLocation = (location: Location) => {
         onLocationChange(location);
+        setShowMenu(false);
         setInputValue("");
         setOsmSuggestions([]);
         if (!savedLocations.some((loc) => loc.name === location.name)) {
