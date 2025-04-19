@@ -485,6 +485,7 @@ const Day = () => {
 
     useEffect(() => {
         const fetchLocation = async () => {
+            setIsSavingLocation(true);
             const res = await fetch(`${import.meta.env.VITE_API_URI}/location/dayLocation/get`, {
                 method: "POST",
                 credentials: "include",
@@ -503,6 +504,7 @@ const Day = () => {
                 setSelectedLocation(null);
                 toast.error(`there was an error fetching the location: ${(await res.json()).message}`)
             }
+            setIsSavingLocation(false);
         };
     
         fetchLocation();
