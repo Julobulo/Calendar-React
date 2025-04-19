@@ -79,4 +79,34 @@ LocationRoute.post('/newLocation', async (c) => {
     }
 });
 
+LocationRoute.delete('/deleteLocation', async (c) => {
+    try {
+        const body = await c.req.json();
+        const { name } = body;
+
+        if (!name) {
+            c.status(400);
+            return c.json({ message: "Please provide the location name to delete" });
+        }
+
+        const { userCollection, userId, currentUser } = await getUser(c);
+
+        if (!currentUser.savedLocations?.some(loc => loc.name === name)) { c.status(400); return c.json({ message: `Location '${name}' isn't a saved location` })}
+
+        await userCollection.updateOne(
+            { _id: new ObjectId(userId.toString()) },
+            {
+                $pull: {
+                    savedLocations: { name }
+                }
+            }
+        );
+
+        return c.json({ message: `Saved location '${name}' was deleted successfully` });
+    } catch (err: any) {
+        c.status(400);
+        return c.json({ message: err.message });
+    }
+});
+
 export default LocationRoute
