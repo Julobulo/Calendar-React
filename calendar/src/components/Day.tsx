@@ -506,7 +506,7 @@ const Day = () => {
             }
             setIsSavingLocation(false);
         };
-    
+
         fetchLocation();
     }, [year, month, day]);
 

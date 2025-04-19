@@ -107,12 +107,14 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     }, [inputValue, savedLocations]);
 
     const handleSelectLocation = (location: Location) => {
-        onLocationChange(location);
-        setShowMenu(false);
-        setInputValue("");
-        setOsmSuggestions([]);
-        if (!savedLocations.some((loc) => loc.name === location.name)) {
-            setShowSavePrompt(location);
+        const alreadySaved = savedLocations.some((loc) => loc.name === location.name);
+        if (alreadySaved) {
+            onLocationChange(location); // Safe to set immediately
+            setShowMenu(false);
+            setInputValue("");
+            setOsmSuggestions([]);
+        } else {
+            setShowSavePrompt(location); // Wait to confirm name before saving & selecting
         }
     };
 
@@ -203,9 +205,14 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                                 });
                                 if (!res.ok) {
                                     toast.error("Failed to save location.");
+                                    return;
                                 }
                                 setShowSavePrompt(null);
                                 setReloadSavedLocations(!reloadSavedLocations);
+                                onLocationChange(showSavePrompt); // ✅ Set the selected location after saving
+                                setShowMenu(false);
+                                setInputValue("");
+                                setOsmSuggestions([]);
                             }}
                         >
                             Save
@@ -214,7 +221,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                             className="text-gray-500 hover:underline text-sm"
                             onClick={() => setShowSavePrompt(null)}
                         >
-                            Cancel
+                            No
                         </button>
                     </div>
                 </div>
