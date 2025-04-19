@@ -109,4 +109,40 @@ LocationRoute.delete('/deleteLocation', async (c) => {
     }
 });
 
+LocationRoute.put('/updateLocation', async (c) => {
+    try {
+        const body = await c.req.json();
+        const { oldName, newName, latitude, longitude } = body;
+
+        if (!oldName || !newName || typeof latitude !== "number" || typeof longitude !== "number") {
+            c.status(400);
+            return c.json({ message: "Please provide all required fields" });
+        }
+
+        const { userCollection, userId, currentUser } = await getUser(c);
+
+        if (!currentUser.savedLocations?.find(loc => loc.name === oldName)) { c.status(400); return c.json({ message: `Location '${oldName}' not found` }) }
+
+        await userCollection.updateOne(
+            { _id: new ObjectId(userId.toString()) },
+            {
+                $set: {
+                    "savedLocations.$[loc].name": newName,
+                    "savedLocations.$[loc].lat": latitude,
+                    "savedLocations.$[loc].lng": longitude
+                }
+            },
+            {
+                arrayFilters: [{ "loc.name": oldName }]
+            }
+        );
+
+        return c.json({ message: `Location '${oldName}' updated to '${newName}' with new coordinates successfully` });
+    } catch (err: any) {
+        c.status(400);
+        return c.json({ message: err.message });
+    }
+});
+
+
 export default LocationRoute
