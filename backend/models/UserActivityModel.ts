@@ -6,6 +6,12 @@ export interface ActivityEntry {
     description: string;
 }
 
+interface Location {
+    name: string;
+    lat: number;
+    lng: number;
+}
+
 export interface UserActivity {
     _id: ObjectId,
     userId: ObjectId,
@@ -13,6 +19,7 @@ export interface UserActivity {
     entries: ActivityEntry[],
     note?: string,
     variables?: { variable: string, value: string }[],
+    location?: Location;
 };
 
 
