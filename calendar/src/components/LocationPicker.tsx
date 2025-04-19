@@ -4,6 +4,7 @@ import { FaLocationDot } from "react-icons/fa6";
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import { matchSorter } from "match-sorter";
 import { toast } from "react-toastify";
+import Spinner from "./Spinner";
 
 interface Location {
     name: string;
@@ -15,6 +16,7 @@ interface LocationPickerProps {
     date: Date;
     selectedLocation: Location | null;
     onLocationChange: (location: Location) => void;
+    isSavingLocation: boolean;
 }
 
 const ClickHandler: React.FC<{ onClick: (lat: number, lng: number) => void }> = ({ onClick }) => {
@@ -47,6 +49,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     date,
     selectedLocation,
     onLocationChange,
+    isSavingLocation,
 }) => {
     const [inputValue, setInputValue] = useState("");
     const [savedLocations, setSavedLocations] = useState<Location[]>([]);
@@ -129,8 +132,11 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                     className="flex items-center gap-1 text-blue-600 hover:underline"
                     onClick={() => setShowMenu((prev) => !prev)}
                 >
-                    <FaLocationDot />
-                    {selectedLocation ? selectedLocation.name : "Set location"}
+                    {isSavingLocation ? <Spinner /> :
+                        (<>
+                            <FaLocationDot />
+                            {selectedLocation ? selectedLocation.name : "Set location"}
+                        </>)}
                 </button>
             </div>
 
