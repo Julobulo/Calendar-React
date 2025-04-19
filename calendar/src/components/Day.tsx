@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserActivity } from "../utils/helpers";
 import { getHumanTimeFromMinutes, isLightOrDark } from "../utils/helpers";
-import { format } from "date-fns";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import Spinner from "./Spinner";
@@ -433,16 +432,62 @@ const Day = () => {
 
     const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
 
+    const [isSavingLocation, setIsSavingLocation] = useState(false);
+
+    useEffect(() => {
+        const setLocation = async () => {
+            if (!selectedLocation) return;
+
+            setIsSavingLocation(true);
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 5000); // Abort after 5s
+
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_URI}/location/dayLocation`, {
+                    method: "PUT",
+                    credentials: "include",
+                    signal: controller.signal,
+                    body: JSON.stringify({
+                        year,
+                        month,
+                        day,
+                        name: selectedLocation.name,
+                        lat: selectedLocation.lat,
+                        lng: selectedLocation.lng,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const { message } = await response.json();
+                    toast.error(`Failed to set location: ${message}`);
+                    setSelectedLocation(null);
+                }
+            } catch (err) {
+                if (err.name === "AbortError") {
+                    toast.error("Request timed out while setting location");
+                } else {
+                    toast.error("Something went wrong while setting location");
+                }
+                setSelectedLocation(null);
+            } finally {
+                clearTimeout(timeout);
+                setIsSavingLocation(false);
+            }
+        };
+
+        setLocation();
+    }, [selectedLocation]);
+
     return (
         <div className="flex flex-col md:flex-row h-screen p-3">
             {/* Events List */}
             {((window.innerWidth < 768 && !mobileShowForm) || (window.innerWidth >= 768)) && (
                 <div className="w-full h-full overflow-y-auto p-4 bg-gray-100" onClick={handleClick}>
-                    {/* <h2 className="text-xl font-bold mb-4">Events for {format(new Date(year, month, day), "EEEE, MMMM do yyyy")}</h2> */}
                     <LocationPicker
                         date={new Date(year, month, day)}
                         selectedLocation={selectedLocation}
                         onLocationChange={setSelectedLocation}
+                        isSavingLocation={isSavingLocation}
                     />
                     {loading && (
                         <div className="flex justify-center">
