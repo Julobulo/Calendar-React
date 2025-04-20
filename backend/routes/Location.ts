@@ -183,18 +183,19 @@ LocationRoute.put('/dayLocation', async (c) => { // route to add and edit locati
             },
             {
                 $set: {
-                    location: { name, lat, lng }
+                    location: { name, lat, lng },
+                    userId: new ObjectId(userId.toString()), // Needed in case of upsert
+                    date: new Date(Date.UTC(year, month, day)) // Needed in case of upsert
                 }
-            });
+            },
+            { upsert: true }
+        );
 
-        if (res.matchedCount === 0) {
-            c.status(404);
-            return c.json({ message: "No activity entry found for that date" });
-        }
-
-        const message = res.modifiedCount === 1
-            ? "Location added or updated for the day"
-            : "Location was already up to date";
+        const message = res.upsertedId
+            ? "New activity created with location"
+            : res.modifiedCount === 1
+                ? "Location added or updated for the day"
+                : "Location was already up to date";
 
         return c.json({ message });
     } catch (err: any) {
