@@ -497,8 +497,8 @@ const Day = () => {
                 }),
             });
             if (res.ok) {
-                isInitialLocationLoad.current = true; // flag that this is initial data
                 const data = await res.json();
+                if (data.location) isInitialLocationLoad.current = true; // flag that this is initial data
                 setSelectedLocation(data.location);
             } else {
                 setSelectedLocation(null);
