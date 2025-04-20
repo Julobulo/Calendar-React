@@ -8,6 +8,7 @@ import {
     animals,
 } from "unique-names-generator";
 import { ObjectId } from "bson";
+import { defaultActivities, defaultNoteColor, defaultVariables } from "../utils/helpers";
 
 // The Worker's environment bindings
 type Bindings = {
@@ -215,18 +216,9 @@ OAuthRoute.get("/google/callback", async (c) => {
                 google_id: userInfo.sub,
             },
             colors: {
-                note:"#D9EAFB",
-                activities: {
-                    "Running": "#FF6B6B",
-                    "Studying": "#6BCB77",
-                    "Reading": "#4D96FF",
-                    "Coding": "#FFD93D",
-                    "Working out": "#A66DD4",
-                },
-                variables: {
-                    "Weight (kg)": "#C34A36",
-                    "Height (cm)": "#9B5DE5",
-                }
+                note: defaultNoteColor,
+                activities: defaultActivities,
+                variables: defaultVariables
             },
             names: [],
         })) as any;
