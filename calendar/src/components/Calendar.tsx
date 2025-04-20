@@ -135,42 +135,98 @@ const Calendar: React.FC = () => {
     fetchColors();
   }, []);
 
-  const renderDayCell = (day: number, month: number, year: number, activities: FrontendUserActivity[]) => {
+  const renderDayCell = (
+    day: number,
+    month: number,
+    year: number,
+    activities: FrontendUserActivity[]
+  ) => {
     const dateString = new Date(year, month, day + 1).toISOString().split("T")[0];
     const activitiesForDay = activities.find(
-      (activity: FrontendUserActivity) => new Date(activity.date).toISOString().split("T")[0] === dateString
+      (activity: FrontendUserActivity) =>
+        new Date(activity.date).toISOString().split("T")[0] === dateString
     );
-
+  
+    const maxItemsToShow = 1;
+    const displayItems: React.ReactNode[] = [];
+  
+    if (!activitiesForDay) {
+      return <div key={day} />;
+    }
+  
+    const entries = activitiesForDay.entries || [];
+    for (let i = 0; i < entries.length && displayItems.length < maxItemsToShow; i++) {
+      const entry = entries[i];
+      const bg = colors.activities[entry.activity] || "#ffffff";
+      const textColor = isLightOrDark(bg) ? "text-black" : "text-white";
+  
+      displayItems.push(
+        <div
+          key={`entry-${i}`}
+          style={{ backgroundColor: bg }}
+          className={`text-[5px] md:text-sm ${textColor} rounded px-2 py-1`}
+        >
+          {entry.activity} - {getHumanTimeFromMinutes(entry.duration)}
+        </div>
+      );
+    }
+  
+    const variables = activitiesForDay.variables || [];
+    for (let i = 0; i < variables.length && displayItems.length < maxItemsToShow; i++) {
+      const variable = variables[i];
+      const bg = colors.variables?.[variable.variable] || "#e2e8f0"; // default gray-200
+      const textColor = isLightOrDark(bg) ? "text-black" : "text-white";
+  
+      displayItems.push(
+        <div
+          key={`variable-${i}`}
+          style={{ backgroundColor: bg }}
+          className={`text-[5px] md:text-sm ${textColor} rounded px-2 py-1`}
+        >
+          {variable.variable}: {variable.value}
+        </div>
+      );
+    }
+  
+    if (activitiesForDay.note && displayItems.length < maxItemsToShow) {
+      const bg = colors.note || "#f5f5f5"; // light gray fallback
+      const textColor = isLightOrDark(bg) ? "text-black" : "text-white";
+  
+      displayItems.push(
+        <div
+          key="note"
+          style={{ backgroundColor: bg }}
+          className={`text-[5px] md:text-sm ${textColor} rounded px-2 py-1`}
+        >
+          {activitiesForDay.note}
+        </div>
+      );
+    }
+  
+    const totalEntries = entries.length;
+    const totalVariables = variables.length;
+    const hasNote = !!activitiesForDay.note;
+  
+    const totalItems = totalEntries + totalVariables + (hasNote ? 1 : 0);
+    const hiddenItems = Math.max(0, totalItems - displayItems.length);
+  
     return (
       <div key={day}>
-        {activitiesForDay && (
-          <div className="mt-2 flex flex-col items-center space-y-1">
-            {activitiesForDay.entries.slice(0, 1).map((entry, index) => (
-              <div
-                key={index}
-                style={{
-                  backgroundColor: colors.activities[entry.activity] || "#ffffff", // Default color if no match found
-                }}
-                className={`text-[5px] md:text-sm ${isLightOrDark(colors.activities[entry.activity]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
-              >
-                {entry.activity} - {getHumanTimeFromMinutes(entry.duration)}
-              </div>
-            ))}
-            {activitiesForDay.entries.length > 1 && (
-              <button
-                className="text-[5px] md:text-sm text-blue-500 mt-1 rounded"
-                onClick={() => {
-                  handleMoreActivitesClick(day);
-                }}
-              >
-                + {activitiesForDay.entries.length - 1} more
-              </button>
-            )}
-          </div>
-        )}
+        <div className="mt-2 flex flex-col items-center space-y-1">
+          {displayItems}
+          {hiddenItems > 0 && (
+            <button
+              className="text-[5px] md:text-sm text-blue-500 mt-1 rounded"
+              onClick={() => handleMoreActivitesClick(day)}
+            >
+              + {hiddenItems} more
+            </button>
+          )}
+        </div>
       </div>
     );
   };
+  
 
 
   return (
