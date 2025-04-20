@@ -53,3 +53,18 @@ export const isActivityDocumentEmpty = (doc: UserActivity) =>
     (!doc.variables || doc.variables.length === 0) &&
     !doc.note &&
     !doc.location;
+
+export const defaultActivities = {
+    "Running": "#FF6B6B",
+    "Studying": "#6BCB77",
+    "Reading": "#4D96FF",
+    "Coding": "#FFD93D",
+    "Working out": "#A66DD4",
+};
+
+export const defaultVariables = {
+    "Weight (kg)": "#C34A36",
+    "Height (cm)": "#9B5DE5",
+};
+
+export const defaultNoteColor = "#D9EAFB";
