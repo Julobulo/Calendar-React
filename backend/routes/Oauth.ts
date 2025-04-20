@@ -214,7 +214,20 @@ OAuthRoute.get("/google/callback", async (c) => {
                 strategy: "google",
                 google_id: userInfo.sub,
             },
-            colors: {note:"#D9EAFB", activities:{}, variables: {}},
+            colors: {
+                note:"#D9EAFB",
+                activities: {
+                    "Running": "#FF6B6B",
+                    "Studying": "#6BCB77",
+                    "Reading": "#4D96FF",
+                    "Coding": "#FFD93D",
+                    "Working out": "#A66DD4",
+                },
+                variables: {
+                    "Weight (kg)": "#C34A36",
+                    "Height (cm)": "#9B5DE5",
+                }
+            },
             names: [],
         })) as any;
         // Fetch the full user document using the insertedId
