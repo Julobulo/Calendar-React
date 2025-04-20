@@ -100,13 +100,15 @@ app.get('/checkUserColors', async (c) => {
   // }
   const { id } = c.req.query();
   console.log(`id: ${id}`);
-  if (!id) { c.status(400); return c.json({ message: "please pass an id in the parameters of the request" })}
+  if (!id) { c.status(400); return c.json({ message: "please pass an id in the parameters of the request" }) }
   const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
-
   if (!currentUser) {
     c.status(400);
     return c.json({ message: "Failed to retrieve user" });
   }
+  // make sure colors.activities and colors.variables are defined
+  currentUser.colors.activities = currentUser.colors.activities || {};
+  currentUser.colors.variables = currentUser.colors.variables || {};
 
   const currentUserActivities: UserActivity[] = await activityCollection.find({ userId: new ObjectId(id.toString()) });
 
@@ -135,7 +137,7 @@ app.get('/checkUserColors', async (c) => {
   for (const activity of currentUserActivities) {
     for (const entry of (activity?.entries || [])) {
       // Assign activity color if missing
-      if (!(entry.activity in currentUser.colors.activities)) {
+      if (!currentUser.colors.activities || !(entry.activity in currentUser.colors.activities)) {
         numberActivityColorCreated += 1;
         const color = getUniqueColor();
         currentUser.colors.activities[entry.activity] = color;
@@ -148,7 +150,7 @@ app.get('/checkUserColors', async (c) => {
 
     // Assign variable colors if missing
     for (const variableEntry of (activity?.variables || [])) {
-      if (!(variableEntry.variable in currentUser.colors.variables)) {
+      if (!currentUser.colors.variables || !(variableEntry.variable in currentUser.colors.variables)) {
         numberVariableColorCreated += 1;
         const color = getUniqueColor();
         currentUser.colors.variables[variableEntry.variable] = color;
