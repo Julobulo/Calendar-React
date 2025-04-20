@@ -249,12 +249,7 @@ LocationRoute.post('/dayLocation/get', async (c) => {
             date: new Date(Date.UTC(year, month, day)),
         });
 
-        if (!activity) {
-            c.status(404);
-            return c.json({ message: "No activity entry found for that date" });
-        }
-
-        return c.json({ location: activity.location || null });
+        return c.json({ location: activity?.location || null });
     } catch (err: any) {
         c.status(400);
         return c.json({ message: err.message });
