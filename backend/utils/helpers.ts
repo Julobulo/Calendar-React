@@ -1,3 +1,5 @@
+import { UserActivity } from "../models/UserActivityModel";
+
 // function that checks if a token is valid, and if so, it returns the "id" field stored in the payload of the token
 export const checkToken = async (token: string, secret: string): Promise<string | boolean> => {
     const encoder = new TextEncoder();
@@ -45,3 +47,9 @@ export const checkToken = async (token: string, secret: string): Promise<string 
 
     return payload.id; // return id that was in payload
 }
+
+export const isDocumentEmpty = (doc: UserActivity) =>
+    (!doc.entries || doc.entries.length === 0) &&
+    (!doc.variables || doc.variables.length === 0) &&
+    !doc.note &&
+    !doc.location;
