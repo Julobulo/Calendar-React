@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import * as Realm from "realm-web";
-import { checkToken } from "../utils/helpers";
+import { checkToken, isDocumentEmpty } from "../utils/helpers";
 import { User } from "../models/UserModel";
 import { ObjectId } from "bson";
 import { UserActivity } from "../models/UserActivityModel";
@@ -215,19 +215,30 @@ LocationRoute.delete('/dayLocation/delete', async (c) => {
 
         const { activityCollection, userId } = await getUser(c);
 
-        const res = await activityCollection.updateOne(
-            { userId: new ObjectId(userId.toString()), date: new Date(Date.UTC(year, month, day)) },
-            {
-                $unset: { location: "" }
-            }
-        );
-
-        if (res.matchedCount === 0) {
+        const existingEntry = await activityCollection.findOne({ userId: new ObjectId(userId.toString()), date: new Date(Date.UTC(year, month, day)) });
+        if (!existingEntry) {
             c.status(404);
             return c.json({ message: "No activity entry found for that date" });
         }
 
-        return c.json({ message: "Location removed from the day" });
+        const updatedEntry = { ...existingEntry, location: undefined };
+
+        if (isDocumentEmpty(updatedEntry)) {
+            // If no more activities, note, or variables remain, delete the document
+            await activityCollection.deleteOne({ userId: new ObjectId(userId.toString()), date: new Date(Date.UTC(year, month, day)) });
+            return c.json({ message: "Location removed, deleted document" });
+        } else {
+            // Otherwise, just unset the location
+            const res = await activityCollection.updateOne(
+                { userId: new ObjectId(userId.toString()), date: new Date(Date.UTC(year, month, day)) },
+                { $unset: { location: "" } }
+            );
+            if (res.modifiedCount === 0) {
+                c.status(400);
+                return c.json({ message: "Failed to remove location" });
+            }
+            return c.json({ message: "Location removed from the day" });
+        }
     } catch (err: any) {
         c.status(400);
         return c.json({ message: err.message });
