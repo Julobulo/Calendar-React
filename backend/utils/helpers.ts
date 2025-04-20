@@ -48,7 +48,7 @@ export const checkToken = async (token: string, secret: string): Promise<string 
     return payload.id; // return id that was in payload
 }
 
-export const isDocumentEmpty = (doc: UserActivity) =>
+export const isActivityDocumentEmpty = (doc: UserActivity) =>
     (!doc.entries || doc.entries.length === 0) &&
     (!doc.variables || doc.variables.length === 0) &&
     !doc.note &&

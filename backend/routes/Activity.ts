@@ -4,7 +4,7 @@ import { ObjectId } from "bson";
 import { ActivityEntry, NewUserActivity, UserActivity } from "../models/UserActivityModel";
 import { User } from "../models/UserModel";
 import { generateRandomColor, getTimeFromLongString } from "../../calendar/src/utils/helpers";
-import { isDocumentEmpty } from "../utils/helpers";
+import { isActivityDocumentEmpty } from "../utils/helpers";
 
 // The Worker's environment bindings
 type Bindings = {
@@ -584,7 +584,7 @@ ActivityRoute.delete('/delete', async (c) => {
             c.status(400);
             return c.json({ message: "activity not found for this date" });
         }
-        if (isDocumentEmpty({ ...existingEntry, entries: updatedEntries })) {
+        if (isActivityDocumentEmpty({ ...existingEntry, entries: updatedEntries })) {
             // If no more activities, note, or variables remain, delete the document
             await activityCollection.deleteOne({ _id: existingEntry._id });
             return c.json({ message: "activity deleted, no more activities or note or variables for this day" });
@@ -599,7 +599,7 @@ ActivityRoute.delete('/delete', async (c) => {
     }
     else if (type === "note") {
         if (!existingEntry?.note) return c.json({ message: "Note doesn't exist for this date" }, 400);
-        if (isDocumentEmpty({ ...existingEntry, note: undefined })) {
+        if (isActivityDocumentEmpty({ ...existingEntry, note: undefined })) {
             // If no more activities, note, or variables remain, delete the document
             await activityCollection.deleteOne({ _id: existingEntry._id });
             return c.json({ message: "note deleted, no more activities or note or variables for this day" });
@@ -622,7 +622,7 @@ ActivityRoute.delete('/delete', async (c) => {
             c.status(400);
             return c.json({ message: "Variable not defined for this date" });
         }
-        if (isDocumentEmpty({ ...existingEntry, variables: updatedEntries })) {
+        if (isActivityDocumentEmpty({ ...existingEntry, variables: updatedEntries })) {
             // If no more activities, note, or variables remain, delete the document
             await activityCollection.deleteOne({ _id: existingEntry._id });
             return c.json({ message: "variable deleted, no more activities or note or variables for this day" });

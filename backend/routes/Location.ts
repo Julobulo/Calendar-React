@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import * as Realm from "realm-web";
-import { checkToken, isDocumentEmpty } from "../utils/helpers";
+import { checkToken, isActivityDocumentEmpty } from "../utils/helpers";
 import { User } from "../models/UserModel";
 import { ObjectId } from "bson";
 import { UserActivity } from "../models/UserActivityModel";
@@ -223,7 +223,7 @@ LocationRoute.delete('/dayLocation/delete', async (c) => {
 
         const updatedEntry = { ...existingEntry, location: undefined };
 
-        if (isDocumentEmpty(updatedEntry)) {
+        if (isActivityDocumentEmpty(updatedEntry)) {
             // If no more activities, note, or variables remain, delete the document
             await activityCollection.deleteOne({ userId: new ObjectId(userId.toString()), date: new Date(Date.UTC(year, month, day)) });
             return c.json({ message: "Location removed, deleted document" });
