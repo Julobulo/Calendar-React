@@ -7,7 +7,7 @@ import { ActivityEntry, NewUserActivity, UserActivity } from "../models/UserActi
 import ActivityRoute from "../routes/Activity";
 import { generateRandomColor, getTimeFromLongString } from "../../calendar/src/utils/helpers";
 import { ObjectId } from "bson";
-import { checkToken } from "../utils/helpers";
+import { checkToken, defaultActivities, defaultNoteColor, defaultVariables } from "../utils/helpers";
 import StatisticsRoute from "../routes/Statistics";
 import SettingsRoute from "../routes/Settings";
 import LocationRoute from "../routes/Location";
@@ -134,6 +134,38 @@ app.get('/checkUserColors', async (c) => {
 
   let numberActivityColorCreated = 0, numberVariableColorCreated = 0, numberNoteColorCreated = 0;
 
+  // Add default activity colors
+  for (const [activity, color] of Object.entries(defaultActivities)) {
+    if (!(activity in currentUser.colors.activities)) {
+      currentUser.colors.activities[activity] = color;
+      numberActivityColorCreated += 1;
+      await userCollection.updateOne(
+        { _id: currentUser._id },
+        { $set: { [`colors.activities.${activity}`]: color } }
+      );
+    }
+  }
+  // Add default variable colors
+  for (const [variable, color] of Object.entries(defaultVariables)) {
+    if (!(variable in currentUser.colors.variables)) {
+      currentUser.colors.variables[variable] = color;
+      numberVariableColorCreated += 1;
+      await userCollection.updateOne(
+        { _id: currentUser._id },
+        { $set: { [`colors.variables.${variable}`]: color } }
+      );
+    }
+  }
+  // Add default note color
+  if (!currentUser.colors.note) {
+    currentUser.colors.note = defaultNoteColor;
+    numberNoteColorCreated += 1;
+    await userCollection.updateOne(
+      { _id: currentUser._id },
+      { $set: { "colors.note": defaultNoteColor } }
+    );
+  }
+
   for (const activity of currentUserActivities) {
     for (const entry of (activity?.entries || [])) {
       // Assign activity color if missing
@@ -159,17 +191,6 @@ app.get('/checkUserColors', async (c) => {
           { $set: { [`colors.variables.${variableEntry.variable}`]: color } }
         );
       }
-    }
-
-    // Assign note color if missing
-    if (activity.note && !currentUser.colors.note) {
-      numberNoteColorCreated = 1;
-      const color = getUniqueColor();
-      currentUser.colors.note = color;
-      await userCollection.updateOne(
-        { _id: currentUser._id },
-        { $set: { "colors.note": color } }
-      );
     }
   }
 
