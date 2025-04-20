@@ -79,25 +79,28 @@ app.get('/checkUserColors', async (c) => {
   const userCollection = client.db("calendar").collection<User>("users");
   const activityCollection = client.db("calendar").collection<UserActivity>("activity");
 
-  const cookieHeader = c.req.header("Cookie");
-  if (!cookieHeader) {
-    c.status(400);
-    return c.json({ message: "no cookies found" });
-  }
+  // const cookieHeader = c.req.header("Cookie");
+  // if (!cookieHeader) {
+  //   c.status(400);
+  //   return c.json({ message: "no cookies found" });
+  // }
 
-  const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
-  let token = cookies.find((cookie) => cookie.startsWith(`token=`));
-  if (!token) {
-    c.status(400);
-    return c.json({ message: "no token found" });
-  }
-  token = token.split("=")[1].trim();
+  // const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
+  // let token = cookies.find((cookie) => cookie.startsWith(`token=`));
+  // if (!token) {
+  //   c.status(400);
+  //   return c.json({ message: "no token found" });
+  // }
+  // token = token.split("=")[1].trim();
 
-  const id = await checkToken(token, c.env.JWT_SECRET);
-  if (!id) {
-    c.status(400);
-    return c.json({ message: "bad token" });
-  }
+  // const id = await checkToken(token, c.env.JWT_SECRET);
+  // if (!id) {
+  //   c.status(400);
+  //   return c.json({ message: "bad token" });
+  // }
+  const { id } = c.req.query();
+  console.log(`id: ${id}`);
+  if (!id) { c.status(400); return c.json({ message: "please pass an id in the parameters of the request" })}
   const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
 
   if (!currentUser) {
@@ -130,7 +133,7 @@ app.get('/checkUserColors', async (c) => {
   let numberActivityColorCreated = 0, numberVariableColorCreated = 0, numberNoteColorCreated = 0;
 
   for (const activity of currentUserActivities) {
-    for (const entry of activity.entries) {
+    for (const entry of (activity?.entries || [])) {
       // Assign activity color if missing
       if (!(entry.activity in currentUser.colors.activities)) {
         numberActivityColorCreated += 1;
@@ -144,7 +147,7 @@ app.get('/checkUserColors', async (c) => {
     }
 
     // Assign variable colors if missing
-    for (const variableEntry of activity.variables || []) {
+    for (const variableEntry of (activity?.variables || [])) {
       if (!(variableEntry.variable in currentUser.colors.variables)) {
         numberVariableColorCreated += 1;
         const color = getUniqueColor();
@@ -180,7 +183,7 @@ app.get('/checkUserColors', async (c) => {
     createdParts.push(`1 note color`);
   }
 
-  const createdSummary = createdParts.length > 0 ? `, creating ${createdParts.join(', ')}` : '';
+  const createdSummary = createdParts.length > 0 ? `, creating ${createdParts.join(', ')}` : `, didn't create any new color`;
 
   return c.json({ message: `Successfully updated user's colors${createdSummary}.` });
 });
