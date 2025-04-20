@@ -5,6 +5,7 @@ Add/Edit/Delete activity names and colors
 Allow users to add their location for each day
 
 DONE
+Fix Calendar.tsx crashing when entries not defined + can also show variables and note if space - 20/04/2025 - 12:30pm
 Can add/edit/delete location for each day and save location - 19/04/2025 - 11:30pm
 Can choose location (saved locations, OSM suggestions and clicking on map) in frontend - 19/04/2025
 Added frontend checks before adding/editing entries in frontend - 14/04/2025 - 8pm
