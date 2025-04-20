@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 type FrontendUserActivity = Omit<NewUserActivity, "userId">;
 import { useNavigate } from "react-router-dom";
 import { dayNames, getHumanTimeFromMinutes, isLightOrDark, monthNames, NewUserActivity, UserActivity } from "../utils/helpers";
+import { VscSymbolVariable } from "react-icons/vsc";
+import { LuNotebookPen } from "react-icons/lu";
 
 const Calendar: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<Date>(
@@ -146,20 +148,20 @@ const Calendar: React.FC = () => {
       (activity: FrontendUserActivity) =>
         new Date(activity.date).toISOString().split("T")[0] === dateString
     );
-  
+
     const maxItemsToShow = 1;
     const displayItems: React.ReactNode[] = [];
-  
+
     if (!activitiesForDay) {
       return <div key={day} />;
     }
-  
+
     const entries = activitiesForDay.entries || [];
     for (let i = 0; i < entries.length && displayItems.length < maxItemsToShow; i++) {
       const entry = entries[i];
       const bg = colors.activities[entry.activity] || "#ffffff";
       const textColor = isLightOrDark(bg) ? "text-black" : "text-white";
-  
+
       displayItems.push(
         <div
           key={`entry-${i}`}
@@ -170,46 +172,48 @@ const Calendar: React.FC = () => {
         </div>
       );
     }
-  
+
     const variables = activitiesForDay.variables || [];
     for (let i = 0; i < variables.length && displayItems.length < maxItemsToShow; i++) {
       const variable = variables[i];
       const bg = colors.variables?.[variable.variable] || "#e2e8f0"; // default gray-200
       const textColor = isLightOrDark(bg) ? "text-black" : "text-white";
-  
+
       displayItems.push(
         <div
           key={`variable-${i}`}
           style={{ backgroundColor: bg }}
-          className={`text-[5px] md:text-sm ${textColor} rounded px-2 py-1`}
+          className={`text-[5px] md:text-sm ${textColor} rounded px-2 py-1 flex items-center space-x-1`}
         >
-          {variable.variable}: {variable.value}
+          <VscSymbolVariable className="text-xs" />
+          <span>{variable.variable}: {variable.value}</span>
         </div>
       );
     }
-  
+
     if (activitiesForDay.note && displayItems.length < maxItemsToShow) {
       const bg = colors.note || "#f5f5f5"; // light gray fallback
       const textColor = isLightOrDark(bg) ? "text-black" : "text-white";
-  
+
       displayItems.push(
         <div
           key="note"
           style={{ backgroundColor: bg }}
-          className={`text-[5px] md:text-sm ${textColor} rounded px-2 py-1`}
+          className={`text-[5px] md:text-sm ${textColor} rounded px-2 py-1 flex items-center space-x-1`}
         >
-          {activitiesForDay.note}
+          <LuNotebookPen className="text-sm"/>
+          <span>{activitiesForDay.note}</span>
         </div>
       );
     }
-  
+
     const totalEntries = entries.length;
     const totalVariables = variables.length;
     const hasNote = !!activitiesForDay.note;
-  
+
     const totalItems = totalEntries + totalVariables + (hasNote ? 1 : 0);
     const hiddenItems = Math.max(0, totalItems - displayItems.length);
-  
+
     return (
       <div key={day}>
         <div className="mt-2 flex flex-col items-center space-y-1">
@@ -226,8 +230,6 @@ const Calendar: React.FC = () => {
       </div>
     );
   };
-  
-
 
   return (
     <div className="grid grid-rows-[auto,1fr] h-full p-3">
