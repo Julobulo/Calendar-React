@@ -92,12 +92,19 @@ const Home = () => {
   const handleClick = () => { };
   return (
     <div className="flex flex-col gap-10 items-center justify-center p-10 pt-5 max-w-4xl mx-auto">
-      <div className="text-center">
-        <h1 className="text-5xl font-bold text-gray-800 mb-4">Track Your Life</h1>
+      {/* Hero Section */}
+      <section className="text-center space-y-4 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-purple-100 opacity-20 pointer-events-none rounded-xl" />
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-800">
+          Take Control of Your Time
+        </h1>
         <p className="text-lg text-gray-600">
           Log your days, see your progress, and build better habits.
         </p>
-      </div>
+        <a href="/calendar" className="mt-4 text-lg px-6 py-3 rounded-2xl">
+          Try the Calendar
+        </a>
+      </section>
 
       <div className="w-full">
         <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">What a Day Looks Like</h2>
@@ -180,6 +187,29 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Gain Insight Into Your Habits */}
+      <section>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Gain Insight Into Your Habits</h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card className="p-4">
+            <CardContent>
+              <h3 className="text-lg font-semibold mb-2">Weekly Summary</h3>
+              <p>You were most consistent on Tuesday and Thursday.</p>
+              <p>Total hours this week: <strong>18h 30min</strong></p>
+              <p>🔥 3-day streak!</p>
+            </CardContent>
+          </Card>
+
+          <Card className="p-4">
+            <CardContent>
+              <h3 className="text-lg font-semibold mb-2">Time Distribution</h3>
+              <p>Most time spent on: <strong>Coding</strong></p>
+              <p>Least time spent on: <strong>Exercise</strong></p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
       <div className="w-full">
         <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Your Week at a Glance</h2>
         <div className="w-full h-64 bg-white rounded-2xl shadow-md p-4">
@@ -234,20 +264,33 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow text-center">
-          <h3 className="text-xl font-bold mb-2">📅 Log Each Day</h3>
-          <p className="text-gray-600 text-sm">Add activities, time, and notes — it’s quick and flexible.</p>
+      {/* Features */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold mb-4">Features</h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          <Card className="p-4 text-center hover:scale-[1.03] transition-transform">
+            <CardContent>
+              <div className="text-3xl">📅</div>
+              <h3 className="font-semibold mt-2">📅 Log Each Day</h3>
+              <p className="text-sm mt-1">Add activities, time, and notes — it's quick and flexible</p>
+            </CardContent>
+          </Card>
+          <Card className="p-4 text-center hover:scale-[1.03] transition-transform">
+            <CardContent>
+              <div className="text-3xl">📊</div>
+              <h3 className="font-semibold mt-2">📊 View Your Progress</h3>
+              <p className="text-sm mt-1">Visualize your habits over time with clean charts</p>
+            </CardContent>
+          </Card>
+          <Card className="p-4 text-center hover:scale-[1.03] transition-transform">
+            <CardContent>
+              <div className="text-3xl">🧠</div>
+              <h3 className="font-semibold mt-2">🧠 Stay Accountable</h3>
+              <p className="text-sm mt-1">Seeing your data helps you stay consistent</p>
+            </CardContent>
+          </Card>
         </div>
-        <div className="bg-white p-6 rounded-2xl shadow text-center">
-          <h3 className="text-xl font-bold mb-2">📊 View Your Progress</h3>
-          <p className="text-gray-600 text-sm">Visualize your habits over time with clean charts.</p>
-        </div>
-        <div className="bg-white p-6 rounded-2xl shadow text-center">
-          <h3 className="text-xl font-bold mb-2">🧠 Stay Accountable</h3>
-          <p className="text-gray-600 text-sm">Seeing your data helps you stay consistent.</p>
-        </div>
-      </div>
+      </section>
 
       <div className="text-center mt-8">
         <p className="text-gray-500 text-sm mb-4">Try it yourself — head to your calendar and start logging today.</p>
