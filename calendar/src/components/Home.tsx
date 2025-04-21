@@ -99,9 +99,9 @@ const Home = () => {
         </p>
       </div>
 
-      <div className="w-full bg-white rounded-2xl shadow-md p-6">
-        <h2 className="text-xl font-semibold text-gray-700 mb-2">What a Day Looks Like</h2>
-        <div className="flex flex-col gap-4">
+      <div className="w-full">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">What a Day Looks Like</h2>
+        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col gap-4">
           <div className="" onClick={handleClick}>
             <LocationPicker
               date={new Date()}
@@ -134,7 +134,6 @@ const Home = () => {
               </motion.div>
             ))}
 
-            {/* <hr className="my-4 h-1 bg-gray-300 border-0 rounded" /> */}
             <hr className="my-4" />
 
             {mockDayActivities.variables.map((entry, index) => (
