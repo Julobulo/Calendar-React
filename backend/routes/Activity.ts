@@ -331,17 +331,39 @@ ActivityRoute.post('/new', async (c) => {
 
     const date = new Date(Date.UTC(parseInt(year), parseInt(month), parseInt(day)));
     const existingEntry = await activityCollection.findOne({ userId: new ObjectId(id.toString()), date });
+    console.log(`here are the documents found: ${await activityCollection.find({ userId: new ObjectId(id.toString()), date })}`);
+
+    // color logic
+    const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
+    const usedColors = new Set([
+        ...(Object.values(currentUser?.colors?.activities || {})),
+        ...(currentUser?.colors?.note ? [currentUser.colors.note] : []),
+        ...(Object.values(currentUser?.colors?.variables || {}))
+    ]);
 
     let updateQuery = {};
 
     if (type === "activity") {
-        const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
+        if (!activity || !description) return c.json({ message: "Missing activity fields" }, 400);
+        const newEntry: ActivityEntry = {
+            activity,
+            duration: getTimeFromLongString(description),
+            description
+        };
 
-        const usedColors = new Set([
-            ...(Object.values(currentUser?.colors?.activities || {})),
-            ...(currentUser?.colors?.note ? [currentUser.colors.note] : []),
-            ...(Object.values(currentUser?.colors?.variables || {}))
-        ]);
+        if (existingEntry) {
+            if (existingEntry.entries?.some(e => e.activity === activity)) {
+                return c.json({ message: "Activity already defined for this date" }, 400);
+            }
+            updateQuery = { $push: { entries: newEntry } };
+        } else {
+            updateQuery = {
+                $setOnInsert: {
+                    entries: [newEntry],
+                    variables: [],
+                }
+            };
+        }
 
         if (!currentUser?.colors?.activities?.[activity]) {
             let newColor;
@@ -364,15 +386,23 @@ ActivityRoute.post('/new', async (c) => {
                 { upsert: true }
             );
         }
-    }
-    else if (type === "variable") {
-        const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
+    } else if (type === "variable") {
+        if (!variable || !value) return c.json({ message: "Missing variable fields" }, 400);
+        if (existingEntry?.variables?.some(v => v.variable === variable)) {
+            return c.json({ message: "Variable already exists for this date" }, 400);
+        }
 
-        const usedColors = new Set([
-            ...(Object.values(currentUser?.colors?.activities || {})),
-            ...(currentUser?.colors?.note ? [currentUser.colors.note] : []),
-            ...(Object.values(currentUser?.colors?.variables || {}))
-        ]);
+        const newVariable = { variable, value };
+        if (existingEntry) {
+            updateQuery = { $push: { variables: newVariable } };
+        } else {
+            updateQuery = {
+                $setOnInsert: {
+                    entries: [],
+                    variables: [newVariable],
+                }
+            };
+        }
 
         if (!currentUser?.colors?.variables?.[variable]) {
             let newColor;
@@ -395,58 +425,12 @@ ActivityRoute.post('/new', async (c) => {
                 { upsert: true }
             );
         }
-    }
-    else if (type === "note") {
+    } else if (type === "note") {
         if (!note) return c.json({ message: "Missing note field" }, 400);
         if (existingEntry?.note) return c.json({ message: "Note already exists for this date" }, 400);
         updateQuery = { $set: { note } };
-    }
-    else {
+    } else {
         return c.json({ message: "Invalid type" }, 400);
-    }
-
-    if (type === "activity") {
-        // checking if we need to create a new color
-        const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
-        if (!currentUser?.colors.activities[activity]) {
-            let newColor;
-            // const usedColors = new Set(Object.values(currentUser?.colors || {})); // Get existing colors
-            const usedColors = new Set([
-                ...Object.values(currentUser?.colors?.activities || {}),
-                ...(currentUser?.colors?.note || ""),
-                ...Object.values(currentUser?.colors?.variables || {})
-            ]);
-            // Generate a new color that is not already in use
-            do {
-                newColor = generateRandomColor();
-            } while (usedColors.has(newColor));
-            // Update user with the new color
-            await userCollection.updateOne(
-                { _id: new ObjectId(id.toString()) },
-                { $set: { [`colors.activities.${activity}`]: newColor } }
-            );
-        }
-    } else if (type === "variable") {
-        // checking if we need to create a new color
-        const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
-        if (!currentUser?.colors.variables[activity]) {
-            let newColor;
-            // const usedColors = new Set(Object.values(currentUser?.colors || {})); // Get existing colors
-            const usedColors = new Set([
-                ...Object.values(currentUser?.colors?.activities || {}),
-                ...(currentUser?.colors?.note || ""),
-                ...Object.values(currentUser?.colors?.variables || {})
-            ]);
-            // Generate a new color that is not already in use
-            do {
-                newColor = generateRandomColor();
-            } while (usedColors.has(newColor));
-            // Update user with the new color
-            await userCollection.updateOne(
-                { _id: new ObjectId(id.toString()) },
-                { $set: { [`colors.variables.${variable}`]: newColor } }
-            );
-        }
     }
 
     // Extract user names from the description (those after "@")
