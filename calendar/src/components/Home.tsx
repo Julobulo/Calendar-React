@@ -9,11 +9,15 @@ import {
   PieChart,
   Pie,
   Cell,
+  Legend,
+  LineChart,
+  Line,
 } from "recharts";
 import { getHumanTimeFromMinutes, highlightTimesAndNames, isLightOrDark } from "../utils/helpers";
 import { useState } from "react";
 import { LocationPicker } from "./LocationPicker";
 import { Card, CardContent } from "./Card";
+import { FaCalendarAlt, FaFlagCheckered, FaHourglassHalf, FaRunning } from "react-icons/fa";
 
 const colors: {
   activities: { [activity: string]: string };
@@ -63,26 +67,47 @@ const mockDayActivities: {
   note: "Had a productive day, talked to @Alice and @Bob in the afternoon.",
 };
 
-const mockWeekStats = [
-  { name: "Mon", Coding: 120, Workout: 90 },
-  { name: "Tue", Coding: 100, Workout: 80 },
-  { name: "Wed", Coding: 180, Workout: 60 },
-  { name: "Thu", Coding: 140, Workout: 120 },
-  { name: "Fri", Coding: 200, Workout: 90 },
+const streaks = [18, 11, 9];
+
+const compareActivities = [
+  { date: "Mon", Study: 2, YouTube: 3 },
+  { date: "Tue", Study: 3, YouTube: 2 },
+  { date: "Wed", Study: 4, YouTube: 1 },
+  { date: "Thu", Study: 2.5, YouTube: 2.5 },
+  { date: "Fri", Study: 3, YouTube: 3 },
+  { date: "Sat", Study: 1.5, YouTube: 4 },
+  { date: "Sun", Study: 2, YouTube: 3.5 }
 ];
 
-const pieData = [
-  { name: "Coding", value: 740, color: colors.activities.Coding },
-  { name: "Workout", value: 440, color: colors.activities.Workout },
-  { name: "Reading", value: 240, color: colors.activities.Reading },
+const activitySummary = [
+  { name: "Study", time: 16 },
+  { name: "YouTube", time: 19 },
+  { name: "Gym", time: 6 },
+  { name: "Reading", time: 9 }
 ];
 
-const mockData = [
-  { name: "Mon", Coding: 120, Workout: 90 },
-  { name: "Tue", Coding: 100, Workout: 80 },
-  { name: "Wed", Coding: 180, Workout: 60 },
-  { name: "Thu", Coding: 140, Workout: 120 },
-  { name: "Fri", Coding: 200, Workout: 90 },
+const highestAvgPerWeek = [
+  { activity: "Study", avg: 9 },
+  { activity: "Reading", avg: 6.5 }
+];
+
+const milestones = [
+  { label: "Started tracking", icon: <FaFlagCheckered className="text-blue-500" /> },
+  { label: "Logged 50 hours", icon: <FaHourglassHalf className="text-purple-500" /> },
+  { label: "Longest streak hit", icon: <FaRunning className="text-pink-500" /> },
+  { label: "1000th entry!", icon: <FaCalendarAlt className="text-green-500" /> }
+];
+
+const totalTime = activitySummary.reduce((sum, a) => sum + a.time, 0);
+
+const stackedActivityByDay = [
+  { day: "Mon", Study: 2, YouTube: 3, Reading: 1 },
+  { day: "Tue", Study: 3, YouTube: 2, Reading: 0.5 },
+  { day: "Wed", Study: 4, YouTube: 1, Reading: 1 },
+  { day: "Thu", Study: 2.5, YouTube: 2.5, Reading: 1 },
+  { day: "Fri", Study: 3, YouTube: 3, Reading: 1 },
+  { day: "Sat", Study: 1.5, YouTube: 4, Reading: 1 },
+  { day: "Sun", Study: 2, YouTube: 3.5, Reading: 1 }
 ];
 
 const Home = () => {
@@ -195,7 +220,7 @@ const Home = () => {
             <CardContent>
               <h3 className="text-lg font-semibold mb-2">Weekly Summary</h3>
               <p>You were most consistent on Tuesday and Thursday.</p>
-              <p>Total hours this week: <strong>18h 30min</strong></p>
+              <p>Total hours logged this week: <strong>18h 30min</strong></p>
               <p>🔥 3-day streak!</p>
             </CardContent>
           </Card>
@@ -210,58 +235,96 @@ const Home = () => {
         </div>
       </section>
 
-      <div className="w-full">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Your Week at a Glance</h2>
-        <div className="w-full h-64 bg-white rounded-2xl shadow-md p-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={mockData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="Coding" fill="#4f46e5" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Workout" fill="#22c55e" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+      {/* Graphs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardContent>
+            <h2 className="text-xl font-bold">🔥 Longest Streak</h2>
+            <p className="text-2xl mt-2">18 days in a row</p>
+            <p className="mt-2 text-sm">Top Weeks: {streaks.join(", ")} days</p>
+          </CardContent>
+        </Card>
 
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="w-full">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center md:text-left">Your Week at a Glance</h2>
-          <div className="h-64 bg-white rounded-2xl shadow-md p-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={mockWeekStats}>
-                <XAxis dataKey="name" />
+        <Card>
+          <CardContent>
+            <h2 className="text-xl font-bold">📚 Studying vs YouTube (Last 7 Days)</h2>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={compareActivities}>
+                <XAxis dataKey="date" />
                 <YAxis />
-                <Tooltip />
-                <Bar dataKey="Coding" fill={colors.activities.Coding} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Workout" fill={colors.activities.Workout} radius={[4, 4, 0, 0]} />
-              </BarChart>
+                <Tooltip formatter={(value: number, name: string) => [`${value}h`, name]} />
+                <Legend />
+                <Line type="monotone" dataKey="Study" stroke="#6366f1" />
+                <Line type="monotone" dataKey="YouTube" stroke="#f43f5e" />
+              </LineChart>
             </ResponsiveContainer>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="w-full">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center md:text-left">Time Distribution</h2>
-          <div className="h-64 bg-white rounded-2xl shadow-md p-4">
-            <ResponsiveContainer width="100%" height="100%">
+        <Card>
+          <CardContent>
+            <h2 className="text-xl font-bold">📊 Time Spent Per Activity</h2>
+            <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
-                  dataKey="value"
-                  data={pieData}
+                  data={activitySummary}
+                  dataKey="time"
                   cx="50%"
                   cy="50%"
-                  outerRadius={80}
-                  label={({ name }) => name}
+                  outerRadius={70}
+                  label={(entry) => entry.name}
                 >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  {activitySummary.map((entry, index) => (
+                    <Cell key={`cell-${index}-${entry.name}`} fill={["#6366f1", "#f43f5e", "#10b981", "#f59e0b"][index % 4]} />
                   ))}
                 </Pie>
+                <Tooltip formatter={(value: number) => `${((value / totalTime) * 100).toFixed(1)}%`} />
               </PieChart>
             </ResponsiveContainer>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <h2 className="text-xl font-bold">🏆 Average Times For Each Activity per Week</h2>
+            <ul className="mt-2 space-y-1">
+              {highestAvgPerWeek.map((a, i) => (
+                <li key={i}>{a.activity}: <span className="font-semibold">{a.avg}h/week</span></li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <h2 className="text-xl font-bold">🗓️ Milestones</h2>
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              {milestones.map((m, i) => (
+                <div key={i} className="flex items-center space-x-2 p-2 bg-gray-100 rounded-xl">
+                  {m.icon}
+                  <span>{m.label}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <h2 className="text-xl font-bold">🧱 Time Breakdown by Day</h2>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={stackedActivityByDay}>
+                <XAxis dataKey="day" />
+                <YAxis />
+                <Tooltip formatter={(value: number, name: string) => [`${value}h`, name]} />
+                <Legend />
+                <Bar dataKey="Study" stackId="a" fill="#6366f1" />
+                <Bar dataKey="YouTube" stackId="a" fill="#f43f5e" />
+                <Bar dataKey="Reading" stackId="a" fill="#10b981" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Features */}
