@@ -88,18 +88,18 @@ export const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 import { ObjectId } from "bson";
 
 export interface ActivityEntry {
-  activity: string;
-  duration: number; // number of minutes
-  description: string;
+    activity: string;
+    duration: number; // number of minutes
+    description: string;
 }
 
 export interface UserActivity {
-  _id: ObjectId,
-  userId: ObjectId,
-  date: Date,
-  entries: ActivityEntry[],
-  note?: string,
-  variables: { variable: string, value: string }[],
+    _id: ObjectId,
+    userId: ObjectId,
+    date: Date,
+    entries: ActivityEntry[],
+    note?: string,
+    variables: { variable: string, value: string }[],
 };
 
 // Utility type for creating new users without an _id field
@@ -111,21 +111,32 @@ export const generateRandomColor = () => {
 
 // Function to format total time (in minutes) into a more comprehensive format like: "1 year 2 months 3 days 4 hours 5 minutes"
 export const formatTime = (minutes: number) => {
-  // Convert minutes to milliseconds for intervalToDuration
-  const duration = intervalToDuration({
-    start: 0,
-    end: minutes * 60 * 1000, // Convert minutes to milliseconds
-  });
+    // Convert minutes to milliseconds for intervalToDuration
+    const duration = intervalToDuration({
+        start: 0,
+        end: minutes * 60 * 1000, // Convert minutes to milliseconds
+    });
 
-  // Format the duration into a readable string
-  const parts = [];
-  if (duration.years) parts.push(`${duration.years} year${duration.years > 1 ? "s" : ""}`);
-  if (duration.months) parts.push(`${duration.months} month${duration.months > 1 ? "s" : ""}`);
-  if (duration.days) parts.push(`${duration.days} day${duration.days > 1 ? "s" : ""}`);
-  if (duration.hours) parts.push(`${duration.hours} hour${duration.hours > 1 ? "s" : ""}`);
-  if (duration.minutes) parts.push(`${duration.minutes} minute${duration.minutes > 1 ? "s" : ""}`);
-  if (duration.seconds) parts.push(`${duration.seconds} second${duration.seconds > 1 ? "s" : ""}`);
+    // Format the duration into a readable string
+    const parts = [];
+    if (duration.years) parts.push(`${duration.years} year${duration.years > 1 ? "s" : ""}`);
+    if (duration.months) parts.push(`${duration.months} month${duration.months > 1 ? "s" : ""}`);
+    if (duration.days) parts.push(`${duration.days} day${duration.days > 1 ? "s" : ""}`);
+    if (duration.hours) parts.push(`${duration.hours} hour${duration.hours > 1 ? "s" : ""}`);
+    if (duration.minutes) parts.push(`${duration.minutes} minute${duration.minutes > 1 ? "s" : ""}`);
+    if (duration.seconds) parts.push(`${duration.seconds} second${duration.seconds > 1 ? "s" : ""}`);
 
-  // Join the parts into a final string
-  return parts.join(" ") || "0 minutes";
+    // Join the parts into a final string
+    return parts.join(" ") || "0 minutes";
+};
+
+export const highlightTimesAndNames = (description: string): string => {
+    let newDescription;
+    const timeRegex = /(\d{1,2})h\s*(\d{1,2})?min?|\b(\d{1,2})min\b|\b(\d{1,2})h\b/g;
+    newDescription = description.replace(timeRegex, (match) => {
+        return `<span style="text-decoration: underline;">${match}</span>`;
+    });
+    return newDescription.replace(/@(\w+)/g, (match) => {
+        return `<span style="font-weight: bold;">${match}</span>`;
+    });
 };
