@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { UserActivity } from "../utils/helpers";
+import { highlightTimesAndNames, UserActivity } from "../utils/helpers";
 import { getHumanTimeFromMinutes, isLightOrDark } from "../utils/helpers";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
@@ -65,17 +65,6 @@ const Day = () => {
         };
         fetchNames();
     }, [reload]);
-
-    const highlightTimesAndNames = (description: string): string => {
-        let newDescription;
-        const timeRegex = /(\d{1,2})h\s*(\d{1,2})?min?|\b(\d{1,2})min\b|\b(\d{1,2})h\b/g;
-        newDescription = description.replace(timeRegex, (match) => {
-            return `<span style="text-decoration: underline;">${match}</span>`;
-        });
-        return newDescription.replace(/@(\w+)/g, (match) => {
-            return `<span style="font-weight: bold;">${match}</span>`;
-        });
-    };
 
     useEffect(() => {
         const fetchActivities = async () => {
