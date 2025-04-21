@@ -86,7 +86,7 @@ const mockData = [
 ];
 
 const Home = () => {
-  const [selectedLocation, setSelectedLocation] = useState<{ name: string, lat: number, lng: number }>({ name: "Home in Paris", lat: 48.8566, lng: 2.3522 });
+  const [selectedLocation, setSelectedLocation] = useState<{ name: string, lat: number, lng: number } | null>({ name: "Home in Paris", lat: 48.8566, lng: 2.3522 });
   const isSavingLocation = false;
 
   const handleClick = () => { };
