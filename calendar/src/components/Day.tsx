@@ -17,10 +17,11 @@ interface Location {
 }
 
 const Day = () => {
-    const [searchParams] = useSearchParams();
-    const year = Number(searchParams.get("year"));
-    const month = Number(searchParams.get("month"));
-    const day = Number(searchParams.get("day"));
+    const [searchParams, setSearchParams] = useSearchParams();
+    const year = searchParams.get("year") !== null ? Number(searchParams.get("year")) : new Date().getFullYear();
+    const month = searchParams.get("month") !== null ? Number(searchParams.get("month")) : new Date().getMonth();
+    const day = searchParams.get("day") !== null ? Number(searchParams.get("day")) : new Date().getDate();
+    useEffect(() => {setSearchParams({ year: year.toString(), month: month.toString(), day: day.toString() })}, [year, month, day])
 
     const [dayActivities, setDayActivities] = useState<UserActivity>();
     const [colors, setColors] = useState<{
