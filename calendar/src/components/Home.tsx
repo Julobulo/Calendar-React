@@ -215,7 +215,90 @@ const Home = () => {
       {/* Gain Insight Into Your Habits */}
       <section>
         <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Gain Insight Into Your Habits</h2>
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardContent>
+              <h3 className="text-lg font-semibold mb-2">Unproductive vs Productive Time Spent This Week</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={[
+                  { day: "Mon", Productive: 3, Unproductive: 2 },
+                  { day: "Tue", Productive: 4, Unproductive: 1.5 },
+                  { day: "Wed", Productive: 5, Unproductive: 2 },
+                  { day: "Thu", Productive: 2.5, Unproductive: 3 },
+                  { day: "Fri", Productive: 3, Unproductive: 2.5 },
+                  { day: "Sat", Productive: 1.5, Unproductive: 4 },
+                  { day: "Sun", Productive: 2, Unproductive: 3.5 }
+                ]}>
+                  <XAxis dataKey="day" />
+                  <YAxis />
+                  <Tooltip formatter={(v: number) => `${v}h`} />
+                  <Legend />
+                  <Bar dataKey="Productive" stackId="a" fill="#10b981" />
+                  <Bar dataKey="Unproductive" stackId="a" fill="#f43f5e" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent>
+              <h3 className="text-lg font-semibold mb-2">Goals For This Week</h3>
+              <div className="space-y-3">
+                {[
+                  { name: "Study", actual: 9, target: 10, color: "bg-indigo-500" },
+                  { name: "Gym", actual: 3, target: 3, color: "bg-green-500" },
+                  { name: "Reading", actual: 2, target: 5, color: "bg-yellow-500" }
+                ].map((goal, i) => {
+                  const percent = Math.min(100, (goal.actual / goal.target) * 100);
+                  return (
+                    <div key={i}>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>{goal.name}</span>
+                        <span>{goal.actual}h / {goal.target}h</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className={`h-2 rounded-full ${goal.color}`} style={{ width: `${percent}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent>
+              <h2 className="text-xl font-bold">📚 Studying vs YouTube (Last 7 Days)</h2>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={compareActivities}>
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip formatter={(value: number, name: string) => [`${value}h`, name]} />
+                  <Legend />
+                  <Line type="monotone" dataKey="Study" stroke="#6366f1" />
+                  <Line type="monotone" dataKey="YouTube" stroke="#f43f5e" />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent>
+              <h2 className="text-xl font-bold">🧱 Time Breakdown by Day</h2>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={stackedActivityByDay}>
+                  <XAxis dataKey="day" />
+                  <YAxis />
+                  <Tooltip formatter={(value: number, name: string) => [`${value}h`, name]} />
+                  <Legend />
+                  <Bar dataKey="Study" stackId="a" fill="#6366f1" />
+                  <Bar dataKey="YouTube" stackId="a" fill="#f43f5e" />
+                  <Bar dataKey="Reading" stackId="a" fill="#10b981" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
           <Card className="p-4">
             <CardContent>
               <h3 className="text-lg font-semibold mb-2">Weekly Summary</h3>
@@ -242,22 +325,6 @@ const Home = () => {
             <h2 className="text-xl font-bold">🔥 Longest Streak</h2>
             <p className="text-2xl mt-2">18 days in a row</p>
             <p className="mt-2 text-sm">Top Weeks: {streaks.join(", ")} days</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent>
-            <h2 className="text-xl font-bold">📚 Studying vs YouTube (Last 7 Days)</h2>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={compareActivities}>
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip formatter={(value: number, name: string) => [`${value}h`, name]} />
-                <Legend />
-                <Line type="monotone" dataKey="Study" stroke="#6366f1" />
-                <Line type="monotone" dataKey="YouTube" stroke="#f43f5e" />
-              </LineChart>
-            </ResponsiveContainer>
           </CardContent>
         </Card>
 
@@ -306,23 +373,6 @@ const Home = () => {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent>
-            <h2 className="text-xl font-bold">🧱 Time Breakdown by Day</h2>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={stackedActivityByDay}>
-                <XAxis dataKey="day" />
-                <YAxis />
-                <Tooltip formatter={(value: number, name: string) => [`${value}h`, name]} />
-                <Legend />
-                <Bar dataKey="Study" stackId="a" fill="#6366f1" />
-                <Bar dataKey="YouTube" stackId="a" fill="#f43f5e" />
-                <Bar dataKey="Reading" stackId="a" fill="#10b981" />
-              </BarChart>
-            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
