@@ -18,7 +18,6 @@ import { getHumanTimeFromMinutes, highlightTimesAndNames, isLightOrDark } from "
 import { useState } from "react";
 import { LocationPicker } from "./LocationPicker";
 import { Card, CardContent } from "./Card";
-import { FaCalendarAlt, FaFlagCheckered, FaHourglassHalf, FaRunning } from "react-icons/fa";
 
 const colors: {
   activities: { [activity: string]: string };
@@ -97,13 +96,6 @@ const highestAvgPerWeek = [
   { activity: "Instagram", avg: 6 },
   { activity: "Reading", avg: 3 },
   { activity: "YouTube", avg: 5.5 },
-];
-
-const milestones = [
-  { label: "Started tracking", icon: <FaFlagCheckered className="text-blue-500" /> },
-  { label: "Logged 50 hours", icon: <FaHourglassHalf className="text-purple-500" /> },
-  { label: "Longest streak hit", icon: <FaRunning className="text-pink-500" /> },
-  { label: "1000th entry!", icon: <FaCalendarAlt className="text-green-500" /> }
 ];
 
 const totalTime = activitySummary.reduce((sum, a) => sum + a.time, 0);
@@ -365,20 +357,6 @@ const Home = () => {
                   <Bar dataKey="avg" fill="#4f46e5" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent>
-            <h2 className="text-xl font-bold">🗓️ Milestones</h2>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              {milestones.map((m, i) => (
-                <div key={i} className="flex items-center space-x-2 p-2 bg-gray-100 rounded-xl">
-                  {m.icon}
-                  <span>{m.label}</span>
-                </div>
-              ))}
             </div>
           </CardContent>
         </Card>
