@@ -18,6 +18,8 @@ import { getHumanTimeFromMinutes, highlightTimesAndNames, isLightOrDark } from "
 import { useState } from "react";
 import { LocationPicker } from "./LocationPicker";
 import { Card, CardContent } from "./Card";
+import { FaRegClock } from "react-icons/fa";
+import { TbTarget } from "react-icons/tb";
 
 const colors: {
   activities: { [activity: string]: string };
@@ -220,7 +222,10 @@ const Home = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
             <CardContent>
-              <h3 className="text-lg font-semibold mb-2">Unproductive vs Productive Time Spent This Week</h3>
+              <div className="flex items-center mb-3">
+                <FaRegClock className="text-3xl mr-2" />
+                <h3 className="text-xl font-bold">Unproductive vs Productive Time Spent This Week</h3>
+              </div>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={[
                   { day: "Mon", Productive: 3, Unproductive: 2 },
@@ -244,7 +249,10 @@ const Home = () => {
 
           <Card>
             <CardContent>
-              <h3 className="text-lg font-semibold mb-2">Goals For This Week</h3>
+              <div className="flex items-center mb-3">
+                <TbTarget className="text-xl mr-2" color="#FF5722" />
+                <h3 className="text-xl font-bold">Goals For This Week</h3>
+              </div>
               <div className="space-y-3">
                 {[
                   { name: "Study", actual: 9, target: 10, color: "bg-indigo-500" },
