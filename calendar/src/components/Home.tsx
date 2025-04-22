@@ -302,23 +302,6 @@ const Home = () => {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-
-          <Card className="p-4">
-            <CardContent>
-              <h3 className="text-lg font-semibold mb-2">Weekly Summary</h3>
-              <p>You were most consistent on Tuesday and Thursday.</p>
-              <p>Total hours logged this week: <strong>18h 30min</strong></p>
-              <p>🔥 3-day streak!</p>
-            </CardContent>
-          </Card>
-
-          <Card className="p-4">
-            <CardContent>
-              <h3 className="text-lg font-semibold mb-2">Time Distribution</h3>
-              <p>Most time spent on: <strong>Coding</strong></p>
-              <p>Least time spent on: <strong>Exercise</strong></p>
-            </CardContent>
-          </Card>
         </div>
       </section>
 
