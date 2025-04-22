@@ -12,6 +12,7 @@ import {
   Legend,
   LineChart,
   Line,
+  CartesianGrid,
 } from "recharts";
 import { getHumanTimeFromMinutes, highlightTimesAndNames, isLightOrDark } from "../utils/helpers";
 import { useState } from "react";
@@ -91,8 +92,11 @@ const activitySummary = [
 ];
 
 const highestAvgPerWeek = [
-  { activity: "Study", avg: 9 },
-  { activity: "Reading", avg: 6.5 }
+  { activity: "Studying", avg: 12 },
+  { activity: "Gym", avg: 4 },
+  { activity: "Instagram", avg: 6 },
+  { activity: "Reading", avg: 3 },
+  { activity: "YouTube", avg: 5.5 },
 ];
 
 const milestones = [
@@ -350,12 +354,18 @@ const Home = () => {
 
         <Card>
           <CardContent>
-            <h2 className="text-xl font-bold">🏆 Average Times For Each Activity per Week</h2>
-            <ul className="mt-2 space-y-1">
-              {highestAvgPerWeek.map((a, i) => (
-                <li key={i}>{a.activity}: <span className="font-semibold">{a.avg}h/week</span></li>
-              ))}
-            </ul>
+            <h2 className="text-xl font-bold mb-4">🏆 Average Times Per Week</h2>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={highestAvgPerWeek}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="activity" />
+                  <YAxis unit="h" />
+                  <Tooltip formatter={(value) => `${value}h/week`} />
+                  <Bar dataKey="avg" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
 
