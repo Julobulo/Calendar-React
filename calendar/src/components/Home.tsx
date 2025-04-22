@@ -67,7 +67,11 @@ const mockDayActivities: {
   note: "Had a productive day, talked to @Alice and @Bob in the afternoon.",
 };
 
-const streaks = [18, 11, 9];
+const streaks = [
+  { activity: "Workout", current: 2, longest: 10 },
+  { activity: "Study", current: 5, longest: 18 },
+  { activity: "Reading", current: 1, longest: 7 }
+];
 
 const compareActivities = [
   { date: "Mon", Study: 2, YouTube: 3 },
@@ -322,9 +326,19 @@ const Home = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent>
-            <h2 className="text-xl font-bold">🔥 Longest Streak</h2>
-            <p className="text-2xl mt-2">18 days in a row</p>
-            <p className="mt-2 text-sm">Top Weeks: {streaks.join(", ")} days</p>
+            <h2 className="text-xl font-bold mb-4">🔥 Your Streaks</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {streaks.map((s, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl bg-background border border-border p-3 shadow-sm flex flex-col justify-between"
+                >
+                  <p className="text-sm font-medium text-muted-foreground mb-1">{s.activity}</p>
+                  <p className="text-lg font-semibold">{s.current} day{(s.current !== 1) && "s"}</p>
+                  <p className="text-xs text-muted-foreground">Longest: {s.longest} day{(s.longest !== 1) && "s"}</p>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
 
