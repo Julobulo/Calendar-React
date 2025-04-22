@@ -114,6 +114,16 @@ const stackedActivityByDay = [
   { day: "Sun", Study: 2, YouTube: 3.5, Reading: 1 }
 ];
 
+const weightData = [
+  { date: '2025-04-01', weight: 70 },
+  { date: '2025-04-02', weight: 69.5 },
+  { date: '2025-04-03', weight: 69.2 },
+  { date: '2025-04-04', weight: 69.0 },
+  { date: '2025-04-05', weight: 68.8 },
+  { date: '2025-04-06', weight: 68.5 },
+  { date: '2025-04-07', weight: 68.3 },
+];
+
 const Home = () => {
   const [selectedLocation, setSelectedLocation] = useState<{ name: string, lat: number, lng: number } | null>({ name: "Home in Paris", lat: 48.8566, lng: 2.3522 });
   const isSavingLocation = false;
@@ -383,6 +393,21 @@ const Home = () => {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={weightData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="weight" stroke="#8884d8" />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
         </div>
       </section >
 
