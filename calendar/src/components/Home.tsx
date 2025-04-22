@@ -84,11 +84,15 @@ const compareActivities = [
 ];
 
 const activitySummary = [
-  { name: "Study", time: 16 },
-  { name: "YouTube", time: 19 },
-  { name: "Gym", time: 6 },
-  { name: "Reading", time: 9 }
+  { name: "Studying", time: 12 },
+  { name: "Gym", time: 4 },
+  { name: "Instagram", time: 6 },
+  { name: "Reading", time: 3 },
+  { name: "YouTube", time: 5.5 },
 ];
+
+const sortedActivitySummary = [...activitySummary].sort((a, b) => b.time - a.time);
+const totalActivityTime = sortedActivitySummary.reduce((sum, a) => sum + a.time, 0);
 
 const highestAvgPerWeek = [
   { activity: "Studying", avg: 12 },
@@ -97,8 +101,6 @@ const highestAvgPerWeek = [
   { activity: "Reading", avg: 3 },
   { activity: "YouTube", avg: 5.5 },
 ];
-
-const totalTime = activitySummary.reduce((sum, a) => sum + a.time, 0);
 
 const stackedActivityByDay = [
   { day: "Mon", Study: 2, YouTube: 3, Reading: 1 },
@@ -298,72 +300,87 @@ const Home = () => {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-        </div>
-      </section>
 
-      {/* Graphs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardContent>
-            <h2 className="text-xl font-bold mb-4">🔥 Your Streaks</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {streaks.map((s, i) => (
-                <div
-                  key={i}
-                  className="rounded-xl bg-background border border-border p-3 shadow-sm flex flex-col justify-between"
-                >
-                  <p className="text-sm font-medium text-muted-foreground mb-1">{s.activity}</p>
-                  <p className="text-lg font-semibold">{s.current} day{(s.current !== 1) && "s"}</p>
-                  <p className="text-xs text-muted-foreground">Longest: {s.longest} day{(s.longest !== 1) && "s"}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardContent>
+              <h2 className="text-xl font-bold mb-4">🔥 Your Streaks</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {streaks.map((s, i) => (
+                  <div
+                    key={i}
+                    className="rounded-xl bg-background border border-border p-3 shadow-sm flex flex-col justify-between"
+                  >
+                    <p className="text-sm font-medium text-muted-foreground mb-1">{s.activity}</p>
+                    <p className="text-lg font-semibold">{s.current} day{(s.current !== 1) && "s"}</p>
+                    <p className="text-xs text-muted-foreground">Longest: {s.longest} day{(s.longest !== 1) && "s"}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent>
-            <h2 className="text-xl font-bold">📊 Time Spent Per Activity</h2>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={activitySummary}
-                  dataKey="time"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={70}
-                  label={(entry) => entry.name}
-                >
-                  {activitySummary.map((entry, index) => (
-                    <Cell key={`cell-${index}-${entry.name}`} fill={["#6366f1", "#f43f5e", "#10b981", "#f59e0b"][index % 4]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value: number) => `${((value / totalTime) * 100).toFixed(1)}%`} />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent>
-            <h2 className="text-xl font-bold mb-4">🏆 Average Times Per Week</h2>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={highestAvgPerWeek}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="activity" />
-                  <YAxis unit="h" />
-                  <Tooltip formatter={(value) => `${value}h/week`} />
-                  <Bar dataKey="avg" fill="#4f46e5" radius={[4, 4, 0, 0]} />
-                </BarChart>
+          <Card>
+            <CardContent>
+              <h2 className="text-xl font-bold">📊 Time Spent Per Activity</h2>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={sortedActivitySummary}
+                    dataKey="time"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={70}
+                    label={({ name }) => name}
+                  >
+                    {sortedActivitySummary.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}-${entry.name}`}
+                        fill={["#6366f1", "#f43f5e", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"][index % 6]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value: number, name: string, props) => {
+                      const rank =
+                        sortedActivitySummary.findIndex((e) => e.name === props.payload.name) + 1;
+                      const percentage = ((value / totalActivityTime) * 100).toFixed(1);
+                      return [
+                        <>
+                          <div className="flex justify-between gap-2 font-medium">
+                            <span>{name} - #{rank}</span>
+                          </div>
+                          <div>{value}h ({percentage}%)</div>
+                        </>,
+                      ];
+                    }}
+                  />
+                </PieChart>
               </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent>
+              <h2 className="text-xl font-bold mb-4">🏆 Average Times Per Week</h2>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={highestAvgPerWeek}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="activity" />
+                    <YAxis unit="h" />
+                    <Tooltip formatter={(value) => `${value}h/week`} />
+                    <Bar dataKey="avg" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section >
+
 
       {/* Features */}
-      <section className="space-y-6">
+      < section className="space-y-6" >
         <h2 className="text-2xl font-semibold mb-4">Features</h2>
         <div className="grid md:grid-cols-3 gap-6">
           <Card className="p-4 text-center hover:scale-[1.03] transition-transform">
@@ -388,7 +405,7 @@ const Home = () => {
             </CardContent>
           </Card>
         </div>
-      </section>
+      </section >
 
       <div className="text-center mt-8">
         <p className="text-gray-500 text-sm mb-4">Try it yourself — head to your calendar and start logging today.</p>
@@ -399,7 +416,7 @@ const Home = () => {
           → Go to Calendar
         </a>
       </div>
-    </div>
+    </div >
   );
 };
 
