@@ -92,8 +92,8 @@ const mockActivities = [
     // _id: new ObjectId(),
     // userId: new ObjectId("66277f2f9652e665889cb0e5"),
 
-  _id: "mockid1",
-  userId: "mockuserid",
+    _id: "mockid1",
+    userId: "mockuserid",
     date: new Date("2025-04-17"),
     entries: [
       { activity: "Travel", duration: 240, description: "4h Train ride to Lyon" },
@@ -108,8 +108,8 @@ const mockActivities = [
     // _id: new ObjectId(),
     // userId: new ObjectId("66277f2f9652e665889cb0e5"),
 
-  _id: "mockid1",
-  userId: "mockuserid",
+    _id: "mockid1",
+    userId: "mockuserid",
     date: new Date("2025-04-18"),
     entries: [
       { activity: "Walking", duration: 60, description: "1h Walked to the local park" },
@@ -124,8 +124,8 @@ const mockActivities = [
     // _id: new ObjectId(),
     // userId: new ObjectId("66277f2f9652e665889cb0e5"),
 
-  _id: "mockid1",
-  userId: "mockuserid",
+    _id: "mockid1",
+    userId: "mockuserid",
     date: new Date("2025-04-19"),
     entries: [
       { activity: "Workout", duration: 50, description: "Bodyweight full-body workout, 50min" },
@@ -140,8 +140,8 @@ const mockActivities = [
     // _id: new ObjectId(),
     // userId: new ObjectId("66277f2f9652e665889cb0e5"),
 
-  _id: "mockid1",
-  userId: "mockuserid",
+    _id: "mockid1",
+    userId: "mockuserid",
     date: new Date("2025-04-20"),
     entries: [
       { activity: "Rest", duration: 0, description: "Relaxed all day" },
@@ -240,15 +240,39 @@ const highestAvgPerWeek = [
   { activity: "YouTube", avg: 5.5 },
 ];
 
-const stackedActivityByDay = [
-  { day: "Mon", Study: 2, YouTube: 3, Reading: 1 },
-  { day: "Tue", Study: 3, YouTube: 2, Reading: 0.5 },
-  { day: "Wed", Study: 4, YouTube: 1, Reading: 1 },
-  { day: "Thu", Study: 2.5, YouTube: 2.5, Reading: 1 },
-  { day: "Fri", Study: 3, YouTube: 3, Reading: 1 },
-  { day: "Sat", Study: 1.5, YouTube: 4, Reading: 1 },
-  { day: "Sun", Study: 2, YouTube: 3.5, Reading: 1 }
-];
+// const stackedActivityByDay = [
+//   { day: "Mon", Study: 2, YouTube: 3, Reading: 1 },
+//   { day: "Tue", Study: 3, YouTube: 2, Reading: 0.5 },
+//   { day: "Wed", Study: 4, YouTube: 1, Reading: 1 },
+//   { day: "Thu", Study: 2.5, YouTube: 2.5, Reading: 1 },
+//   { day: "Fri", Study: 3, YouTube: 3, Reading: 1 },
+//   { day: "Sat", Study: 1.5, YouTube: 4, Reading: 1 },
+//   { day: "Sun", Study: 2, YouTube: 3.5, Reading: 1 }
+// ];
+
+const stackedActivityByDay = mockActivities.map((activity) => {
+  const day = activity.date.toLocaleDateString("en-US", { weekday: "short" });
+
+  const activityDurations: Record<string, number> = {};
+
+  for (const entry of activity.entries) {
+    const hours = entry.duration / 60;
+    if (activityDurations[entry.activity]) {
+      activityDurations[entry.activity] += hours;
+    } else {
+      activityDurations[entry.activity] = hours;
+    }
+  }
+
+  return {
+    day,
+    ...activityDurations,
+  };
+});
+
+const allActivityNames = Array.from(
+  new Set(mockActivities.flatMap((a) => a.entries.map((e) => e.activity)))
+);
 
 const weightData = [
   { date: '2025-04-01', weight: 70 },
@@ -442,15 +466,27 @@ const Home = () => {
             <CardContent>
               <h2 className="text-xl font-bold">🧱 Time Breakdown by Day</h2>
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={stackedActivityByDay}>
-                  <XAxis dataKey="day" />
-                  <YAxis />
-                  <Tooltip formatter={(value: number, name: string) => [`${value}h`, name]} />
-                  <Legend />
-                  <Bar dataKey="Study" stackId="a" fill="#6366f1" />
-                  <Bar dataKey="YouTube" stackId="a" fill="#f43f5e" />
-                  <Bar dataKey="Reading" stackId="a" fill="#10b981" />
-                </BarChart>
+                {/* <div> */}
+                  {/* <BarChart data={stackedActivityByDay}>
+                    <XAxis dataKey="day" />
+                    <YAxis />
+                    <Tooltip formatter={(value: number, name: string) => [`${value}h`, name]} />
+                    <Legend />
+                    <Bar dataKey="Study" stackId="a" fill="#6366f1" />
+                    <Bar dataKey="YouTube" stackId="a" fill="#f43f5e" />
+                    <Bar dataKey="Reading" stackId="a" fill="#10b981" />
+                  </BarChart> */}
+                  <BarChart data={stackedActivityByDay}>
+                    <XAxis dataKey="day" />
+                    <YAxis />
+                    <Tooltip formatter={(value: number, name: string) => [`${value}h`, name]} />
+                    <Legend />
+                    {allActivityNames.map((name, i) => (
+                      <Bar key={name} dataKey={name} stackId="a" fill={colors.activities[name]} />
+                    ))}
+                  </BarChart>
+                {/* </div> */}
+
               </ResponsiveContainer>
             </CardContent>
           </Card>
