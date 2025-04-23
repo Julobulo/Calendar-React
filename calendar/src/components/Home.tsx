@@ -14,12 +14,13 @@ import {
   Line,
   CartesianGrid,
 } from "recharts";
-import { getHumanTimeFromMinutes, highlightTimesAndNames, isLightOrDark } from "../utils/helpers";
+import { getHumanTimeFromMinutes, highlightTimesAndNames, isLightOrDark, UserActivity } from "../utils/helpers";
 import { useState } from "react";
 import { LocationPicker } from "./LocationPicker";
 import { Card, CardContent } from "./Card";
 import { FaRegClock } from "react-icons/fa";
 import { TbTarget } from "react-icons/tb";
+import { ObjectId } from "bson";
 
 const colors: {
   activities: { [activity: string]: string };
@@ -122,6 +123,100 @@ const weightData = [
   { date: '2025-04-05', weight: 68.8 },
   { date: '2025-04-06', weight: 68.5 },
   { date: '2025-04-07', weight: 68.3 },
+];
+
+export const mockActivities: UserActivity[] = [
+  {
+    _id: new ObjectId(),
+    userId: new ObjectId("66277f2f9652e665889cb0e5"),
+    date: new Date("2025-04-14"),
+    entries: [
+      { activity: "Workout", duration: 45, description: "45min Chest and triceps routine" },
+      { activity: "Reading", duration: 30, description: "30min Fiction before bed" },
+      { activity: "YouTube", duration: 60, description: "1h Watched productivity videos" },
+    ],
+    note: "Felt motivated after the workout. Starting the week strong.",
+    variables: [{ variable: "weight", value: "65.9" }],
+    location: { name: "Home in Paris", lat: 48.8566, lng: 2.3522 },
+  },
+  {
+    _id: new ObjectId(),
+    userId: new ObjectId("66277f2f9652e665889cb0e5"),
+    date: new Date("2025-04-15"),
+    entries: [
+      { activity: "Studying", duration: 120, description: "2h Focused on math exercises" },
+      { activity: "YouTube", duration: 45, description: "Watched science explainers for 45min" },
+      { activity: "Workout", duration: 40, description: "Cardio for 20min and abs for another 20min" },
+    ],
+    note: "Stayed mostly at the desk today, good study flow.",
+    variables: [{ variable: "weight", value: "65.7" }],
+    location: { name: "Home in Paris", lat: 48.8566, lng: 2.3522 },
+  },
+  {
+    _id: new ObjectId(),
+    userId: new ObjectId("66277f2f9652e665889cb0e5"),
+    date: new Date("2025-04-16"),
+    entries: [
+      { activity: "Reading", duration: 40, description: "40min, finished a short novel" },
+      { activity: "Studying", duration: 100, description: "1h40min physics revision" },
+      { activity: "Chores", duration: 30, description: "Cleaned room for 10min and laundry for 20min" },
+    ],
+    note: "Getting ready to leave for grandma's tomorrow.",
+    variables: [{ variable: "weight", value: "65.6" }],
+    location: { name: "Home in Paris", lat: 48.8566, lng: 2.3522 },
+  },
+  {
+    _id: new ObjectId(),
+    userId: new ObjectId("66277f2f9652e665889cb0e5"),
+    date: new Date("2025-04-17"),
+    entries: [
+      { activity: "Travel", duration: 240, description: "4h Train ride to Lyon" },
+      { activity: "Studying", duration: 60, description: "1h Reviewed flashcards on the train" },
+      { activity: "YouTube", duration: 20, description: "20min Watched news highlights" },
+    ],
+    note: "Chill travel day. Grandma cooked dinner!",
+    variables: [{ variable: "weight", value: "65.5" }],
+    location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
+  },
+  {
+    _id: new ObjectId(),
+    userId: new ObjectId("66277f2f9652e665889cb0e5"),
+    date: new Date("2025-04-18"),
+    entries: [
+      { activity: "Walking", duration: 60, description: "1h Walked to the local park" },
+      { activity: "Reading", duration: 50, description: "50min Reading in the garden" },
+      { activity: "Studying", duration: 80, description: "1h20min Worked on chemistry problems" },
+    ],
+    note: "Lyon is peaceful. Studied outside in the sun.",
+    variables: [{ variable: "weight", value: "65.4" }],
+    location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
+  },
+  {
+    _id: new ObjectId(),
+    userId: new ObjectId("66277f2f9652e665889cb0e5"),
+    date: new Date("2025-04-19"),
+    entries: [
+      { activity: "Workout", duration: 50, description: "Bodyweight full-body workout, 50min" },
+      { activity: "Reading", duration: 20, description: "Started a new book (20min)" },
+      { activity: "YouTube", duration: 40, description: "Watched judo tutorials for 40min" },
+    ],
+    note: "Keeping up with the routine even away from home.",
+    variables: [{ variable: "weight", value: "65.3" }],
+    location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
+  },
+  {
+    _id: new ObjectId(),
+    userId: new ObjectId("66277f2f9652e665889cb0e5"),
+    date: new Date("2025-04-20"),
+    entries: [
+      { activity: "Rest", duration: 0, description: "Relaxed all day" },
+      { activity: "YouTube", duration: 90, description: "Watched documentaries, 1h30min" },
+      { activity: "Studying", duration: 60, description: "1h light review of math" },
+    ],
+    note: "Took a break but still did a bit of study.",
+    variables: [{ variable: "weight", value: "65.4" }],
+    location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
+  },
 ];
 
 const Home = () => {
