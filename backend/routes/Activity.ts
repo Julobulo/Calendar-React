@@ -371,12 +371,10 @@ ActivityRoute.post('/new', async (c) => {
                 newColor = generateRandomColor();
             } while (usedColors.has(newColor));
 
+            // Ensure structure exists (safe no-op if user already exists)
             await userCollection.updateOne(
                 { _id: new ObjectId(id.toString()) },
                 {
-                    $set: {
-                        [`colors.activities.${activity}`]: newColor
-                    },
                     $setOnInsert: {
                         "colors.activities": {},
                         "colors.variables": {},
@@ -384,6 +382,16 @@ ActivityRoute.post('/new', async (c) => {
                     }
                 },
                 { upsert: true }
+            );
+
+            // Now safely update the nested activity color
+            await userCollection.updateOne(
+                { _id: new ObjectId(id.toString()) },
+                {
+                    $set: {
+                        [`colors.activities.${activity}`]: newColor
+                    }
+                }
             );
         }
     } else if (type === "variable") {
@@ -410,12 +418,10 @@ ActivityRoute.post('/new', async (c) => {
                 newColor = generateRandomColor();
             } while (usedColors.has(newColor));
 
+            // Ensure structure exists (safe no-op if user already exists)
             await userCollection.updateOne(
                 { _id: new ObjectId(id.toString()) },
                 {
-                    $set: {
-                        [`colors.variables.${variable}`]: newColor
-                    },
                     $setOnInsert: {
                         "colors.activities": {},
                         "colors.variables": {},
@@ -423,6 +429,16 @@ ActivityRoute.post('/new', async (c) => {
                     }
                 },
                 { upsert: true }
+            );
+
+            // Now safely update the nested variable color
+            await userCollection.updateOne(
+                { _id: new ObjectId(id.toString()) },
+                {
+                    $set: {
+                        [`colors.variables.${variable}`]: newColor
+                    }
+                }
             );
         }
     } else if (type === "note") {
