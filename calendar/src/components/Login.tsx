@@ -4,16 +4,16 @@ const Login = () => {
         // window.location.href = `http://localhost:8787/oauth/google`;
         window.location.href = "https://api.calendar.jules.tf/oauth/google";
     };
-    const handleGuestLogin = () => {
-        // window.location.href = `http://localhost:8787/oauth/google`;
-        window.location.href = "https://api.calendar.jules.tf/oauth/google";
-    };
+    // const handleGuestLogin = () => {
+    //     // window.location.href = `http://localhost:8787/oauth/google`;
+    //     window.location.href = "https://api.calendar.jules.tf/oauth/google";
+    // };
 
     return (
         <div className="flex flex-col items-center justify-center">
             <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">Login</h2>
             <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                <button
+                {/* <button
                     onClick={handleGuestLogin}
                     className="w-full bg-blue-600 text-white py-2 px-4 rounded-md shadow hover:bg-blue-500 flex items-center justify-center transition-colors duration-300"
                 >
@@ -28,12 +28,12 @@ const Login = () => {
                         ></path>
                     </svg>
                     <span>Continue as a guest! (not yet available)</span>
-                </button>
-                <div className="flex items-center my-4">
+                </button> */}
+                {/* <div className="flex items-center my-4">
                     <hr className="flex-grow border-t border-gray-300" />
                     <span className="px-2 text-gray-500">or</span>
                     <hr className="flex-grow border-t border-gray-300" />
-                </div>
+                </div> */}
                 <button
                     onClick={handleGoogleLogin}
                     className="w-full bg-blue-700 text-white py-2 px-4 rounded-md shadow hover:bg-blue-600 flex items-center justify-center transition-colors duration-300"
