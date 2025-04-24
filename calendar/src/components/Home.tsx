@@ -28,7 +28,7 @@ const colors: {
   variables: { [variable: string]: string };
 } = {
   activities: {
-    Coding: "#6366f1",
+    Programming: "#6366f1",
     Workout: "#f97316",     // orange-500
     Reading: "#10b981",     // emerald-500
     YouTube: "#f43f5e",     // rose-500
