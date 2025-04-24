@@ -229,16 +229,20 @@ const compareActivities = mockActivities.map(activity => {
   };
 });
 
-const activitySummary = [
-  { name: "Studying", time: 12 },
-  { name: "Gym", time: 4 },
-  { name: "Instagram", time: 6 },
-  { name: "Reading", time: 3 },
-  { name: "YouTube", time: 5.5 },
-];
+// Sum durations per activity from mockActivities
+const activityDurationMap = mockActivities.reduce((acc, { entries }) => {
+  for (const { activity, duration } of entries) {
+    acc[activity] = (acc[activity] || 0) + duration;
+  }
+  return acc;
+}, {} as Record<string, number>);
 
-const sortedActivitySummary = [...activitySummary].sort((a, b) => b.time - a.time);
-const totalActivityTime = sortedActivitySummary.reduce((sum, a) => sum + a.time, 0);
+const sortedActivitySummary = Object.entries(activityDurationMap)
+  .filter(([_, time]) => time > 0)
+  .map(([name, time]) => ({ name, time }))
+  .sort((a, b) => b.time - a.time);
+
+const totalActivityTime = sortedActivitySummary.reduce((sum, { time }) => sum + time, 0);
 
 const highestAvgPerWeek = [
   { activity: "Studying", avg: 12 },
@@ -523,7 +527,7 @@ const Home = () => {
 
           <Card>
             <CardContent>
-              <h2 className="text-xl font-bold">📊 Time Spent Per Activity</h2>
+              <h2 className="text-xl font-bold">📊 Time Spent Per Activity This Week</h2>
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
@@ -537,7 +541,7 @@ const Home = () => {
                     {sortedActivitySummary.map((entry, index) => (
                       <Cell
                         key={`cell-${index}-${entry.name}`}
-                        fill={["#6366f1", "#f43f5e", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"][index % 6]}
+                        fill={colors.activities[entry.name] || "#ccc"}
                       />
                     ))}
                   </Pie>
@@ -549,9 +553,9 @@ const Home = () => {
                       return [
                         <>
                           <div className="flex justify-between gap-2 font-medium">
-                            <span>{name} - #{rank}</span>
+                            <span>{name} — #{rank}</span>
                           </div>
-                          <div>{value}h ({percentage}%)</div>
+                          <div>{getHumanTimeFromMinutes(value)} ({percentage}%)</div>
                         </>,
                       ];
                     }}
