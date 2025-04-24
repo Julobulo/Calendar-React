@@ -5,6 +5,7 @@ import { dayNames, getHumanTimeFromMinutes, isLightOrDark, monthNames, NewUserAc
 import { VscSymbolVariable } from "react-icons/vsc";
 import { LuNotebookPen } from "react-icons/lu";
 import { toast } from "react-toastify";
+import Cookies from "js-cookie";
 
 const Calendar: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<Date>(
@@ -120,7 +121,7 @@ const Calendar: React.FC = () => {
       setActivities(activities.concat(data));
     };
 
-    fetchActivities();
+    if (Cookies.get('token')) fetchActivities();
   }, [year, month]);
 
   useEffect(() => {
@@ -137,7 +138,7 @@ const Calendar: React.FC = () => {
       setColors(data);
     };
 
-    fetchColors();
+    if (Cookies.get('token')) fetchColors();
   }, []);
 
   const renderDayCell = (
