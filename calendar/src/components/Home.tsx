@@ -61,7 +61,7 @@ const mockActivities = [
       { activity: "Reading", duration: 30, description: "30min Fiction before bed" },
     ],
     note: "Felt motivated after the workout. Starting the week strong.",
-    variables: [{ variable: "Weight (kg)", value: "65.9" }],
+    variables: [{ variable: "Weight (kg)", value: "70.9" }],
     location: { name: "Home in Paris", lat: 48.8566, lng: 2.3522 },
   },
   {
@@ -77,7 +77,7 @@ const mockActivities = [
       { activity: "Workout", duration: 40, description: "Cardio for 20min and abs for another 20min" },
     ],
     note: "Stayed mostly at the desk today, good study flow.",
-    variables: [{ variable: "Weight (kg)", value: "65.7" }],
+    variables: [{ variable: "Weight (kg)", value: "70.3" }],
     location: { name: "Home in Paris", lat: 48.8566, lng: 2.3522 },
   },
   {
@@ -93,7 +93,7 @@ const mockActivities = [
       { activity: "Reading", duration: 40, description: "40min, finished a short novel" },
     ],
     note: "Getting ready to leave for grandma's tomorrow.",
-    variables: [{ variable: "Weight (kg)", value: "65.6" }],
+    variables: [{ variable: "Weight (kg)", value: "70.1" }],
     location: { name: "Home in Paris", lat: 48.8566, lng: 2.3522 },
   },
   {
@@ -109,7 +109,7 @@ const mockActivities = [
       { activity: "Travel", duration: 240, description: "4h Train ride to Lyon" },
     ],
     note: "Chill travel day. Grandma cooked dinner!",
-    variables: [{ variable: "Weight (kg)", value: "65.5" }],
+    variables: [{ variable: "Weight (kg)", value: "69.8" }],
     location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
   },
   {
@@ -125,7 +125,7 @@ const mockActivities = [
       { activity: "Chores", duration: 60, description: "1h helped grandma with cleaning her house" },
     ],
     note: "Lyon is peaceful. Studied outside in the sun.",
-    variables: [{ variable: "Weight (kg)", value: "65.4" }],
+    variables: [{ variable: "Weight (kg)", value: "69.6" }],
     location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
   },
   {
@@ -141,7 +141,7 @@ const mockActivities = [
       { activity: "Reading", duration: 20, description: "Started a new book (20min)" },
     ],
     note: "Keeping up with the routine even away from home.",
-    variables: [{ variable: "Weight (kg)", value: "65.3" }],
+    variables: [{ variable: "Weight (kg)", value: "69.3" }],
     location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
   },
   {
@@ -157,7 +157,7 @@ const mockActivities = [
       { activity: "Rest", duration: 0, description: "Relaxed all day" },
     ],
     note: "Took a break but still did a bit of study.",
-    variables: [{ variable: "Weight (kg)", value: "65.4" }],
+    variables: [{ variable: "Weight (kg)", value: "69" }],
     location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
   },
 ];
@@ -261,16 +261,6 @@ const chartData = mockActivities.map((activity) => {
 
   return dayData;
 });
-
-const weightData = [
-  { date: '2025-04-01', weight: 70 },
-  { date: '2025-04-02', weight: 69.5 },
-  { date: '2025-04-03', weight: 69.2 },
-  { date: '2025-04-04', weight: 69.0 },
-  { date: '2025-04-05', weight: 68.8 },
-  { date: '2025-04-06', weight: 68.5 },
-  { date: '2025-04-07', weight: 68.3 },
-];
 
 const Home = () => {
   const [selectedLocation, setSelectedLocation] = useState<{ name: string, lat: number, lng: number } | null>({ name: "Home in Paris", lat: 48.8566, lng: 2.3522 });
@@ -546,44 +536,57 @@ const Home = () => {
           <Card>
             <CardContent>
               <h2 className="text-xl font-bold mb-4">🏆 Average Times Per Week</h2>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={highestAvgPerWeek}
-                    margin={{ left: 18 }}
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart
+                  data={highestAvgPerWeek}
+                  margin={{ left: 18 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="activity" />
+                  <YAxis tickFormatter={(value) => getHumanTimeFromMinutes(value)} />
+                  <Tooltip
+                    formatter={(value: number) => getHumanTimeFromMinutes(value)}
+                  />
+                  <Bar
+                    dataKey="avg"
+                    radius={[4, 4, 0, 0]}
+                    isAnimationActive={false}
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="activity" />
-                    <YAxis tickFormatter={(value) => getHumanTimeFromMinutes(value)} />
-                    <Tooltip
-                      formatter={(value: number) => getHumanTimeFromMinutes(value)}
-                    />
-                    <Bar
-                      dataKey="avg"
-                      radius={[4, 4, 0, 0]}
-                      isAnimationActive={false}
-                    >
-                      {highestAvgPerWeek.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={colors.activities[entry.activity] || "#4f46e5"}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+                    {highestAvgPerWeek.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={colors.activities[entry.activity] || "#4f46e5"}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent>
+              <h2 className="text-xl font-bold mb-4">
+                📈 <span className="font-semibold">Weight</span> Progress Over Time
+              </h2>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={weightData}>
+                <LineChart
+                  data={mockActivities
+                    .filter((entry) =>
+                      entry.variables.some((v) => v.variable === "Weight (kg)")
+                    )
+                    .map((entry) => ({
+                      date: entry.date.toISOString().split("T")[0],
+                      weight: parseFloat(
+                        entry.variables.find((v) => v.variable === "Weight (kg)")?.value!
+                      ),
+                    }))
+                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
+                  <YAxis unit="kg" />
+                  <Tooltip formatter={(value) => `${value} kg`} />
                   <Line type="monotone" dataKey="weight" stroke="#8884d8" />
                 </LineChart>
               </ResponsiveContainer>
