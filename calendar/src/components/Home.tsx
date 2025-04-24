@@ -29,9 +29,16 @@ const colors: {
 } = {
   activities: {
     Coding: "#6366f1",
-    Workout: "#22c55e",
-    Reading: "#f59e0b",
-    Meditation: "#06b6d4"
+    Workout: "#f97316",     // orange-500
+    Reading: "#10b981",     // emerald-500
+    YouTube: "#f43f5e",     // rose-500
+    Travel: "#6366f1",       // indigo-500
+    Chores: "#eab308",     // yellow-500
+    Meditation: "#8b5cf6",  // violet-500
+    Gaming: "#3b82f6",      // blue-500
+    Walking: "#22c55e",     // green-500
+    Rest: "#ec4899",       // pink-500
+    Studying: "#14b8a6",  // teal-500
   },
   variables: {
     "Weight (kg)": "#f87171",
@@ -53,7 +60,7 @@ const mockActivities = [
       { activity: "YouTube", duration: 60, description: "1h Watched productivity videos" },
     ],
     note: "Felt motivated after the workout. Starting the week strong.",
-    variables: [{ variable: "weight", value: "65.9" }],
+    variables: [{ variable: "Weight (kg)", value: "65.9" }],
     location: { name: "Home in Paris", lat: 48.8566, lng: 2.3522 },
   },
   {
@@ -69,7 +76,7 @@ const mockActivities = [
       { activity: "Workout", duration: 40, description: "Cardio for 20min and abs for another 20min" },
     ],
     note: "Stayed mostly at the desk today, good study flow.",
-    variables: [{ variable: "weight", value: "65.7" }],
+    variables: [{ variable: "Weight (kg)", value: "65.7" }],
     location: { name: "Home in Paris", lat: 48.8566, lng: 2.3522 },
   },
   {
@@ -85,7 +92,7 @@ const mockActivities = [
       { activity: "Chores", duration: 30, description: "Cleaned room for 10min and laundry for 20min" },
     ],
     note: "Getting ready to leave for grandma's tomorrow.",
-    variables: [{ variable: "weight", value: "65.6" }],
+    variables: [{ variable: "Weight (kg)", value: "65.6" }],
     location: { name: "Home in Paris", lat: 48.8566, lng: 2.3522 },
   },
   {
@@ -101,7 +108,7 @@ const mockActivities = [
       { activity: "YouTube", duration: 20, description: "20min Watched news highlights" },
     ],
     note: "Chill travel day. Grandma cooked dinner!",
-    variables: [{ variable: "weight", value: "65.5" }],
+    variables: [{ variable: "Weight (kg)", value: "65.5" }],
     location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
   },
   {
@@ -117,7 +124,7 @@ const mockActivities = [
       { activity: "Studying", duration: 80, description: "1h20min Worked on chemistry problems" },
     ],
     note: "Lyon is peaceful. Studied outside in the sun.",
-    variables: [{ variable: "weight", value: "65.4" }],
+    variables: [{ variable: "Weight (kg)", value: "65.4" }],
     location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
   },
   {
@@ -133,7 +140,7 @@ const mockActivities = [
       { activity: "YouTube", duration: 40, description: "Watched judo tutorials for 40min" },
     ],
     note: "Keeping up with the routine even away from home.",
-    variables: [{ variable: "weight", value: "65.3" }],
+    variables: [{ variable: "Weight (kg)", value: "65.3" }],
     location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
   },
   {
@@ -149,7 +156,7 @@ const mockActivities = [
       { activity: "Studying", duration: 60, description: "1h light review of math" },
     ],
     note: "Took a break but still did a bit of study.",
-    variables: [{ variable: "weight", value: "65.4" }],
+    variables: [{ variable: "Weight (kg)", value: "65.4" }],
     location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
   },
 ];
@@ -250,29 +257,27 @@ const highestAvgPerWeek = [
 //   { day: "Sun", Study: 2, YouTube: 3.5, Reading: 1 }
 // ];
 
-const stackedActivityByDay = mockActivities.map((activity) => {
-  const day = activity.date.toLocaleDateString("en-US", { weekday: "short" });
-
-  const activityDurations: Record<string, number> = {};
-
-  for (const entry of activity.entries) {
-    const hours = entry.duration / 60;
-    if (activityDurations[entry.activity]) {
-      activityDurations[entry.activity] += hours;
-    } else {
-      activityDurations[entry.activity] = hours;
-    }
-  }
-
-  return {
-    day,
-    ...activityDurations,
-  };
-});
-
 const allActivityNames = Array.from(
   new Set(mockActivities.flatMap((a) => a.entries.map((e) => e.activity)))
 );
+// const allActivityNames = [
+//   "Workout", "Reading", "YouTube", "Study", "Cooking",
+//   "Meditation", "Gaming", "Walking", "Music", "Journaling"
+// ];
+
+// Convert mockActivities into chart-friendly format
+const chartData = mockActivities.map((activity) => {
+  const day = activity.date.toLocaleDateString("en-US", { weekday: "short" });
+  const dayData: any = { day };
+
+  for (const entry of activity.entries) {
+    if (entry.duration > 0) {
+      dayData[entry.activity] = entry.duration;
+    }
+  }
+
+  return dayData;
+});
 
 const weightData = [
   { date: '2025-04-01', weight: 70 },
@@ -466,27 +471,33 @@ const Home = () => {
             <CardContent>
               <h2 className="text-xl font-bold">🧱 Time Breakdown by Day</h2>
               <ResponsiveContainer width="100%" height={250}>
-                {/* <div> */}
-                  {/* <BarChart data={stackedActivityByDay}>
-                    <XAxis dataKey="day" />
-                    <YAxis />
-                    <Tooltip formatter={(value: number, name: string) => [`${value}h`, name]} />
-                    <Legend />
-                    <Bar dataKey="Study" stackId="a" fill="#6366f1" />
-                    <Bar dataKey="YouTube" stackId="a" fill="#f43f5e" />
-                    <Bar dataKey="Reading" stackId="a" fill="#10b981" />
-                  </BarChart> */}
-                  <BarChart data={stackedActivityByDay}>
-                    <XAxis dataKey="day" />
-                    <YAxis />
-                    <Tooltip formatter={(value: number, name: string) => [`${value}h`, name]} />
-                    <Legend />
-                    {allActivityNames.map((name, i) => (
-                      <Bar key={name} dataKey={name} stackId="a" fill={colors.activities[name]} />
-                    ))}
-                  </BarChart>
-                {/* </div> */}
+                <BarChart data={chartData}>
+                  <XAxis dataKey="day" />
+                  {/* <YAxis /> */}
+                  <YAxis
+                    ticks={(() => {
+                      const maxDailyMinutes = Math.max(
+                        ...mockActivities.map((activity) =>
+                          activity.entries.reduce((sum, entry) => sum + entry.duration, 0)
+                        )
+                      );
 
+                      const maxHours = Math.ceil(maxDailyMinutes / 60);
+                      return Array.from({ length: maxHours + 1 }, (_, i) => i * 60);
+                    })()}
+                    tickFormatter={(value: number) => `${(value / 60).toFixed(0)}h`}
+                  />
+                  <Tooltip formatter={(duration: number, activity: string) => [getHumanTimeFromMinutes(duration), activity]} />
+                  <Legend />
+                  {allActivityNames.map((name) => (
+                    <Bar
+                      key={name}
+                      dataKey={name}
+                      stackId="a"
+                      fill={colors.activities[name]}
+                    />
+                  ))}
+                </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
