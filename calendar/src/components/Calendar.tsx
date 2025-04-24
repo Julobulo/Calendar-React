@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { dayNames, getHumanTimeFromMinutes, isLightOrDark, monthNames, NewUserActivity, UserActivity } from "../utils/helpers";
 import { VscSymbolVariable } from "react-icons/vsc";
 import { LuNotebookPen } from "react-icons/lu";
+import { toast } from "react-toastify";
 
 const Calendar: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<Date>(
@@ -112,7 +113,8 @@ const Calendar: React.FC = () => {
         credentials: "include"
       });
       if (!response.ok) {
-        throw new Error(`Failed to fetch activities: ${response.status}`);
+        toast.error(`Failed to fetch activities: ${(await response.json()).message}`);
+        return
       }
       const data: UserActivity[] = await response.json();
       setActivities(activities.concat(data));
@@ -128,7 +130,8 @@ const Calendar: React.FC = () => {
         credentials: "include", // Include cookies in the request
       });
       if (!response.ok) {
-        throw new Error("Failed to fetch colors");
+        toast.error(`Failed to fetch colors: ${(await response.json()).message}`);
+        return
       }
       const data = await response.json();
       setColors(data);
