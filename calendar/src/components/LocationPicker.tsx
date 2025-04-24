@@ -65,7 +65,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                 credentials: "include", // Include cookies in the request
             });
             if (!response.ok) {
-                toast.error(`Failed to fetch saved locations: ${(await response.json()).message}`);
+                // toast.error(`Failed to fetch saved locations: ${(await response.json()).message}`);
             }
             const data: Location[] = await response.json();
             setSavedLocations(data);
@@ -160,15 +160,6 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                         onClick={async (e) => {
                             e.stopPropagation(); // prevent opening the menu
                             onLocationChange(null); // clear location
-                            const res = await fetch(`${import.meta.env.VITE_API_URI}/location/dayLocation/delete`, {
-                                method: "DELETE",
-                                credentials: "include",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ year: date.getFullYear(), month: date.getMonth(), day: date.getDate(), })
-                            });
-                            if (!res.ok) {
-                                toast.error("Failed to delete location for this day.");
-                            }
                         }}
                         className="ml-1 text-gray-400 hover:text-red-500 hover:no-underline"
                         title="Clear location"

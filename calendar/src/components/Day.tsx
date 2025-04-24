@@ -431,7 +431,18 @@ const Day = () => {
                 isInitialLocationLoad.current = false;
                 return; // skip saving on initial load
             }
-            if (!selectedLocation) return;
+            if (!selectedLocation) {
+                const res = await fetch(`${import.meta.env.VITE_API_URI}/location/dayLocation/delete`, {
+                    method: "DELETE",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ year: year, month: month, day: day, })
+                });
+                if (!res.ok) {
+                    toast.error("Failed to delete location for this day.");
+                }
+                return
+            };
 
             setIsSavingLocation(true);
             const controller = new AbortController();
