@@ -63,7 +63,7 @@ const mockActivities = [
     ],
     note: "Had a productive day, talked to @Alice and @Bob in the afternoon.",
     variables: [{ variable: "Weight (kg)", value: "70.9" }],
-    location: { name: "Home in Paris", lat: 48.8566, lng: 2.3522 },
+    location: { name: "New York", lat: 40.712776, lng: -74.005974 },
   },
   {
     // _id: new ObjectId(),
@@ -79,7 +79,7 @@ const mockActivities = [
     ],
     note: "Stayed mostly at the desk today, good study flow.",
     variables: [{ variable: "Weight (kg)", value: "70.3" }],
-    location: { name: "Home in Paris", lat: 48.8566, lng: 2.3522 },
+    location: { name: "New York", lat: 40.712776, lng: -74.005974 },
   },
   {
     // _id: new ObjectId(),
@@ -95,7 +95,7 @@ const mockActivities = [
     ],
     note: "Getting ready to leave for grandma's tomorrow.",
     variables: [{ variable: "Weight (kg)", value: "70.1" }],
-    location: { name: "Home in Paris", lat: 48.8566, lng: 2.3522 },
+    location: { name: "New York", lat: 40.712776, lng: -74.005974 },
   },
   {
     // _id: new ObjectId(),
@@ -107,11 +107,11 @@ const mockActivities = [
     entries: [
       { activity: "Studying", duration: 60, description: "1h Reviewed flashcards on the train" },
       { activity: "YouTube", duration: 20, description: "20min Watched news highlights" },
-      { activity: "Travel", duration: 240, description: "4h Train ride to Lyon" },
+      { activity: "Travel", duration: 240, description: "4h Train ride from New York to Boston" },
     ],
     note: "Chill travel day. Grandma cooked dinner!",
     variables: [{ variable: "Weight (kg)", value: "69.8" }],
-    location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
+    location: { name: "Grandma's house in Boston", lat: 42.360081, lng: -71.058884 },
   },
   {
     // _id: new ObjectId(),
@@ -125,9 +125,9 @@ const mockActivities = [
       { activity: "Reading", duration: 50, description: "50min Reading in the garden" },
       { activity: "Chores", duration: 60, description: "1h helped grandma with cleaning her house" },
     ],
-    note: "Lyon is peaceful. Studied outside in the sun.",
+    note: "Boston is peaceful. Studied outside in the sun.",
     variables: [{ variable: "Weight (kg)", value: "69.6" }],
-    location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
+    location: { name: "Grandma's house in Boston", lat: 42.360081, lng: -71.058884 },
   },
   {
     // _id: new ObjectId(),
@@ -143,7 +143,7 @@ const mockActivities = [
     ],
     note: "Keeping up with the routine even away from home.",
     variables: [{ variable: "Weight (kg)", value: "69.3" }],
-    location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
+    location: { name: "Grandma's house in Boston", lat: 42.360081, lng: -71.058884 },
   },
   {
     // _id: new ObjectId(),
@@ -159,7 +159,7 @@ const mockActivities = [
     ],
     note: "Took a break but still did a bit of study.",
     variables: [{ variable: "Weight (kg)", value: "69" }],
-    location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
+    location: { name: "Grandma's house in Boston", lat: 42.360081, lng: -71.058884 },
   },
 ];
 
@@ -245,7 +245,7 @@ const scrollToSignup = () => {
 };
 
 const Home = () => {
-  const [selectedLocation, setSelectedLocation] = useState<{ name: string, lat: number, lng: number } | null>({ name: "Home in Paris", lat: 48.8566, lng: 2.3522 });
+  const [selectedLocation, setSelectedLocation] = useState<{ name: string, lat: number, lng: number } | null>({ name: "New York", lat: 40.712776, lng: -74.005974 });
   const isSavingLocation = false;
 
   const handleClick = () => { };
