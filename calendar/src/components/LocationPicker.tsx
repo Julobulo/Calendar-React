@@ -5,6 +5,7 @@ import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from "re
 import { matchSorter } from "match-sorter";
 import { toast } from "react-toastify";
 import Spinner from "./Spinner";
+import Cookies from "js-cookie";
 
 interface Location {
     name: string;
@@ -65,12 +66,12 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                 credentials: "include", // Include cookies in the request
             });
             if (!response.ok) {
-                // toast.error(`Failed to fetch saved locations: ${(await response.json()).message}`);
+                toast.error(`Failed to fetch saved locations: ${(await response.json()).message}`);
             }
             const data: Location[] = await response.json();
             setSavedLocations(data);
         };
-        fetchSavedLocations();
+        if (Cookies.get('token')) fetchSavedLocations();
     }, [reloadSavedLocations]);
 
     useEffect(() => {
@@ -191,6 +192,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                         <button
                             className="text-blue-600 hover:underline text-sm"
                             onClick={async () => {
+                                if (!Cookies.get('token')) return
                                 const res = await fetch(`${import.meta.env.VITE_API_URI}/location/newLocation`, {
                                     method: "POST",
                                     credentials: "include",
