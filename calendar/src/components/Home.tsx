@@ -589,7 +589,11 @@ const Home = () => {
                   <XAxis dataKey="date" />
                   <YAxis unit="kg" />
                   <Tooltip formatter={(value) => `${value} kg`} />
-                  <Line type="monotone" dataKey="weight" stroke="#8884d8" />
+                  <Line
+                    type="monotone"
+                    dataKey="weight"
+                    stroke={colors.variables["Weight (kg)"]}  // Use your color variable here
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
