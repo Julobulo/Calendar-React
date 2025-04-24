@@ -57,10 +57,11 @@ const mockActivities = [
     entries: [
       { activity: "Studying", duration: 130, description: "2h10min started my chemistry presentation for friday" },
       { activity: "YouTube", duration: 60, description: "1h Watched productivity videos" },
-      { activity: "Workout", duration: 45, description: "45min Chest and triceps routine" },
+      { activity: "Workout", duration: 90, description: "Push day: hit chest and triceps for 1h30min" },
       { activity: "Reading", duration: 30, description: "30min Fiction before bed" },
+      { activity: "Programming", duration: 125, description: "Worked for 2h5min on my website's UI with my friend @Alexis" },
     ],
-    note: "Felt motivated after the workout. Starting the week strong.",
+    note: "Had a productive day, talked to @Alice and @Bob in the afternoon.",
     variables: [{ variable: "Weight (kg)", value: "70.9" }],
     location: { name: "Home in Paris", lat: 48.8566, lng: 2.3522 },
   },
@@ -161,37 +162,6 @@ const mockActivities = [
     location: { name: "Grandma's house in Lyon", lat: 45.75, lng: 4.85 },
   },
 ];
-
-const mockDayActivities: {
-  entries: { activity: string, description: string, duration: number }[],
-  variables: { variable: string, value: string }[],
-  note: string
-} = {
-  entries: [
-    {
-      activity: "Coding",
-      description: "Worked for 2h5min on my website's UI with my friend @Alexis",
-      duration: 125,
-    },
-    {
-      activity: "Workout",
-      description: "Push day: hit chest and triceps for 1h30min",
-      duration: 90,
-    },
-    {
-      activity: "Reading",
-      description: "45min finished chapter on evolution",
-      duration: 45,
-    },
-  ],
-  variables: [
-    {
-      variable: "Weight (kg)",
-      value: "70",
-    },
-  ],
-  note: "Had a productive day, talked to @Alice and @Bob in the afternoon.",
-};
 
 const streaks = [
   { activity: "Workout", current: 2, longest: 10 },
@@ -296,7 +266,7 @@ const Home = () => {
           </div>
 
           <div className="w-full flex flex-col space-y-2">
-            {mockDayActivities.entries.map((entry, index) => (
+            {mockActivities[0].entries.map((entry, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 10 }}
@@ -320,12 +290,12 @@ const Home = () => {
 
             <hr className="my-4" />
 
-            {mockDayActivities.variables.map((entry, index) => (
+            {mockActivities[0].variables.map((entry, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: mockDayActivities.entries.length * 0.1 + index * 0.1 }}
+                transition={{ delay: mockActivities[0].entries.length * 0.1 + index * 0.1 }}
               >
                 <div style={{ backgroundColor: colors.variables[entry.variable] || "#ffffff" }} className="rounded-2xl shadow-md">
                   <Card className="bg-transparent">
@@ -348,14 +318,14 @@ const Home = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{
                 delay:
-                  mockDayActivities.entries.length * 0.1 +
-                  mockDayActivities.variables.length * 0.1,
+                  mockActivities[0].entries.length * 0.1 +
+                  mockActivities[0].variables.length * 0.1,
               }}
             >
               <div style={{ backgroundColor: colors.note }} className="rounded-2xl shadow-md">
                 <Card className="bg-transparent">
                   <CardContent className={`${isLightOrDark(colors.note) ? "text-black" : "text-white"} text-[14px] p-4`}>
-                    <span dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(mockDayActivities.note) }}></span>
+                    <span dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(mockActivities[0].note) }}></span>
                   </CardContent>
                 </Card>
               </div>
