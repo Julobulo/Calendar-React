@@ -38,7 +38,7 @@ const colors: {
     Gaming: "#3b82f6",      // blue-500
     Walking: "#22c55e",     // green-500
     Rest: "#ec4899",       // pink-500
-    Studying: "#14b8a6",  // teal-500
+    Studying: "#484ddb",
   },
   variables: {
     "Weight (kg)": "#f87171",
@@ -55,9 +55,10 @@ const mockActivities = [
     userId: "mockuserid",
     date: new Date("2025-04-14"),
     entries: [
+      { activity: "Studying", duration: 130, description: "2h10min started my chemistry presentation for friday" },
+      { activity: "YouTube", duration: 60, description: "1h Watched productivity videos" },
       { activity: "Workout", duration: 45, description: "45min Chest and triceps routine" },
       { activity: "Reading", duration: 30, description: "30min Fiction before bed" },
-      { activity: "YouTube", duration: 60, description: "1h Watched productivity videos" },
     ],
     note: "Felt motivated after the workout. Starting the week strong.",
     variables: [{ variable: "Weight (kg)", value: "65.9" }],
@@ -87,9 +88,9 @@ const mockActivities = [
     userId: "mockuserid",
     date: new Date("2025-04-16"),
     entries: [
-      { activity: "Reading", duration: 40, description: "40min, finished a short novel" },
       { activity: "Studying", duration: 100, description: "1h40min physics revision" },
       { activity: "Chores", duration: 30, description: "Cleaned room for 10min and laundry for 20min" },
+      { activity: "Reading", duration: 40, description: "40min, finished a short novel" },
     ],
     note: "Getting ready to leave for grandma's tomorrow.",
     variables: [{ variable: "Weight (kg)", value: "65.6" }],
@@ -103,9 +104,9 @@ const mockActivities = [
     userId: "mockuserid",
     date: new Date("2025-04-17"),
     entries: [
-      { activity: "Travel", duration: 240, description: "4h Train ride to Lyon" },
       { activity: "Studying", duration: 60, description: "1h Reviewed flashcards on the train" },
       { activity: "YouTube", duration: 20, description: "20min Watched news highlights" },
+      { activity: "Travel", duration: 240, description: "4h Train ride to Lyon" },
     ],
     note: "Chill travel day. Grandma cooked dinner!",
     variables: [{ variable: "Weight (kg)", value: "65.5" }],
@@ -119,9 +120,9 @@ const mockActivities = [
     userId: "mockuserid",
     date: new Date("2025-04-18"),
     entries: [
-      { activity: "Walking", duration: 60, description: "1h Walked to the local park" },
-      { activity: "Reading", duration: 50, description: "50min Reading in the garden" },
       { activity: "Studying", duration: 80, description: "1h20min Worked on chemistry problems" },
+      { activity: "Reading", duration: 50, description: "50min Reading in the garden" },
+      { activity: "Chores", duration: 60, description: "1h helped grandma with cleaning her house" },
     ],
     note: "Lyon is peaceful. Studied outside in the sun.",
     variables: [{ variable: "Weight (kg)", value: "65.4" }],
@@ -135,9 +136,9 @@ const mockActivities = [
     userId: "mockuserid",
     date: new Date("2025-04-19"),
     entries: [
+      { activity: "YouTube", duration: 40, description: "Watched judo tutorials for 40min" },
       { activity: "Workout", duration: 50, description: "Bodyweight full-body workout, 50min" },
       { activity: "Reading", duration: 20, description: "Started a new book (20min)" },
-      { activity: "YouTube", duration: 40, description: "Watched judo tutorials for 40min" },
     ],
     note: "Keeping up with the routine even away from home.",
     variables: [{ variable: "Weight (kg)", value: "65.3" }],
@@ -151,9 +152,9 @@ const mockActivities = [
     userId: "mockuserid",
     date: new Date("2025-04-20"),
     entries: [
-      { activity: "Rest", duration: 0, description: "Relaxed all day" },
       { activity: "YouTube", duration: 90, description: "Watched documentaries, 1h30min" },
       { activity: "Studying", duration: 60, description: "1h light review of math" },
+      { activity: "Rest", duration: 0, description: "Relaxed all day" },
     ],
     note: "Took a break but still did a bit of study.",
     variables: [{ variable: "Weight (kg)", value: "65.4" }],
