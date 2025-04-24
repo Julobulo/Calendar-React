@@ -199,16 +199,6 @@ const streaks = [
   { activity: "Reading", current: 1, longest: 7 }
 ];
 
-// const compareActivities = [
-//   { date: "Mon", Study: 2, YouTube: 3 },
-//   { date: "Tue", Study: 3, YouTube: 2 },
-//   { date: "Wed", Study: 4, YouTube: 1 },
-//   { date: "Thu", Study: 2.5, YouTube: 2.5 },
-//   { date: "Fri", Study: 3, YouTube: 3 },
-//   { date: "Sat", Study: 1.5, YouTube: 4 },
-//   { date: "Sun", Study: 2, YouTube: 3.5 }
-// ];
-
 const compareActivities = mockActivities.map(activity => {
   const date = format(new Date(activity.date), "EEE"); // e.g., "Mon"
   let studyTime = 0;
@@ -245,30 +235,18 @@ const sortedActivitySummary = Object.entries(activityDurationMap)
 const totalActivityTime = sortedActivitySummary.reduce((sum, { time }) => sum + time, 0);
 
 const highestAvgPerWeek = [
-  { activity: "Studying", avg: 12 },
-  { activity: "Gym", avg: 4 },
-  { activity: "Instagram", avg: 6 },
-  { activity: "Reading", avg: 3 },
-  { activity: "YouTube", avg: 5.5 },
+  { activity: "Studying", avg: 630 },
+  { activity: "Workout", avg: 210 },
+  { activity: "YouTube", avg: 270 },
+  { activity: "Reading", avg: 180 },
+  { activity: "Chores", avg: 150 },
+  { activity: "Travel", avg: 120 },
+  { activity: "Rest", avg: 90 },
 ];
-
-// const stackedActivityByDay = [
-//   { day: "Mon", Study: 2, YouTube: 3, Reading: 1 },
-//   { day: "Tue", Study: 3, YouTube: 2, Reading: 0.5 },
-//   { day: "Wed", Study: 4, YouTube: 1, Reading: 1 },
-//   { day: "Thu", Study: 2.5, YouTube: 2.5, Reading: 1 },
-//   { day: "Fri", Study: 3, YouTube: 3, Reading: 1 },
-//   { day: "Sat", Study: 1.5, YouTube: 4, Reading: 1 },
-//   { day: "Sun", Study: 2, YouTube: 3.5, Reading: 1 }
-// ];
 
 const allActivityNames = Array.from(
   new Set(mockActivities.flatMap((a) => a.entries.map((e) => e.activity)))
 );
-// const allActivityNames = [
-//   "Workout", "Reading", "YouTube", "Study", "Cooking",
-//   "Meditation", "Gaming", "Walking", "Music", "Journaling"
-// ];
 
 // Convert mockActivities into chart-friendly format
 const chartData = mockActivities.map((activity) => {
@@ -570,12 +548,28 @@ const Home = () => {
               <h2 className="text-xl font-bold mb-4">🏆 Average Times Per Week</h2>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={highestAvgPerWeek}>
+                  <BarChart
+                    data={highestAvgPerWeek}
+                    margin={{ left: 18 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="activity" />
-                    <YAxis unit="h" />
-                    <Tooltip formatter={(value) => `${value}h/week`} />
-                    <Bar dataKey="avg" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+                    <YAxis tickFormatter={(value) => getHumanTimeFromMinutes(value)} />
+                    <Tooltip
+                      formatter={(value: number) => getHumanTimeFromMinutes(value)}
+                    />
+                    <Bar
+                      dataKey="avg"
+                      radius={[4, 4, 0, 0]}
+                      isAnimationActive={false}
+                    >
+                      {highestAvgPerWeek.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={colors.activities[entry.activity] || "#4f46e5"}
+                        />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
