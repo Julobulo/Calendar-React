@@ -265,13 +265,20 @@ const Home = () => {
   `}
       </style>
       {/* Hero Section */}
-      <section className="text-center space-y-4 relative">
+      <section className="text-center space-y-6 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-purple-100 opacity-20 pointer-events-none rounded-xl" />
         <h1 className="text-4xl md:text-5xl font-bold text-gray-800">
           Take Control of Your Time
         </h1>
         <p className="text-lg text-gray-600">
-          Log your days, see your progress, and build better habits.
+          Our platform helps you track your daily activities, allowing you to take control of how you spend your time.
+        </p>
+        <p className="text-lg text-gray-600">
+          Each day, you can log the activities you do—from work to hobbies—and see how your time is being used.
+          This allows you to identify patterns, measure your progress, and improve your habits over time.
+        </p>
+        <p className="text-lg text-gray-600">
+          Whether you're aiming for personal growth, improved productivity, or just staying organized, this tool will help you stay on track and focused on your goals.
         </p>
         <button
           className="inline-block px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition"
