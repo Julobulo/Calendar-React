@@ -9,6 +9,7 @@ import CalendarHeatmap, { ReactCalendarHeatmapValue, TooltipDataAttrs } from 're
 import 'react-calendar-heatmap/dist/styles.css';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
+import Cookies from "js-cookie";
 
 interface DailyActivity {
   date: string;
@@ -50,7 +51,7 @@ const Statistics = () => {
       setFirstActivityDate(data.firstActivityDate ? new Date(data.firstActivityDate).toLocaleDateString() : null);
       setLifetimeActivityLoading(false);
     };
-    fetchLifetimeActivity();
+    if (Cookies.get('token')) fetchLifetimeActivity();
   }, []);
 
   useEffect(() => {
@@ -74,7 +75,7 @@ const Statistics = () => {
         setLineGraphSelected({ type: "variable", name: `variable-${firstVariable}` });
       }
     };
-    fetchColors();
+    if (Cookies.get('token')) fetchColors();
   }, []);
 
   useEffect(() => {
@@ -97,7 +98,7 @@ const Statistics = () => {
       } finally { setHeatmapLoading(false) }
     };
 
-    fetchEntryCountData();
+    if (Cookies.get('token')) fetchEntryCountData();
   }, []);
 
   const [lineGraphSelected, setLineGraphSelected] = useState<{ type: "activity" | "variable", name: string } | null>(null);
@@ -179,7 +180,7 @@ const Statistics = () => {
   };
 
   useEffect(() => {
-    fetchLineGraphData();
+    if (Cookies.get('token')) fetchLineGraphData();
   }, [lineGraphSelected]);
 
   return (
