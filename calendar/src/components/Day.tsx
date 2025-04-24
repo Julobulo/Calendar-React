@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import { MdDelete } from "react-icons/md";
 import { FaRegCalendarTimes } from "react-icons/fa";
 import { LocationPicker } from "./LocationPicker";
+import Cookies from "js-cookie";
 
 interface Location {
     name: string;
@@ -43,11 +44,12 @@ const Day = () => {
             if (!response.ok) {
                 toast.error(`Failed to fetch colors: ${(await response.json()).message}`);
                 setLoading(false);
+                return
             }
             const data = await response.json();
             setColors(data);
         };
-        fetchColors();
+        if (Cookies.get('token')) fetchColors();
     }, [reload]);
 
     useEffect(() => {
@@ -59,11 +61,12 @@ const Day = () => {
             if (!response.ok) {
                 toast.error(`Failed to fetch names: ${(await response.json()).message}`);
                 setLoading(false);
+                return;
             }
             const data = await response.json();
             setNames(data);
         };
-        fetchNames();
+        if (Cookies.get('token')) fetchNames();
     }, [reload]);
 
     useEffect(() => {
@@ -75,12 +78,13 @@ const Day = () => {
             if (!response.ok) {
                 toast.error(`Failed to fetch activities: ${(await response.json()).message}`);
                 setLoading(false);
+                return;
             }
             const data: UserActivity[] = await response.json();
             setDayActivities(data[0]);
             setLoading(false);
         }
-        fetchActivities();
+        if (Cookies.get('token')) fetchActivities();
     }, [year, month, day, reload]);
 
     const navigate = useNavigate();
@@ -106,10 +110,11 @@ const Day = () => {
 
     const [eventPopUp, setEventPopUp] = useState<{ state: "add" | "edit"; activity: string; description: string, note: string, variable: string, value: string }>({ state: "add", activity: "", description: "", note: "", variable: "", value: "" });
 
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState<boolean>(false);
 
     const handleEventFinish = async () => {
+        if (!Cookies.get('token')) return
         if (eventPopUp.state === "add") {
             setActionLoading(true);
             let body;
@@ -440,6 +445,7 @@ const Day = () => {
                 });
                 if (!res.ok) {
                     toast.error("Failed to delete location for this day.");
+                    return;
                 }
                 return
             };
@@ -467,6 +473,7 @@ const Day = () => {
                     const { message } = await response.json();
                     toast.error(`Failed to set location: ${message}`);
                     setSelectedLocation(null);
+                    return;
                 }
             } catch (err: any) {
                 if (err.name === "AbortError") {
@@ -481,7 +488,7 @@ const Day = () => {
             }
         };
 
-        setLocation();
+        if (Cookies.get('token')) setLocation();
     }, [selectedLocation]);
 
     useEffect(() => {
@@ -508,7 +515,7 @@ const Day = () => {
             setIsSavingLocation(false);
         };
 
-        fetchLocation();
+        if (Cookies.get('token')) fetchLocation();
     }, [year, month, day]);
 
     return (
