@@ -232,6 +232,18 @@ const chartData = mockActivities.map((activity) => {
   return dayData;
 });
 
+const scrollToSignup = () => {
+  const el = document.getElementById("signup");
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth" });
+
+    setTimeout(() => {
+      el.classList.add("pop-on-scroll");
+      setTimeout(() => el.classList.remove("pop-on-scroll"), 800);
+    }, 600);
+  }
+};
+
 const Home = () => {
   const [selectedLocation, setSelectedLocation] = useState<{ name: string, lat: number, lng: number } | null>({ name: "Home in Paris", lat: 48.8566, lng: 2.3522 });
   const isSavingLocation = false;
@@ -239,6 +251,19 @@ const Home = () => {
   const handleClick = () => { };
   return (
     <div className="flex flex-col gap-10 items-center justify-center p-10 pt-5 max-w-4xl mx-auto">
+      <style>
+        {`
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+
+    .pop-on-scroll {
+      animation: pop 0.8s ease;
+    }
+  `}
+      </style>
       {/* Hero Section */}
       <section className="text-center space-y-4 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-purple-100 opacity-20 pointer-events-none rounded-xl" />
@@ -248,9 +273,9 @@ const Home = () => {
         <p className="text-lg text-gray-600">
           Log your days, see your progress, and build better habits.
         </p>
-        <a href="/calendar" className="mt-4 text-lg px-6 py-3 rounded-2xl">
-          Try the Calendar
-        </a>
+        <button
+          className="inline-block px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition"
+          onClick={scrollToSignup}>→ Try the Calendar</button>
       </section>
 
       <div className="w-full">
@@ -569,26 +594,26 @@ const Home = () => {
 
       {/* Features */}
       < section className="space-y-6" >
-        <h2 className="text-2xl font-semibold mb-4">Features</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Features</h2>
         <div className="grid md:grid-cols-3 gap-6">
           <Card className="p-4 text-center hover:scale-[1.03] transition-transform">
             <CardContent>
               <div className="text-3xl">📅</div>
-              <h3 className="font-semibold mt-2">📅 Log Each Day</h3>
+              <h3 className="font-semibold mt-2">Log Each Day</h3>
               <p className="text-sm mt-1">Add activities, time, and notes — it's quick and flexible</p>
             </CardContent>
           </Card>
           <Card className="p-4 text-center hover:scale-[1.03] transition-transform">
             <CardContent>
               <div className="text-3xl">📊</div>
-              <h3 className="font-semibold mt-2">📊 View Your Progress</h3>
+              <h3 className="font-semibold mt-2">View Your Progress</h3>
               <p className="text-sm mt-1">Visualize your habits over time with clean charts</p>
             </CardContent>
           </Card>
           <Card className="p-4 text-center hover:scale-[1.03] transition-transform">
             <CardContent>
               <div className="text-3xl">🧠</div>
-              <h3 className="font-semibold mt-2">🧠 Stay Accountable</h3>
+              <h3 className="font-semibold mt-2">Stay Accountable</h3>
               <p className="text-sm mt-1">Seeing your data helps you stay consistent</p>
             </CardContent>
           </Card>
@@ -598,10 +623,11 @@ const Home = () => {
       <div className="text-center mt-8">
         <p className="text-gray-500 text-sm mb-4">Try it yourself — head to your calendar and start logging today.</p>
         <a
-          href="/calendar"
+          id="signup"
+          href="https://api.calendar.jules.tf/oauth/google"
           className="inline-block px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition"
         >
-          → Go to Calendar
+          → Sign up
         </a>
       </div>
     </div >
