@@ -75,12 +75,15 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
     useEffect(() => {
         const filterSavedLocations = () => {
+            if (!savedLocations.length) { setFilteredSavedLocations([]); return }
             if (!inputValue.trim()) {
-                setFilteredSavedLocations(savedLocations.slice(0, 3));
+                setFilteredSavedLocations(savedLocations||[].slice(0, 3));
+                if (!savedLocations||[].slice(0, 3)) setFilteredSavedLocations([])
                 return;
             }
             const filtered = matchSorter(savedLocations, inputValue, { keys: ["name"] });
-            setFilteredSavedLocations(filtered.slice(0, 3));
+            setFilteredSavedLocations(filtered||[].slice(0, 3));
+            if (!filtered||[].slice(0, 3)) setFilteredSavedLocations([])
         };
 
         const fetchOSMSuggestions = async () => {
@@ -107,7 +110,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     }, [inputValue, savedLocations]);
 
     const handleSelectLocation = (location: Location) => {
-        const alreadySaved = savedLocations.some((loc) => loc.name === location.name);
+        const alreadySaved = savedLocations||[].some((loc: any) => loc.name === location.name);
         if (alreadySaved) {
             onLocationChange(location); // Safe to set immediately
             setShowMenu(false);
@@ -236,7 +239,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
                         <div>
                             <h4 className="font-bold text-sm text-gray-500 mb-1">Saved Locations</h4>
-                            {filteredSavedLocations.map((loc, idx) => (
+                            {(filteredSavedLocations || []).map((loc, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => handleSelectLocation(loc)}
