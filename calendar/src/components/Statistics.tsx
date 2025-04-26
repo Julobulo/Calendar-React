@@ -188,8 +188,9 @@ const Statistics = () => {
 
   useEffect(() => {
     const fetchLatestWeekData = async () => {
+      setTimeBreakdownByDayLoading(true);
       const response = await fetch(`${import.meta.env.VITE_API_URI}/statistics/latest-week-data`, {
-        method: "POST",
+        method: "GET",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
       });
@@ -198,22 +199,23 @@ const Statistics = () => {
         setTimeBreakdownByDayLoading(false);
         return
       }
+      setTimeBreakdownByDayLoading(false);
       const json = await response.json();
       // Convert mockActivities into chart-friendly format
 
       setTimeBreakdownByDayData(json.map((activityDocument: UserActivity) => {
-        const day = activityDocument.date.toLocaleDateString("en-US", { weekday: "short" });
+        const day = new Date(activityDocument.date).toLocaleDateString("en-US", { weekday: "short" });
         const dayData: any = { day };
 
-        for (const entry of activityDocument.entries) {
+        for (const entry of activityDocument?.entries || []) {
           if (entry.duration > 0) {
             dayData[entry.activity] = entry.duration;
+            if (entry.activity === "Studying") console.log(`entry.activity: ${entry.activity}, entry.duration: ${entry.duration}, dayData[entry.activity]: ${dayData[entry.activity]}`)
           }
         }
 
         return dayData;
       }))
-      setTimeBreakdownByDayLoading(false);
     }
 
     if (Cookies.get('token')) fetchLatestWeekData();
@@ -507,12 +509,11 @@ const Statistics = () => {
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={timeBreakdownByDayData}>
                 <XAxis dataKey="day" />
-                {/* <YAxis /> */}
                 <YAxis
                   ticks={(() => {
                     const maxDailyMinutes = Math.max(
                       ...timeBreakdownByDayData.map((activity) =>
-                        activity.entries.reduce((sum, entry) => sum + entry.duration, 0)
+                        (activity?.entries || []).reduce((sum, entry) => sum + entry.duration, 0)
                       )
                     );
 
@@ -523,16 +524,29 @@ const Statistics = () => {
                 />
                 <Tooltip formatter={(duration: number, activity: string) => [getHumanTimeFromMinutes(duration), activity]} />
                 <Legend />
-                {Array.from(
-                  new Set(timeBreakdownByDayData.flatMap((a) => a.entries.map((e) => e.activity)))
-                ).map((name) => (
-                  <Bar
-                    key={name}
-                    dataKey={name}
-                    stackId="a"
-                    fill={colors.activities[name]}
-                  />
-                ))}
+                {
+                  // Collect all activities across all days
+                  (() => {
+                    const allActivities = new Set<string>(); // Explicitly type as string
+                    timeBreakdownByDayData.forEach((dayData) => {
+                      Object.keys(dayData).forEach((key) => {
+                        if (key !== "day") {
+                          allActivities.add(key);
+                        }
+                      });
+                    });
+
+                    // Map over all activities and create a Bar for each
+                    return Array.from(allActivities).map((name) => (
+                      <Bar
+                        key={name}
+                        dataKey={name}
+                        stackId="a"
+                        fill={colors.activities[name] || "#8884d8"}
+                      />
+                    ));
+                  })()
+                }
               </BarChart>
             </ResponsiveContainer>)
             : (<div className="text-center text-xl font-semibold text-gray-500">
