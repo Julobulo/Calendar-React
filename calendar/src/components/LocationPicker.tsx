@@ -132,7 +132,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     const [showSavePrompt, setShowSavePrompt] = useState<Location | null>(null);
 
     return (
-        <div className="relative">
+        <div className="relative" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">{format(date, "EEEE, MMMM do yyyy")}</h2>
                 <div className="flex items-center gap-1">
