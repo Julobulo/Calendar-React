@@ -235,5 +235,53 @@ StatisticsRoute.post("/line-graph", async (c) => {
     return c.json({ data: activityData });
 });
 
+StatisticsRoute.get("/latest-week-data", async (c) => {
+    App = App || new Realm.App(c.env.ATLAS_APPID);
+    const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
+    const user = await App.logIn(credentials);
+    const client = user.mongoClient("mongodb-atlas");
+    const activityCollection = client
+        .db("calendar")
+        .collection<UserActivity>("activity");
+
+    const cookieHeader = c.req.header("Cookie");
+    if (!cookieHeader) {
+        c.status(400);
+        return c.json({ message: "no cookie found" });
+    }
+
+    const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
+    let token = cookies.find((cookie) => cookie.startsWith(`token=`));
+    if (!token) {
+        c.status(400);
+        return c.json({ message: "no token found" });
+    }
+
+    token = token.split("=")[1].trim();
+
+    const id = await checkToken(token, c.env.JWT_SECRET);
+    if (!id) {
+        c.status(400);
+        return c.json({ message: "bad token" });
+    }
+
+    const today = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setUTCDate(today.getUTCDate() - 6);
+
+    // ✅ Use aggregate to filter, sort and limit directly in the database
+    const activities = await activityCollection.aggregate([
+        {
+            $match: {
+                userId: new ObjectId(id.toString()),
+                date: { $gte: sevenDaysAgo },
+            },
+        },
+        { $sort: { date: 1 } },
+        { $limit: 7 },
+    ]);
+
+    return c.json(activities);
+})
 
 export default StatisticsRoute
