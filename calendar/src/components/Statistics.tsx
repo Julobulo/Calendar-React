@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, CartesianGrid, Line } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, CartesianGrid, Line, Legend } from "recharts";
 import Spinner from "./Spinner";
-import { formatTime } from "../utils/helpers";
+import { formatTime, getHumanTimeFromMinutes, UserActivity } from "../utils/helpers";
 import { format } from "date-fns";
 import { Props } from "recharts/types/cartesian/Bar";
 import CalendarHeatmap, { ReactCalendarHeatmapValue, TooltipDataAttrs } from 'react-calendar-heatmap';
@@ -182,6 +182,42 @@ const Statistics = () => {
   useEffect(() => {
     if (Cookies.get('token')) fetchLineGraphData();
   }, [lineGraphSelected]);
+
+  const [timeBreakdownByDayLoading, setTimeBreakdownByDayLoading] = useState(false);
+  const [timeBreakdownByDayData, setTimeBreakdownByDayData] = useState<UserActivity[]>([]);
+
+  useEffect(() => {
+    const fetchLatestWeekData = async () => {
+      const response = await fetch(`${import.meta.env.VITE_API_URI}/statistics/latest-week-data`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) {
+        toast.error(`Failed to fetch time breakdown by day graph data: ${(await response.json()).message}`);
+        setTimeBreakdownByDayLoading(false);
+        return
+      }
+      const json = await response.json();
+      // Convert mockActivities into chart-friendly format
+
+      setTimeBreakdownByDayData(json.map((activityDocument: UserActivity) => {
+        const day = activityDocument.date.toLocaleDateString("en-US", { weekday: "short" });
+        const dayData: any = { day };
+
+        for (const entry of activityDocument.entries) {
+          if (entry.duration > 0) {
+            dayData[entry.activity] = entry.duration;
+          }
+        }
+
+        return dayData;
+      }))
+      setTimeBreakdownByDayLoading(false);
+    }
+
+    if (Cookies.get('token')) fetchLatestWeekData();
+  }, [])
 
   return (
     <div className="p-0 md:p-10">
@@ -457,6 +493,51 @@ const Statistics = () => {
           ) : (<div className="text-center text-xl font-semibold text-gray-500">
             No data for this {lineGraphSelected?.type || "activity"} recorded yet. Start tracking data for this {lineGraphSelected?.type || "activity"} to see data here!
           </div>)
+        )}
+      </div>
+
+      <div className="bg-white shadow rounded-2xl p-4 space-y-4 my-4">
+        <h2 className="text-xl font-bold">🧱 Time Breakdown by Day</h2>
+        {timeBreakdownByDayLoading ? (
+          <div className="flex justify-center">
+            <Spinner />
+          </div>
+        ) : (
+          (timeBreakdownByDayData?.length ?? 0) > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={timeBreakdownByDayData}>
+                <XAxis dataKey="day" />
+                {/* <YAxis /> */}
+                <YAxis
+                  ticks={(() => {
+                    const maxDailyMinutes = Math.max(
+                      ...timeBreakdownByDayData.map((activity) =>
+                        activity.entries.reduce((sum, entry) => sum + entry.duration, 0)
+                      )
+                    );
+
+                    const maxHours = Math.ceil(maxDailyMinutes / 60);
+                    return Array.from({ length: maxHours + 1 }, (_, i) => i * 60);
+                  })()}
+                  tickFormatter={(value: number) => `${(value / 60).toFixed(0)}h`}
+                />
+                <Tooltip formatter={(duration: number, activity: string) => [getHumanTimeFromMinutes(duration), activity]} />
+                <Legend />
+                {Array.from(
+                  new Set(timeBreakdownByDayData.flatMap((a) => a.entries.map((e) => e.activity)))
+                ).map((name) => (
+                  <Bar
+                    key={name}
+                    dataKey={name}
+                    stackId="a"
+                    fill={colors.activities[name]}
+                  />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>)
+            : (<div className="text-center text-xl font-semibold text-gray-500">
+              No data for this {lineGraphSelected?.type || "activity"} recorded yet. Start tracking data for this {lineGraphSelected?.type || "activity"} to see data here!
+            </div>)
         )}
       </div>
     </div>
