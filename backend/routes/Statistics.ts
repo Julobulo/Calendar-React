@@ -267,7 +267,7 @@ StatisticsRoute.get("/latest-week-data", async (c) => {
 
     const today = new Date();
     const sevenDaysAgo = new Date();
-    sevenDaysAgo.setUTCDate(today.getUTCDate() - 6);
+    sevenDaysAgo.setUTCDate(today.getUTCDate() - 7);
 
     // ✅ Use aggregate to filter, sort and limit directly in the database
     const activities = await activityCollection.aggregate([
