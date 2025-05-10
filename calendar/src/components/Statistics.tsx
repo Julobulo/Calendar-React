@@ -70,7 +70,7 @@ const Statistics = () => {
       const firstActivity = Object.keys(data.activities)[0];
       const firstVariable = Object.keys(data.variables)[0];
       if (firstActivity) {
-        setLineGraphSelected({ type: "activity", name: `activity-${firstActivity}` });
+        setLineGraphSelected({ type: "activity", name: `activity-total` });
       } else if (firstVariable) {
         setLineGraphSelected({ type: "variable", name: `variable-${firstVariable}` });
       }
