@@ -213,21 +213,23 @@ StatisticsRoute.post("/line-graph", async (c) => {
 
     const activityData = await activityCollection.aggregate([
         { $match: { userId: new ObjectId(id.toString()) } },
-        { $unwind: type === "activity" ? "$entries" : "$variables" }, // Unwind entries or variables
+        { $unwind: type === "activity" ? "$entries" : "$variables" },
         ...(isTotal ? [] : [{ $match: { [matchField]: name } }]),
         {
             $group: {
                 _id: "$date",
                 value: type === "activity"
-                    ? { $first: "$entries.duration" }  // Use $first to take the first found value for activity
-                    : { $first: "$variables.value" },   // Use $first to take the first found value for variable
+                    ? (isTotal
+                        ? { $sum: "$entries.duration" } // ✅ sum all durations for that day
+                        : { $first: "$entries.duration" }) // pick first for a specific activity
+                    : { $first: "$variables.value" },
             },
         },
         {
             $project: {
                 _id: 0,
                 date: "$_id",
-                value: 1, // return date and value (either direct value for activity or variable)
+                value: 1,
             },
         },
         { $sort: { date: 1 } },
