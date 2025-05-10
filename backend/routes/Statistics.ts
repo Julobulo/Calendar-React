@@ -207,12 +207,14 @@ StatisticsRoute.post("/line-graph", async (c) => {
         return c.json({ message: "type and name required" }, 400);
     }
 
-    const matchField = type === "activity" ? "entries.activity" : "variables.variable"; // Correct field for match
+    // Correct field for match
+    const matchField = type === "activity" ? "entries.activity" : "variables.variable";
+    const isTotal = type === "activity" && name === "total";
 
     const activityData = await activityCollection.aggregate([
         { $match: { userId: new ObjectId(id.toString()) } },
         { $unwind: type === "activity" ? "$entries" : "$variables" }, // Unwind entries or variables
-        { $match: { [matchField]: name } },
+        ...(isTotal ? [] : [{ $match: { [matchField]: name } }]),
         {
             $group: {
                 _id: "$date",
