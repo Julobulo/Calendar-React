@@ -101,7 +101,10 @@ const Statistics = () => {
     if (Cookies.get('token')) fetchEntryCountData();
   }, []);
 
-  const [lineGraphSelected, setLineGraphSelected] = useState<{ type: "activity" | "variable", name: string } | null>(null);
+  const [lineGraphSelected, setLineGraphSelected] = useState<{ type: "activity" | "variable", name: string }>({
+    type: "activity",
+    name: "activity-total",
+  });
   const [lineGraphLoading, setLineGraphLoading] = useState<boolean>(false);
   const [showAverageLineGraph, setShowAverageLineGraph] = useState<boolean>(false);
 
@@ -413,6 +416,7 @@ const Statistics = () => {
           >
             <option value="Select...">Select Activity/Variable</option>
             <optgroup label="Activities">
+              <option value="activity-total">Total (All Activities)</option>
               {Object.keys(colors.activities).map((activity, index) => (
                 <option key={index} value={`activity-${activity}`}>
                   {activity}
