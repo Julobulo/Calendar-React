@@ -621,6 +621,7 @@ const Day = () => {
                             selected={selectedDate}
                             onSelect={(date) => {
                                 if (!date) return; // Prevent clearing the date
+                                isInitialLocationLoad.current = true;
                                 setSelectedDate(date!);
                                 setCurrentMonth(date!); // Update the month when a date is selected
                                 navigate(`/calendar/day?year=${date?.getFullYear()}&month=${date?.getMonth()}&day=${date?.getDate()}`);
