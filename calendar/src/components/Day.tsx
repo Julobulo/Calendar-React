@@ -598,8 +598,13 @@ const Day = () => {
                     )}
                     {!loading && !dayActivities && (
                         <div className="flex items-center gap-2 text-gray-500 text-sm p-2">
-                            <FaRegCalendarTimes className="text-lg" />
-                            No activities recorded for today.
+                            {Cookies.get('token') ? <span><FaRegCalendarTimes className="text-lg" /> No activities recorded for today.</span> : <span><a
+                                id="signup"
+                                href="https://api.calendar.jules.tf/oauth/google"
+                                className="inline-block px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition"
+                            >
+                                → Log in
+                            </a> to record activities</span>}
                         </div>
                     )
                     }
