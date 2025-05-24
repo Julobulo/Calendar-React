@@ -10,6 +10,7 @@ import 'react-calendar-heatmap/dist/styles.css';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
 import Cookies from "js-cookie";
+import LocationTravelGraph from "./LocationMap";
 
 interface DailyActivity {
   date: string;
@@ -224,8 +225,34 @@ const Statistics = () => {
     if (Cookies.get('token')) fetchLatestWeekData();
   }, [])
 
+  const [locations, setLocations] = useState<
+    { name: string; lat: number; lng: number; date: Date }[]
+  >([]);
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      const res = await fetch(`${import.meta.env.VITE_API_URI}/statistics/getAllLocations`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!res.ok) return;
+
+      const data: { name: string; lat: number; lng: number; date: Date }[] = await res.json();
+
+      setLocations(data);
+    };
+
+    fetchLocations();
+  }, []);
+
   return (
     <div className="p-0 md:p-10">
+      <div className="bg-white shadow rounded-2xl p-4 space-y-4 my-4">
+        <h2 className="text-xl font-bold">Location travel graph</h2>
+        <LocationTravelGraph locations={locations} />
+      </div>
+
       <div className="bg-white shadow rounded-2xl p-4 space-y-4 my-4">
         <h2 className="text-xl font-bold">Total Time Spent on Activities {(!lifetimeActivityLoading && (lifetimeActivity?.length ?? 0) > 0) && `(since ${format(firstActivityDate || "", "MMMM dd, yyyy")})`}</h2>
         {lifetimeActivityLoading ? (
