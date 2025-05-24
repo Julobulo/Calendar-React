@@ -432,7 +432,9 @@ const Day = () => {
 
     useEffect(() => {
         const setLocation = async () => {
+            console.log(`setLocation is being run: ${selectedLocation?.name}`);
             if (isInitialLocationLoad.current) {
+                console.log(`not going to set location because isIntialLocationLoad is true`)
                 isInitialLocationLoad.current = false;
                 return; // skip saving on initial load
             }
