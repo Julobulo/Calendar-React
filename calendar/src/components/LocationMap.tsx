@@ -2,6 +2,7 @@ import { MapContainer, TileLayer, Marker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import { useEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
+import Timeline from './Timeline';
 
 const userIcon = new L.DivIcon({
     className: 'custom-person-icon',
@@ -38,12 +39,20 @@ interface Props {
     locations: Location[];
 }
 
+interface Stay {
+    location: string;
+    start: string;
+    end: string;
+    color?: string;
+}
+
 const MapAnimation = ({ locations }: Props) => {
     const [planePosition, setPlanePosition] = useState<[number, number] | null>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [currentDate, setCurrentDate] = useState('');
     const timelineRef = useRef<HTMLDivElement>(null);
     const [uniqueLocations, setUniqueLocations] = useState<{ name: string, lat: number, lng: number, count: number }[]>();
+    const [stays, setStays] = useState<Stay[]>([]);
 
     useEffect(() => {
         if (!locations.length) return;
@@ -59,6 +68,59 @@ const MapAnimation = ({ locations }: Props) => {
         }, {} as Record<string, Location & { count: number }>);
 
         setUniqueLocations(Object.values(locationCounts));
+
+        // Step 1: Generate a unique color per location
+        const locationColorMap: Record<string, string> = {};
+        let colorIndex = 0;
+
+        const uniqueLocationKeys = Array.from(
+            new Set(locations.map(loc => `${loc.lat},${loc.lng}`))
+        );
+
+        uniqueLocationKeys.forEach(key => {
+            // Generate distinct HSL colors
+            const hue = (colorIndex * 137.5) % 360; // Golden angle to spread colors nicely
+            locationColorMap[key] = `hsl(${hue}, 70%, 60%)`;
+            colorIndex++;
+        });
+
+        // Create "stays" array from consecutive same-location entries
+        const stays: {
+            location: string;
+            start: string;
+            end: string;
+            color?: string;
+        }[] = [];
+
+        for (let i = 0; i < locations.length;) {
+            const currentLoc = locations[i];
+            const start = currentLoc.date;
+            let end = start;
+            let j = i + 1;
+
+            while (
+                j < locations.length &&
+                locations[j].lat === currentLoc.lat &&
+                locations[j].lng === currentLoc.lng
+            ) {
+                end = locations[j].date;
+                j++;
+            }
+
+            const key = `${currentLoc.lat},${currentLoc.lng}`;
+
+            stays.push({
+                location: currentLoc.name,
+                start,
+                end,
+                color: locationColorMap[key],
+            });
+
+            i = j;
+        }
+
+        setStays(stays);
+
         let index = 0;
         const interval = setInterval(() => {
             if (index < locations.length) {
@@ -95,6 +157,15 @@ const MapAnimation = ({ locations }: Props) => {
       transform-origin: top left;
     }
   `}</style> */}
+            <Timeline
+                // stays={[
+                //     { location: 'Bloomington', start: '2025-05-01', end: '2025-05-06', color: '#60a5fa' },
+                //     { location: 'New York', start: '2025-05-07', end: '2025-05-13', color: '#f59e0b' },
+                //     { location: 'Bloomington', start: '2025-05-14', end: '2025-05-28', color: '#60a5fa' },
+                // ]}
+                stays={stays}
+                onDateSelect={(date) => console.log('Selected date:', date)}
+            />
             <div className="absolute top-0 left-0 w-full z-[1000] bg-white/80 backdrop-blur">
                 <div className="text-center text-sm font-semibold pt-1">{currentDate}</div>
                 <div
