@@ -121,12 +121,33 @@ const MapAnimation = ({ locations }: Props) => {
 
         setStays(stays);
 
+        // let index = 0;
+        // const interval = setInterval(() => {
+        //     if (index < locations.length) {
+        //         setPlanePosition([locations[index].lat, locations[index].lng]);
+        //         setCurrentDate(new Date(locations[index].date).toDateString());
+        //         setCurrentIndex(index);
+        //         index++;
+        //     } else {
+        //         clearInterval(interval);
+        //     }
+        // }, 1000);
         let index = 0;
         const interval = setInterval(() => {
-            if (index < locations.length) {
-                setPlanePosition([locations[index].lat, locations[index].lng]);
-                setCurrentDate(new Date(locations[index].date).toDateString());
-                setCurrentIndex(index);
+            if (index < stays.length) {
+                const stay = stays[index];
+
+                // Find the first location matching this stay
+                const matchingLocation = locations.find(
+                    loc => loc.name === stay.location && loc.date === stay.start
+                );
+
+                if (matchingLocation) {
+                    setPlanePosition([matchingLocation.lat, matchingLocation.lng]);
+                    setCurrentDate(new Date(matchingLocation.date).toDateString());
+                    setCurrentIndex(locations.indexOf(matchingLocation));
+                }
+
                 index++;
             } else {
                 clearInterval(interval);
