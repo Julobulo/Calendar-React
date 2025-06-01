@@ -175,22 +175,47 @@ const MapAnimation = ({ locations }: Props) => {
         return () => clearInterval(interval);
     }, [locations])
 
-    // const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    //     if (!timelineRef.current || !locations.length) return;
-    //     const rect = timelineRef.current.getBoundingClientRect();
-    //     const clickX = e.clientX - rect.left;
-    //     const width = rect.width;
-    //     const index = Math.floor((clickX / width) * locations.length);
-    //     setCurrentIndex(index);
-    //     setPlanePosition([locations[index].lat, locations[index].lng]);
-    //     setCurrentDate(new Date(locations[index].date).toDateString());
-    // };
+    const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!locations.length || !stays.length) return;
+
+        // 1. Get bounding info
+        const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const width = rect.width;
+
+        // 2. Determine date range
+        const sortedLocations = [...locations].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const minDate = new Date(sortedLocations[0].date);
+        const maxDate = new Date(sortedLocations[sortedLocations.length - 1].date);
+        const totalMs = maxDate.getTime() - minDate.getTime();
+
+        // 3. Calculate clicked date
+        const clickedRatio = clickX / width;
+        const clickedTime = minDate.getTime() + clickedRatio * totalMs;
+        const clickedDateObj = new Date(clickedTime);
+        const clickedDate = clickedDateObj.toISOString().split("T")[0];
+
+        setCurrentDate(clickedDateObj.toDateString());
+
+        // 4. Find stay that includes clicked date
+        const stay = stays.find(s => clickedDate >= s.start && clickedDate <= s.end);
+        if (stay) {
+            const matchingLoc = locations.find(loc => loc.name === stay.location && loc.date === stay.start);
+            if (matchingLoc) {
+                setPlanePosition([matchingLoc.lat, matchingLoc.lng]);
+            }
+        }
+
+        // 5. Update bar offset
+        const offsetPercent = ((clickedDateObj.getTime() - minDate.getTime()) / totalMs) * 100;
+        setBarOffset(offsetPercent);
+    };
 
     if (!locations.length) return null;
 
     return (
         <div className="relative" style={{ height: '400px' }}>
-            <div className="absolute top-0 left-0 w-full z-[1000] bg-white/80">
+            <div className="absolute top-0 left-0 w-full z-[1000] bg-white/80" onClick={(e) => handleTimelineClick(e)}>
                 <div className="text-center text-sm font-semibold pt-1">{currentDate}</div>
                 <div
                     className="absolute top-0 bottom-0 w-[2px] bg-blue-600 transition-all duration-500"
