@@ -60,10 +60,10 @@ const Timeline: React.FC<Props> = ({ stays, onDateSelect }) => {
               left: `${leftPercent}%`,
               width: `${widthPercent}%`,
               backgroundColor: stay.color || '#3b82f6',
-              borderRight: '1px solid white',
+              // borderRight: '1px solid white',
             }}
           >
-            {stay.location}
+            {/* {stay.location} */}
           </div>
         );
       })}
