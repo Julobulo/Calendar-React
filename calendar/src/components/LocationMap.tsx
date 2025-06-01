@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, Marker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import Timeline from './Timeline';
 
@@ -53,10 +53,10 @@ const MapAnimation = ({ locations }: Props) => {
     const [uniqueLocations, setUniqueLocations] = useState<{ name: string, lat: number, lng: number, count: number }[]>();
     const [stays, setStays] = useState<Stay[]>([]);
 
-    useEffect(() => {
-        if (!locations.length) return;
+    const generateStaysFromLocations = (locations: any) => {
+        if (!locations.length) return [];
         // Group locations by lat,lng (or name), counting occurrences
-        const locationCounts = locations.reduce((acc, loc) => {
+        const locationCounts = locations.reduce((acc: any, loc: any) => {
             const key = `${loc.lat},${loc.lng}`;
             if (!acc[key]) {
                 acc[key] = { ...loc, count: 1 };
@@ -73,10 +73,10 @@ const MapAnimation = ({ locations }: Props) => {
         let colorIndex = 0;
 
         const uniqueLocationKeys = Array.from(
-            new Set(locations.map(loc => `${loc.lat},${loc.lng}`))
+            new Set(locations.map((loc: any) => `${loc.lat},${loc.lng}`))
         );
 
-        uniqueLocationKeys.forEach(key => {
+        uniqueLocationKeys.forEach((key: any) => {
             // Generate distinct colors
             locationColorMap[key] = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0');;
             colorIndex++;
@@ -129,9 +129,19 @@ const MapAnimation = ({ locations }: Props) => {
 
             i = j;
         }
-        console.log(`stays: ${JSON.stringify(stays)}`);
         setStays(stays);
+        return stays;
+    }
 
+    useEffect(() => {
+        if (!locations.length) return;
+        const stays: {
+            location: string;
+            start: string;
+            end: string;
+            color?: string;
+        }[] = generateStaysFromLocations(locations);
+        if (!locations.length || !stays.length) return;
         const sortedByDate = [...locations].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         const minDate = new Date(sortedByDate[0].date);
         const maxDate = new Date(sortedByDate[sortedByDate.length - 1].date);
@@ -163,7 +173,7 @@ const MapAnimation = ({ locations }: Props) => {
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [locations]);
+    }, [locations])
 
     // const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
     //     if (!timelineRef.current || !locations.length) return;
