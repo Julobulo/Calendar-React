@@ -48,9 +48,8 @@ interface Stay {
 
 const MapAnimation = ({ locations }: Props) => {
     const [planePosition, setPlanePosition] = useState<[number, number] | null>(null);
-    const [currentIndex, setCurrentIndex] = useState(0);
+    const [barOffset, setBarOffset] = useState(0);
     const [currentDate, setCurrentDate] = useState('');
-    const timelineRef = useRef<HTMLDivElement>(null);
     const [uniqueLocations, setUniqueLocations] = useState<{ name: string, lat: number, lng: number, count: number }[]>();
     const [stays, setStays] = useState<Stay[]>([]);
 
@@ -78,13 +77,17 @@ const MapAnimation = ({ locations }: Props) => {
         );
 
         uniqueLocationKeys.forEach(key => {
-            // Generate distinct HSL colors
-            const hue = (colorIndex * 137.5) % 360; // Golden angle to spread colors nicely
-            locationColorMap[key] = `hsl(${hue}, 70%, 60%)`;
+            // Generate distinct colors
+            locationColorMap[key] = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0');;
             colorIndex++;
+
         });
 
-        // Create "stays" array from consecutive same-location entries
+        // Sort locations by date to ensure correct order
+        const sortedLocations = [...locations].sort((a, b) =>
+            new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+
         const stays: {
             location: string;
             start: string;
@@ -92,19 +95,27 @@ const MapAnimation = ({ locations }: Props) => {
             color?: string;
         }[] = [];
 
-        for (let i = 0; i < locations.length;) {
-            const currentLoc = locations[i];
+        for (let i = 0; i < sortedLocations.length;) {
+            const currentLoc = sortedLocations[i];
             const start = currentLoc.date;
-            let end = start;
+            let end: string;
             let j = i + 1;
 
             while (
-                j < locations.length &&
-                locations[j].lat === currentLoc.lat &&
-                locations[j].lng === currentLoc.lng
+                j < sortedLocations.length &&
+                sortedLocations[j].lat === currentLoc.lat &&
+                sortedLocations[j].lng === currentLoc.lng
             ) {
-                end = locations[j].date;
                 j++;
+            }
+
+            // Set end date to the day before the next location's date if it exists
+            if (j < sortedLocations.length) {
+                const nextDate = new Date(sortedLocations[j].date);
+                nextDate.setDate(nextDate.getDate() - 1); // one day before the next location
+                end = nextDate.toISOString().split("T")[0];
+            } else {
+                end = sortedLocations[sortedLocations.length - 1].date;
             }
 
             const key = `${currentLoc.lat},${currentLoc.lng}`;
@@ -118,26 +129,19 @@ const MapAnimation = ({ locations }: Props) => {
 
             i = j;
         }
-
+        console.log(`stays: ${JSON.stringify(stays)}`);
         setStays(stays);
 
-        // let index = 0;
-        // const interval = setInterval(() => {
-        //     if (index < locations.length) {
-        //         setPlanePosition([locations[index].lat, locations[index].lng]);
-        //         setCurrentDate(new Date(locations[index].date).toDateString());
-        //         setCurrentIndex(index);
-        //         index++;
-        //     } else {
-        //         clearInterval(interval);
-        //     }
-        // }, 1000);
+        const sortedByDate = [...locations].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const minDate = new Date(sortedByDate[0].date);
+        const maxDate = new Date(sortedByDate[sortedByDate.length - 1].date);
+        const totalDays = (maxDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24);
+
         let index = 0;
         const interval = setInterval(() => {
             if (index < stays.length) {
                 const stay = stays[index];
 
-                // Find the first location matching this stay
                 const matchingLocation = locations.find(
                     loc => loc.name === stay.location && loc.date === stay.start
                 );
@@ -145,7 +149,11 @@ const MapAnimation = ({ locations }: Props) => {
                 if (matchingLocation) {
                     setPlanePosition([matchingLocation.lat, matchingLocation.lng]);
                     setCurrentDate(new Date(matchingLocation.date).toDateString());
-                    setCurrentIndex(locations.indexOf(matchingLocation));
+
+                    // Compute and store offset for vertical bar
+                    const startOffsetDays = (new Date(stay.start).getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24);
+                    const offsetPercent = (startOffsetDays / totalDays) * 100;
+                    setBarOffset(offsetPercent);
                 }
 
                 index++;
@@ -157,48 +165,31 @@ const MapAnimation = ({ locations }: Props) => {
         return () => clearInterval(interval);
     }, [locations]);
 
-    const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (!timelineRef.current || !locations.length) return;
-        const rect = timelineRef.current.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const width = rect.width;
-        const index = Math.floor((clickX / width) * locations.length);
-        setCurrentIndex(index);
-        setPlanePosition([locations[index].lat, locations[index].lng]);
-        setCurrentDate(new Date(locations[index].date).toDateString());
-    };
+    // const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    //     if (!timelineRef.current || !locations.length) return;
+    //     const rect = timelineRef.current.getBoundingClientRect();
+    //     const clickX = e.clientX - rect.left;
+    //     const width = rect.width;
+    //     const index = Math.floor((clickX / width) * locations.length);
+    //     setCurrentIndex(index);
+    //     setPlanePosition([locations[index].lat, locations[index].lng]);
+    //     setCurrentDate(new Date(locations[index].date).toDateString());
+    // };
 
     if (!locations.length) return null;
 
     return (
         <div className="relative" style={{ height: '400px' }}>
-            {/* <style>{`
-    .custom-person-icon {
-      transform: scale(0.0005);
-      transform-origin: top left;
-    }
-  `}</style> */}
-            <Timeline
-                // stays={[
-                //     { location: 'Bloomington', start: '2025-05-01', end: '2025-05-06', color: '#60a5fa' },
-                //     { location: 'New York', start: '2025-05-07', end: '2025-05-13', color: '#f59e0b' },
-                //     { location: 'Bloomington', start: '2025-05-14', end: '2025-05-28', color: '#60a5fa' },
-                // ]}
-                stays={stays}
-                onDateSelect={(date) => console.log('Selected date:', date)}
-            />
-            <div className="absolute top-0 left-0 w-full z-[1000] bg-white/80 backdrop-blur">
+            <div className="absolute top-0 left-0 w-full z-[1000] bg-white/80">
                 <div className="text-center text-sm font-semibold pt-1">{currentDate}</div>
                 <div
-                    ref={timelineRef}
-                    className="relative w-full h-[30px] bg-gray-200 cursor-pointer"
-                    onClick={handleTimelineClick}
-                >
-                    <div
-                        className="absolute top-0 bottom-0 w-[2px] bg-blue-600"
-                        style={{ left: `${(currentIndex / (locations.length - 1)) * 100}%` }}
-                    ></div>
-                </div>
+                    className="absolute top-0 bottom-0 w-[2px] bg-blue-600 transition-all duration-500"
+                    style={{ left: `${barOffset}%` }}
+                ></div>
+                <Timeline
+                    stays={stays}
+                    onDateSelect={(date) => console.log('Selected date:', date)}
+                />
             </div>
             <MapContainer
                 center={[locations[0].lat, locations[0].lng]}
@@ -215,7 +206,6 @@ const MapAnimation = ({ locations }: Props) => {
                         <Tooltip>{`${loc.name}: logged ${loc.count} time${loc.count > 1 ? 's' : ''}`}</Tooltip>
                     </Marker>
                 ))}
-                {/* <Polyline positions={locations.map(loc => [loc.lat, loc.lng])} /> */}
                 {planePosition && <Marker position={planePosition} icon={userIcon} />}
             </MapContainer>
         </div>
