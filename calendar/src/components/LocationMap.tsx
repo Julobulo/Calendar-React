@@ -40,7 +40,9 @@ interface Props {
 }
 
 interface Stay {
-    location: string;
+    location: string | null;
+    lat: number;
+    lng: number;
     start: string;
     end: string;
     color?: string;
@@ -70,18 +72,22 @@ const MapAnimation = ({ locations }: Props) => {
 
         // Step 1: Generate a unique color per location
         const locationColorMap: Record<string, string> = {};
-        let colorIndex = 0;
+        // let colorIndex = 0;
 
         const uniqueLocationKeys = Array.from(
             new Set(locations.map((loc: any) => `${loc.lat},${loc.lng}`))
         );
 
-        uniqueLocationKeys.forEach((key: any) => {
-            // Generate distinct colors
-            locationColorMap[key] = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0');;
-            colorIndex++;
+        // uniqueLocationKeys.forEach((key: any) => {
+        //     // Generate distinct colors
+        //     locationColorMap[key] = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0');;
+        //     colorIndex++;
 
+        // });
+        uniqueLocationKeys.forEach((key: any, index: number) => {
+            locationColorMap[key] = index % 2 === 0 ? "#ffffff" : "#000000";
         });
+
 
         // Sort locations by date to ensure correct order
         const sortedLocations = [...locations].sort((a, b) =>
@@ -170,7 +176,7 @@ const MapAnimation = ({ locations }: Props) => {
             } else {
                 clearInterval(interval);
             }
-        }, 1000);
+        }, 2000);
 
         return () => clearInterval(interval);
     }, [locations])
@@ -216,7 +222,17 @@ const MapAnimation = ({ locations }: Props) => {
     return (
         <div className="relative" style={{ height: '400px' }}>
             <div className="absolute top-0 left-0 w-full z-[1000] bg-white/80" onClick={(e) => handleTimelineClick(e)}>
-                <div className="text-center text-sm font-semibold pt-1">{currentDate}</div>
+                <div className="text-center text-sm font-semibold pt-1">
+                    {currentDate} - {
+                        (() => {
+                            if (currentDate) {
+                                const isoDate = new Date(currentDate).toISOString().split("T")[0];
+                                const stay = stays.find(s => isoDate >= s.start && isoDate <= s.end);
+                                return stay ? stay.location : "No location name";
+                            }
+                        })()
+                    }
+                </div>
                 <div
                     className="absolute top-0 bottom-0 w-[2px] bg-blue-600 transition-all duration-500"
                     style={{ left: `${barOffset}%` }}
