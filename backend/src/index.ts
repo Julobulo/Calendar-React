@@ -30,7 +30,7 @@ type Document = globalThis.Realm.Services.MongoDB.Document;
 app.use(
   "*",
   cors({
-    origin: ["http://localhost:5173", "https://calendar.jules.tf"],
+    origin: ["http://localhost:5173", "https://calendar.jules.tools"],
     allowMethods: ["GET", "POST", "DELETE", "PUT", "PATCH"], // Allow these HTTP methods
     allowHeaders: ["Content-Type", "Authorization"], // Specify allowed headers
     credentials: true, // Allow credentials (cookies, etc.)

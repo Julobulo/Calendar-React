@@ -602,7 +602,7 @@ const Day = () => {
                         <div className="flex items-center gap-2 text-gray-500 text-sm p-2">
                             {Cookies.get('token') ? <span><FaRegCalendarTimes className="text-lg" /> No activities recorded for today.</span> : <span><a
                                 id="signup"
-                                href="https://api.calendar.jules.tf/oauth/google"
+                                href="https://api.calendar.jules.tools/oauth/google"
                                 className="inline-block px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition"
                             >
                                 → Log in
