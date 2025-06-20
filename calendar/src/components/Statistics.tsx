@@ -17,6 +17,13 @@ interface DailyActivity {
   count: { activityCount: number, variableCount: number, note: 0 | 1 };
 }
 
+interface Location {
+    name: string;
+    lat: number;
+    lng: number;
+    date: string;
+}
+
 const Statistics = () => {
   const [lifetimeActivity, setLifetimeActivity] = useState<{ activity: string, totalTime: number }[]>([]);
   const [firstActivityDate, setFirstActivityDate] = useState<string | null>(null);
@@ -214,7 +221,7 @@ const Statistics = () => {
         for (const entry of activityDocument?.entries || []) {
           if (entry.duration > 0) {
             dayData[entry.activity] = entry.duration;
-            if (entry.activity === "Studying") console.log(`entry.activity: ${entry.activity}, entry.duration: ${entry.duration}, dayData[entry.activity]: ${dayData[entry.activity]}`)
+            // if (entry.activity === "Studying") console.log(`entry.activity: ${entry.activity}, entry.duration: ${entry.duration}, dayData[entry.activity]: ${dayData[entry.activity]}`)
           }
         }
 
@@ -226,7 +233,7 @@ const Statistics = () => {
   }, [])
 
   const [locations, setLocations] = useState<
-    { name: string; lat: number; lng: number; date: Date }[]
+    Location[]
   >([]);
 
   useEffect(() => {
@@ -238,7 +245,7 @@ const Statistics = () => {
 
       if (!res.ok) return;
 
-      const data: { name: string; lat: number; lng: number; date: Date }[] = await res.json();
+      const data: Location[] = await res.json();
 
       setLocations(data);
     };
