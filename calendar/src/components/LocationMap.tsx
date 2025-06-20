@@ -40,7 +40,7 @@ interface Props {
 }
 
 interface Stay {
-    location: string | null;
+    location: string;
     lat: number;
     lng: number;
     start: string;
@@ -48,129 +48,118 @@ interface Stay {
     color?: string;
 }
 
+interface UniqueLocation {
+    name: string | null;
+    lat: number;
+    lng: number;
+    count: number; // total number of days stayed
+}
+
 const MapAnimation = ({ locations }: Props) => {
     const [planePosition, setPlanePosition] = useState<[number, number] | null>(null);
     const [barOffset, setBarOffset] = useState(0);
     const [currentDate, setCurrentDate] = useState('');
-    const [uniqueLocations, setUniqueLocations] = useState<{ name: string, lat: number, lng: number, count: number }[]>();
+    const [uniqueLocations, setUniqueLocations] = useState<UniqueLocation[]>();
     const [stays, setStays] = useState<Stay[]>([]);
 
-    const generateStaysFromLocations = (locations: any) => {
+    function generateStays(locations: Location[]): Stay[] {
         if (!locations.length) return [];
-        // Group locations by lat,lng (or name), counting occurrences
-        const locationCounts = locations.reduce((acc: any, loc: any) => {
-            const key = `${loc.lat},${loc.lng}`;
-            if (!acc[key]) {
-                acc[key] = { ...loc, count: 1 };
-            } else {
-                acc[key].count += 1;
-            }
-            return acc;
-        }, {} as Record<string, Location & { count: number }>);
 
-        setUniqueLocations(Object.values(locationCounts));
-
-        // Step 1: Generate a unique color per location
-        const locationColorMap: Record<string, string> = {};
-        // let colorIndex = 0;
-
-        const uniqueLocationKeys = Array.from(
-            new Set(locations.map((loc: any) => `${loc.lat},${loc.lng}`))
+        // Sort locations chronologically
+        const sorted = [...locations].sort(
+            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
         );
 
-        // uniqueLocationKeys.forEach((key: any) => {
-        //     // Generate distinct colors
-        //     locationColorMap[key] = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0');;
-        //     colorIndex++;
+        const stays: Stay[] = [];
+        let i = 0;
 
-        // });
-        uniqueLocationKeys.forEach((key: any, index: number) => {
-            locationColorMap[key] = index % 2 === 0 ? "#ffffff" : "#000000";
-        });
-
-
-        // Sort locations by date to ensure correct order
-        const sortedLocations = [...locations].sort((a, b) =>
-            new Date(a.date).getTime() - new Date(b.date).getTime()
-        );
-
-        const stays: {
-            location: string;
-            start: string;
-            end: string;
-            color?: string;
-        }[] = [];
-
-        for (let i = 0; i < sortedLocations.length;) {
-            const currentLoc = sortedLocations[i];
-            const start = currentLoc.date;
-            let end: string;
+        while (i < sorted.length) {
+            const current = sorted[i];
+            const start = current.date;
+            const lat = current.lat;
+            const lng = current.lng;
+            const location = current.name || null;
             let j = i + 1;
 
             while (
-                j < sortedLocations.length &&
-                sortedLocations[j].lat === currentLoc.lat &&
-                sortedLocations[j].lng === currentLoc.lng
+                j < sorted.length &&
+                sorted[j].lat === lat &&
+                sorted[j].lng === lng
             ) {
                 j++;
             }
 
-            // Set end date to the day before the next location's date if it exists
-            if (j < sortedLocations.length) {
-                const nextDate = new Date(sortedLocations[j].date);
-                nextDate.setDate(nextDate.getDate() - 1); // one day before the next location
-                end = nextDate.toISOString().split("T")[0];
-            } else {
-                end = sortedLocations[sortedLocations.length - 1].date;
-            }
-
-            const key = `${currentLoc.lat},${currentLoc.lng}`;
+            const end = j < sorted.length
+                ? new Date(new Date(sorted[j].date).getTime() - 86400000).toISOString().split("T")[0]
+                : sorted[sorted.length - 1].date;
 
             stays.push({
-                location: currentLoc.name,
+                location: location || '',
+                lat,
+                lng,
                 start,
                 end,
-                color: locationColorMap[key],
             });
 
             i = j;
         }
-        setStays(stays);
+
         return stays;
+    }
+
+    function countDaysPerLocation(stays: Stay[]): UniqueLocation[] {
+        const locationMap = new Map<string, UniqueLocation>();
+
+        stays.forEach((stay) => {
+            const key = `${stay.lat},${stay.lng}`;
+            const startDate = new Date(stay.start);
+            const endDate = new Date(stay.end);
+
+            // Calculate number of days in this stay (inclusive)
+            const days =
+                Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+            if (!locationMap.has(key)) {
+                locationMap.set(key, {
+                    name: stay.location,
+                    lat: stay.lat,
+                    lng: stay.lng,
+                    count: days,
+                });
+            } else {
+                const existing = locationMap.get(key)!;
+                existing.count += days;
+            }
+        });
+
+        return Array.from(locationMap.values());
     }
 
     useEffect(() => {
         if (!locations.length) return;
-        const stays: {
-            location: string;
-            start: string;
-            end: string;
-            color?: string;
-        }[] = generateStaysFromLocations(locations);
+        const stays: Stay[] = generateStays(locations);
+        setStays(stays);
+        console.log(`stays: ${JSON.stringify(stays)}`);
+        setUniqueLocations(countDaysPerLocation(stays));
         if (!locations.length || !stays.length) return;
-        const sortedByDate = [...locations].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        const minDate = new Date(sortedByDate[0].date);
-        const maxDate = new Date(sortedByDate[sortedByDate.length - 1].date);
+        const sortedStays = [...stays].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+        const minDate = new Date(sortedStays[0].start);
+        const maxDate = new Date(sortedStays[sortedStays.length - 1].end);
         const totalDays = (maxDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24);
 
         let index = 0;
         const interval = setInterval(() => {
             if (index < stays.length) {
                 const stay = stays[index];
+                setPlanePosition([stay.lat, stay.lng]);
+                setCurrentDate(new Date(stay.start).toDateString());
 
-                const matchingLocation = locations.find(
-                    loc => loc.name === stay.location && loc.date === stay.start
-                );
+                // Compute and store offset for vertical bar
+                const startOffsetDays = (new Date(stay.start).getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24);
+                const offsetPercent = (startOffsetDays / totalDays) * 100;
+                setBarOffset(offsetPercent);
 
-                if (matchingLocation) {
-                    setPlanePosition([matchingLocation.lat, matchingLocation.lng]);
-                    setCurrentDate(new Date(matchingLocation.date).toDateString());
-
-                    // Compute and store offset for vertical bar
-                    const startOffsetDays = (new Date(stay.start).getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24);
-                    const offsetPercent = (startOffsetDays / totalDays) * 100;
-                    setBarOffset(offsetPercent);
-                }
+                console.log(`stay location: ${stay.location}, start date: ${stay.start}, end date: ${stay.end}`)
 
                 index++;
             } else {
@@ -205,6 +194,7 @@ const MapAnimation = ({ locations }: Props) => {
 
         // 4. Find stay that includes clicked date
         const stay = stays.find(s => clickedDate >= s.start && clickedDate <= s.end);
+        console.log(`stay clicked: ${JSON.stringify(stay)}`)
         if (stay) {
             const matchingLoc = locations.find(loc => loc.name === stay.location && loc.date === stay.start);
             if (matchingLoc) {
@@ -217,7 +207,7 @@ const MapAnimation = ({ locations }: Props) => {
         setBarOffset(offsetPercent);
     };
 
-    if (!locations.length) return null;
+    if (!locations.length || !stays.length) return null;
 
     return (
         <div className="relative" style={{ height: '400px' }}>
@@ -225,9 +215,19 @@ const MapAnimation = ({ locations }: Props) => {
                 <div className="text-center text-sm font-semibold pt-1">
                     {currentDate} - {
                         (() => {
+                            console.log(`click: current date: ${currentDate}`)
                             if (currentDate) {
-                                const isoDate = new Date(currentDate).toISOString().split("T")[0];
-                                const stay = stays.find(s => isoDate >= s.start && isoDate <= s.end);
+                                const targetDate = new Date(currentDate);
+                                targetDate.setHours(0, 0, 0, 0);
+
+                                const stay = stays.find(s => {
+                                    const start = new Date(s.start);
+                                    const end = new Date(s.end);
+                                    start.setHours(0, 0, 0, 0);
+                                    end.setHours(0, 0, 0, 0);
+                                    return targetDate >= start && targetDate <= end;
+                                });
+
                                 return stay ? stay.location : "No location name";
                             }
                         })()
