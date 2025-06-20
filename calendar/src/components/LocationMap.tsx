@@ -134,7 +134,9 @@ const MapAnimation = ({ locations }: Props) => {
 
         return Array.from(locationMap.values());
     }
-
+const daysBetween = (start: Date, end: Date) => {
+  return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+};
     useEffect(() => {
         if (!locations.length) return;
         const stays: Stay[] = generateStays(locations);
@@ -145,7 +147,7 @@ const MapAnimation = ({ locations }: Props) => {
         const sortedStays = [...stays].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
         const minDate = new Date(sortedStays[0].start);
         const maxDate = new Date(sortedStays[sortedStays.length - 1].end);
-        const totalDays = (maxDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24);
+        const totalDays = daysBetween(minDate, maxDate) + 1;
 
         let index = 0;
         const interval = setInterval(() => {
@@ -154,8 +156,7 @@ const MapAnimation = ({ locations }: Props) => {
                 setPlanePosition([stay.lat, stay.lng]);
                 setCurrentDate(new Date(stay.start).toDateString());
 
-                // Compute and store offset for vertical bar
-                const startOffsetDays = (new Date(stay.start).getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24);
+                const startOffsetDays = daysBetween(minDate, new Date(stay.start));
                 const offsetPercent = (startOffsetDays / totalDays) * 100;
                 setBarOffset(offsetPercent);
 
@@ -234,7 +235,7 @@ const MapAnimation = ({ locations }: Props) => {
                     }
                 </div>
                 <div
-                    className="absolute top-0 bottom-0 w-[2px] bg-blue-600 transition-all duration-500"
+                    className="absolute top-0 bottom-0 w-[1px] bg-red-600 transition-all duration-500"
                     style={{ left: `${barOffset}%` }}
                 ></div>
                 <Timeline
