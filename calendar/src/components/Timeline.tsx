@@ -1,5 +1,3 @@
-import React from 'react';
-
 type Stay = {
   location: string;
   start: string; // ISO date
@@ -52,15 +50,19 @@ const Timeline: React.FC<Props> = ({ stays, onDateSelect }) => {
         const leftPercent = (offset / totalDays) * 100;
         const widthPercent = (width / totalDays) * 100;
 
+        const isEven = i % 2 === 0;
+        const bgColor = isEven ? '#ffffff' : '#000000';
+        const textColor = isEven ? '#000000' : '#ffffff';
+
         return (
           <div
             key={i}
-            className="absolute top-0 bottom-0 text-xs text-white flex items-center justify-center"
+            className="absolute top-0 bottom-0 text-xs flex items-center justify-center"
             style={{
               left: `${leftPercent}%`,
               width: `${widthPercent}%`,
-              backgroundColor: stay.color || '#3b82f6',
-              // borderRight: '1px solid white',
+              backgroundColor: bgColor,
+              color: textColor,
             }}
           >
             {/* {stay.location} */}
@@ -69,6 +71,7 @@ const Timeline: React.FC<Props> = ({ stays, onDateSelect }) => {
       })}
     </div>
   );
+
 };
 
 export default Timeline;
