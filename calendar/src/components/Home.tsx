@@ -21,6 +21,8 @@ import { Card, CardContent } from "./Card";
 import { FaRegClock } from "react-icons/fa";
 import { TbTarget } from "react-icons/tb";
 import { format } from "date-fns";
+import Cookies from "js-cookie";
+import { useNavigate } from "react-router-dom";
 
 const colors: {
   activities: { [activity: string]: string };
@@ -247,6 +249,7 @@ const scrollToSignup = () => {
 const Home = () => {
   const [selectedLocation, setSelectedLocation] = useState<{ name: string, lat: number, lng: number } | null>({ name: "New York", lat: 40.712776, lng: -74.005974 });
   const isSavingLocation = false;
+  const navigate = useNavigate();
 
   const handleClick = () => { };
   return (
@@ -282,7 +285,12 @@ const Home = () => {
         </p>
         <button
           className="inline-block px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition"
-          onClick={scrollToSignup}>→ Try the Calendar</button>
+          onClick={() => {
+            if (Cookies.get('token')) {
+              navigate('/calendar/day')
+            }
+            else scrollToSignup()
+          }}>→ Try the Calendar</button>
       </section>
 
       <div className="w-full">
