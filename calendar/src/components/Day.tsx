@@ -541,10 +541,8 @@ const Day = () => {
                             {(dayActivities.entries?.length ?? 0) > 0 && dayActivities.entries.map((entry, index) => (
                                 <div
                                     key={index}
-                                    style={{
-                                        backgroundColor: colors.activities[entry.activity] || "#ffffff", // Default color if no match found
-                                    }}
-                                    className={`text-[14px] ${isLightOrDark(colors.activities[entry.activity]) ? 'text-black' : 'text-white'} rounded-lg px-3 py-2`}
+                                    style={{ backgroundColor: colors.activities[entry.activity] || "#ffffff" }}
+                                    className="rounded-2xl shadow-md"
                                     onClick={(e) => {
                                         e.stopPropagation(); // Prevent handleClick from running
                                         setSelectedForm("activity");
@@ -552,7 +550,27 @@ const Day = () => {
                                         setMobileShowForm(true);
                                     }}
                                 >
-                                    {entry.activity} - {getHumanTimeFromMinutes(entry.duration)} - <span dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(entry.description) }}></span>
+                                    <div
+                                        className={`p-4 text-left text-[14px] ${isLightOrDark(colors.activities[entry.activity]) ? "text-black" : "text-white"
+                                            }`}
+                                    >
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex items-center space-x-2">
+                                                <h3 className="font-semibold text-lg">{entry.activity}</h3>
+                                                <span className="text-sm opacity-90">({getHumanTimeFromMinutes(entry.duration)})</span>
+                                            </div>
+                                            {entry.time && (
+                                                <span className="text-sm opacity-80">{entry.time}</span>
+                                            )}
+                                        </div>
+
+                                        <p
+                                            className="text-sm leading-snug mt-1"
+                                            dangerouslySetInnerHTML={{
+                                                __html: highlightTimesAndNames(entry.description),
+                                            }}
+                                        ></p>
+                                    </div>
                                 </div>
                             ))}
                             {(dayActivities.variables?.length ?? 0) > 0 && (
