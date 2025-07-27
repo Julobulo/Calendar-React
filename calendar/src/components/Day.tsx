@@ -91,10 +91,10 @@ const Day = () => {
     const handleClick = () => {
         if (window.innerWidth < 768) {
             setMobileShowForm(true);
-            setEventPopUp({ state: "add", activity: "", description: "", note: "", variable: "", value: "" });
+            setEventPopUp({ state: "add", activity: "", description: "", time: new Date().toISOString().slice(11, 16), note: "", variable: "", value: "" });
         }
         else {
-            setEventPopUp({ state: "add", activity: "", description: "", note: "", variable: "", value: "" });
+            setEventPopUp({ state: "add", activity: "", description: "", time: new Date().toISOString().slice(11, 16), note: "", variable: "", value: "" });
         }
     };
 
@@ -108,7 +108,7 @@ const Day = () => {
         localStorage.setItem('year', selectedDate.getFullYear().toString());
     }, [selectedDate])
 
-    const [eventPopUp, setEventPopUp] = useState<{ state: "add" | "edit"; activity: string; description: string, note: string, variable: string, value: string }>({ state: "add", activity: "", description: "", note: "", variable: "", value: "" });
+    const [eventPopUp, setEventPopUp] = useState<{ state: "add" | "edit"; activity: string; description: string, time: string, note: string, variable: string, value: string }>({ state: "add", activity: "", description: "", time: "", note: "", variable: "", value: "" });
 
     const [loading, setLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState<boolean>(false);
@@ -127,6 +127,7 @@ const Day = () => {
                     type: "activity",
                     activity: eventPopUp.activity,
                     description: eventPopUp.description,
+                    time: eventPopUp.time,
                 }
             } else if (selectedForm === "note") {
                 if (!eventPopUp.note) { toast.error('Please fill in the note'); setActionLoading(false); return }
@@ -162,7 +163,7 @@ const Day = () => {
                 console.log(`the event wasn't successfully created`);
             }
             else {
-                setEventPopUp({ state: "add", activity: "", description: "", note: "", variable: "", value: "" });
+                setEventPopUp({ state: "add", activity: "", description: "", time: "", note: "", variable: "", value: "" });
                 setReload(!reload);
             }
             setActionLoading(false);
@@ -179,6 +180,7 @@ const Day = () => {
                     type: "activity",
                     activity: eventPopUp.activity,
                     description: eventPopUp.description,
+                    time: eventPopUp.time,
                 }
             } else if (selectedForm === "note") {
                 if (!eventPopUp.note) { toast.error('Please fill in the note'); setActionLoading(false); return }
@@ -214,7 +216,7 @@ const Day = () => {
                 console.log(`the event wasn't successfully edited`);
             }
             else {
-                setEventPopUp({ state: "add", activity: "", description: "", note: "", variable: "", value: "" });
+                setEventPopUp({ state: "add", activity: "", description: "", time: "", note: "", variable: "", value: "" });
                 setReload(!reload);
             }
             setTimeout('', 5000);
@@ -264,7 +266,7 @@ const Day = () => {
             console.log(`the event wasn't successfully deleted`);
         }
         else {
-            setEventPopUp({ state: "add", activity: "", description: "", note: "", variable: "", value: "" });
+            setEventPopUp({ state: "add", activity: "", description: "", time: "", note: "", variable: "", value: "" });
             setReload(!reload);
         }
         setMobileShowForm(false);
@@ -546,7 +548,7 @@ const Day = () => {
                                     onClick={(e) => {
                                         e.stopPropagation(); // Prevent handleClick from running
                                         setSelectedForm("activity");
-                                        setEventPopUp({ state: "edit", activity: entry.activity, description: entry.description, note: "", variable: "", value: "" });
+                                        setEventPopUp({ state: "edit", activity: entry.activity, description: entry.description, time: entry.time || "", note: "", variable: "", value: "" });
                                         setMobileShowForm(true);
                                     }}
                                 >
@@ -586,7 +588,7 @@ const Day = () => {
                                             onClick={(e) => {
                                                 e.stopPropagation(); // Prevent handleClick from running
                                                 setSelectedForm("variable");
-                                                setEventPopUp({ state: "edit", activity: "", description: "", variable: entry.variable, value: entry.value, note: "" })
+                                                setEventPopUp({ state: "edit", activity: "", description: "", time: "", variable: entry.variable, value: entry.value, note: "" })
                                                 setMobileShowForm(true);
                                             }}
                                         >
@@ -606,7 +608,7 @@ const Day = () => {
                                         onClick={(e) => {
                                             e.stopPropagation(); // Prevent handleClick from running
                                             setSelectedForm("note");
-                                            setEventPopUp({ state: "edit", activity: "", description: "", note: dayActivities?.note || "", variable: "", value: "" })
+                                            setEventPopUp({ state: "edit", activity: "", description: "", time: "", note: dayActivities?.note || "", variable: "", value: "" })
                                             setMobileShowForm(true);
                                         }}
                                     >
@@ -654,7 +656,7 @@ const Day = () => {
                     {/* Dropdown to select form type */}
                     <select
                         value={selectedForm}
-                        onChange={(e) => { setSelectedForm(e.target.value as "activity" | "note" | "variable"); setEventPopUp({ state: "add", activity: "", description: "", note: "", variable: "", value: "" }) }}
+                        onChange={(e) => { setSelectedForm(e.target.value as "activity" | "note" | "variable"); setEventPopUp({ state: "add", activity: "", description: "", time: "", note: "", variable: "", value: "" }) }}
                         className="p-4 border mb-4 rounded w-full mx-auto lg:mr-2 xl:mr-14 bg-white focus:bg-gray-200"
                         style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}
                     >
@@ -692,6 +694,17 @@ const Day = () => {
                                         ))}
                                     </ul>
                                 )}
+                                <input
+                                    type="time"
+                                    className="w-full p-2 border mt-2 rounded"
+                                    value={eventPopUp.time ?? new Date().toISOString().slice(11, 16)} // fallback to current time if undefined
+                                    onChange={(e) =>
+                                        setEventPopUp((prev) => ({
+                                            ...prev,
+                                            time: e.target.value,
+                                        }))
+                                    }
+                                />
                                 <textarea
                                     placeholder="Description, e.g. 1h22min morning run, followed by a 15min evening run"
                                     className="w-full p-2 border mt-2 rounded"
