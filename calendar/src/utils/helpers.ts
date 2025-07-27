@@ -91,6 +91,7 @@ export interface ActivityEntry {
     activity: string;
     duration: number; // number of minutes
     description: string;
+    time?: string;
 }
 
 interface Location {
