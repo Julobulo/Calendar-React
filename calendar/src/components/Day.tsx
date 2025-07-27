@@ -81,7 +81,24 @@ const Day = () => {
                 return;
             }
             const data: UserActivity[] = await response.json();
-            setDayActivities(data[0]);
+            const sortedActivities = data[0].entries.sort((a, b) => {
+                const aHasTime = typeof a.time === "string";
+                const bHasTime = typeof b.time === "string";
+                if (aHasTime && bHasTime) {
+                    // Compare times: "HH:MM"
+                    return a.time!.localeCompare(b.time!);
+                } else if (aHasTime) {
+                    return -1; // a before b
+                } else if (bHasTime) {
+                    return 1; // b before a
+                } else {
+                    return 0; // both have no time
+                }
+            })
+            setDayActivities({
+                ...data[0],
+                entries: sortedActivities
+            });
             setLoading(false);
         }
         if (Cookies.get('token')) fetchActivities();
