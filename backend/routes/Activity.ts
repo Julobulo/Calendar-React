@@ -320,9 +320,10 @@ ActivityRoute.post('/new', async (c) => {
         return c.json({ message: "bad token" });
     }
 
-    let { year, month, day, type, activity, description, note, variable, value } = await c.req.json();
+    let { year, month, day, type, activity, description, time, note, variable, value } = await c.req.json();
     activity = (activity || "").trim();
     description = (description || "").trim();
+    time = (time || "").trim();
     note = (note || "").trim();
     variable = (variable || "").trim();
     value = (value || "").trim();
@@ -348,7 +349,8 @@ ActivityRoute.post('/new', async (c) => {
         const newEntry: ActivityEntry = {
             activity,
             duration: getTimeFromLongString(description),
-            description
+            description,
+            time,
         };
 
         if (existingEntry) {
@@ -501,9 +503,10 @@ ActivityRoute.patch('/edit', async (c) => {
     }
 
     // Parse request body
-    let { year, month, day, type, activity, description, note, variable, value } = await c.req.json();
+    let { year, month, day, type, activity, description, time, note, variable, value } = await c.req.json();
     activity = (activity || "").trim();
     description = (description || "").trim();
+    time = (time || "").trim();
     note = (note || "").trim();
     variable = (variable || "").trim();
     value = (value || "").trim();
@@ -521,7 +524,7 @@ ActivityRoute.patch('/edit', async (c) => {
 
     if (type === "activity") {
         if (!activity || !description) return c.json({ message: "Missing activity fields" }, 400);
-        const newEntry: ActivityEntry = { activity, duration: getTimeFromLongString(description), description };
+        const newEntry: ActivityEntry = { activity, duration: getTimeFromLongString(description), description, time };
 
         if (!existingEntry.entries || !existingEntry.entries.some(e => e.activity === activity)) {
             return c.json({ message: "Activity not defined for this date" }, 400);
@@ -529,7 +532,8 @@ ActivityRoute.patch('/edit', async (c) => {
         updateQuery = {
             $set: {
                 "entries.$[elem].description": description,
-                "entries.$[elem].duration": getTimeFromLongString(description)
+                "entries.$[elem].duration": getTimeFromLongString(description),
+                "entries.$[elem].time": time,
             }
         };
     }
