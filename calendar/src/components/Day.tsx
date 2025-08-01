@@ -81,7 +81,7 @@ const Day = () => {
                 return;
             }
             const data: UserActivity[] = await response.json();
-            const sortedActivities = data[0].entries.sort((a, b) => {
+            const sortedActivities = data[0]?.entries.sort((a, b) => {
                 const aHasTime = typeof a.time === "string";
                 const bHasTime = typeof b.time === "string";
                 if (aHasTime && bHasTime) {
@@ -95,10 +95,7 @@ const Day = () => {
                     return 0; // both have no time
                 }
             })
-            setDayActivities({
-                ...data[0],
-                entries: sortedActivities
-            });
+            if (data[0]) {setDayActivities({ ...data[0], entries: sortedActivities || [] })} else {setDayActivities(undefined)}
             setLoading(false);
         }
         if (Cookies.get('token')) fetchActivities();
