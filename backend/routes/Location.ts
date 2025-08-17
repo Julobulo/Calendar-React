@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import * as Realm from "realm-web";
-import { checkToken, isActivityDocumentEmpty } from "../utils/helpers";
+import { checkToken, getDb, isActivityDocumentEmpty } from "../utils/helpers";
 import { User } from "../models/UserModel";
 import { ObjectId } from "bson";
 import { UserActivity } from "../models/UserActivityModel";
@@ -20,12 +20,9 @@ const LocationRoute = new Hono<{ Bindings: Bindings }>();
 let App: Realm.App;
 
 async function getUser(c: any) {
-    App = App || new Realm.App(c.env.ATLAS_APPID);
-    const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
-    const user = await App.logIn(credentials);
-    const client = user.mongoClient("mongodb-atlas");
-    const userCollection = client.db("calendar").collection<User>("users");
-    const activityCollection = client.db("calendar").collection<UserActivity>("activity")
+    const db = await getDb(c, "calendar");
+    const userCollection = db.collection<User>("users");
+    const activityCollection = db.collection<UserActivity>('activity');
 
     const cookieHeader = c.req.header("Cookie");
     if (!cookieHeader) throw new Error("no cookie found");

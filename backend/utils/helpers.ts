@@ -68,3 +68,24 @@ export const defaultVariables = {
 };
 
 export const defaultNoteColor = "#D9EAFB";
+
+
+import * as Realm from "realm-web";
+import { Context } from "hono";
+
+let app: Realm.App | null = null;
+let cachedUser: Realm.User | null = null;
+
+export async function getDb(c: Context, dbName: string) {
+  if (!app) {
+    app = new Realm.App({ id: c.env.ATLAS_APPID });
+  }
+
+  if (!cachedUser || !cachedUser.isLoggedIn) {
+    const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
+    cachedUser = await app.logIn(credentials);
+  }
+
+  const client = cachedUser.mongoClient("mongodb-atlas");
+  return client.db(dbName);
+}

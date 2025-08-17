@@ -4,7 +4,7 @@ import { ObjectId } from "bson";
 import { ActivityEntry, NewUserActivity, UserActivity } from "../models/UserActivityModel";
 import { User } from "../models/UserModel";
 import { generateRandomColor, getTimeFromLongString } from "../../calendar/src/utils/helpers";
-import { isActivityDocumentEmpty } from "../utils/helpers";
+import { getDb, isActivityDocumentEmpty } from "../utils/helpers";
 
 // The Worker's environment bindings
 type Bindings = {
@@ -121,13 +121,8 @@ ActivityRoute.get('/', async (c) => {
 });
 
 ActivityRoute.get('/colors', async (c) => {
-    App = App || new Realm.App(c.env.ATLAS_APPID);
-    const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
-    const user = await App.logIn(credentials);
-    const client = user.mongoClient("mongodb-atlas");
-    const userCollection = client
-        .db("calendar")
-        .collection<User>("users");
+    const db = await getDb(c, "calendar");
+    const userCollection = db.collection<User>("users");
 
     const cookieHeader = c.req.header("Cookie");
     if (!cookieHeader) {
@@ -160,12 +155,9 @@ ActivityRoute.get('/colors', async (c) => {
 })
 
 ActivityRoute.get('/check-colors', async (c) => {
-    App = App || new Realm.App(c.env.ATLAS_APPID);
-    const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
-    const user = await App.logIn(credentials);
-    const client = user.mongoClient('mongodb-atlas');
-    const userCollection = client.db('calendar').collection<User>('users');
-    const userActivityCollection = client.db('calendar').collection<UserActivity>('activity');
+    const db = await getDb(c, "calendar");
+    const userCollection = db.collection<User>("users");
+    const userActivityCollection = db.collection<UserActivity>('activity');
 
     // Extract token from cookie
     const cookieHeader = c.req.header('Cookie');
@@ -256,13 +248,8 @@ ActivityRoute.get('/check-colors', async (c) => {
 });
 
 ActivityRoute.get('/names', async (c) => {
-    App = App || new Realm.App(c.env.ATLAS_APPID);
-    const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
-    const user = await App.logIn(credentials);
-    const client = user.mongoClient("mongodb-atlas");
-    const userCollection = client
-        .db("calendar")
-        .collection<User>("users");
+    const db = await getDb(c, "calendar");
+    const userCollection = db.collection<User>("users");
 
     const cookieHeader = c.req.header("Cookie");
     if (!cookieHeader) {
