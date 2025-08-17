@@ -15,7 +15,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { getHumanTimeFromMinutes, highlightTimesAndNames, isLightOrDark } from "../utils/helpers";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LocationPicker } from "./LocationPicker";
 import { Card, CardContent } from "./Card";
 import { FaRegClock } from "react-icons/fa";
@@ -250,6 +250,27 @@ const Home = () => {
   const [selectedLocation, setSelectedLocation] = useState<{ name: string, lat: number, lng: number } | null>({ name: "New York", lat: 40.712776, lng: -74.005974 });
   const isSavingLocation = false;
   const navigate = useNavigate();
+  const [userCount, setUserCount] = useState<number | null>(null);
+  const [userCountLoading, setUserCountLoading] = useState<boolean>(false);
+
+  const fetchUserCount = async () => {
+    setUserCountLoading(true);
+    const response = await fetch(`${import.meta.env.VITE_API_URI}/statistics/userCount`, {
+      credentials: "include",
+    });
+
+    setUserCountLoading(false);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch user count: ${(await response.json()).message}`);
+    }
+
+    const data = await response.json();
+    setUserCount(data.count); // expects backend response: { count: number }
+  };
+
+  useEffect(() => {
+    fetchUserCount();
+  }, []);
 
   const handleClick = () => { };
   return (
@@ -268,30 +289,55 @@ const Home = () => {
   `}
       </style>
       {/* Hero Section */}
-      <section className="text-center space-y-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-purple-100 opacity-20 pointer-events-none rounded-xl" />
+      <section className="text-center space-y-8 relative">
+        <div className="absolute inset-0 bg-gradient-to-r  opacity-30 pointer-events-none rounded-xl" />
+
         <h1 className="text-4xl md:text-5xl font-bold text-gray-800">
-          Take Control of Your Time
+          Struggling to Know Where Your Time Goes?
         </h1>
-        <p className="text-lg text-gray-600">
-          Our platform helps you track your daily activities, allowing you to take control of how you spend your time.
+
+        <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+          You finish your day tired, yet wonder: <span className="italic">“What did I actually get done?”</span>
+          <br/>You're not alone—millions of people face the same problem of lost hours, scattered focus, and no clear progress.
         </p>
-        <p className="text-lg text-gray-600">
-          Each day, you can log the activities you do—from work to hobbies—and see how your time is being used.
-          This allows you to identify patterns, measure your progress, and improve your habits over time.
+
+        <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">
+          That’s Why We Built This Calendar.
+        </h2>
+
+        <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+          Our platform helps you
+          {userCountLoading === false && userCount && (
+            <> and <span className="font-semibold">{userCount.toLocaleString()}</span> others</>
+          )}{" "}
+          track your daily activities—so you can finally see <span className="font-semibold">where your time really goes</span>.
         </p>
-        <p className="text-lg text-gray-600">
-          Whether you're aiming for personal growth, improved productivity, or just staying organized, this tool will help you stay on track and focused on your goals.
+
+        <ul className="text-left max-w-2xl mx-auto text-gray-700 space-y-3">
+          <li>✅ Log your activities in seconds, without breaking focus</li>
+          <li>✅ Spot hidden time-wasters you didn’t even notice</li>
+          <li>✅ Visualize patterns that reveal your true priorities</li>
+          <li>✅ Build better habits and measure real progress</li>
+        </ul>
+
+        <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+          Whether you want to <span className="font-semibold">boost productivity</span>,
+          <span className="font-semibold"> balance work and hobbies</span>, or just
+          <span className="font-semibold"> stop feeling like your days slip away</span>—this tool is built to help you.
         </p>
+
         <button
-          className="inline-block px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition"
+          className="inline-block px-8 py-4 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg shadow-lg transition"
           onClick={() => {
-            if (Cookies.get('token')) {
-              navigate('/calendar/day')
-            }
-            else scrollToSignup()
-          }}>→ Try the Calendar</button>
+            if (Cookies.get("token")) {
+              navigate("/calendar/day");
+            } else scrollToSignup();
+          }}
+        >
+          🚀 Start Taking Back Your Time
+        </button>
       </section>
+
 
       <div className="w-full">
         <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">What a Day Looks Like</h2>

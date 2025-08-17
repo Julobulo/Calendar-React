@@ -1,8 +1,9 @@
 import { Hono } from "hono";
 import * as Realm from "realm-web";
-import { checkToken } from "../utils/helpers";
+import { checkToken, getDb } from "../utils/helpers";
 import { UserActivity } from "../models/UserActivityModel";
 import { ObjectId } from "bson";
+import { User } from "../models/UserModel";
 
 // The Worker's environment bindings
 type Bindings = {
@@ -289,51 +290,58 @@ StatisticsRoute.get("/latest-week-data", async (c) => {
 })
 
 StatisticsRoute.get('/getAllLocations', async (c) => {
-  App = App || new Realm.App(c.env.ATLAS_APPID);
-  const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
-  const user = await App.logIn(credentials);
-  const client = user.mongoClient("mongodb-atlas");
-  const activityCollection = client
-    .db("calendar")
-    .collection<UserActivity>("activity");
+    App = App || new Realm.App(c.env.ATLAS_APPID);
+    const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
+    const user = await App.logIn(credentials);
+    const client = user.mongoClient("mongodb-atlas");
+    const activityCollection = client
+        .db("calendar")
+        .collection<UserActivity>("activity");
 
-  const cookieHeader = c.req.header("Cookie");
-  if (!cookieHeader) {
-    c.status(400);
-    return c.json({ message: "no cookie found" });
-  }
+    const cookieHeader = c.req.header("Cookie");
+    if (!cookieHeader) {
+        c.status(400);
+        return c.json({ message: "no cookie found" });
+    }
 
-  const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
-  let token = cookies.find((cookie) => cookie.startsWith(`token=`));
-  if (!token) {
-    c.status(400);
-    return c.json({ message: "no token found" });
-  }
-  token = token.split("=")[1].trim();
+    const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
+    let token = cookies.find((cookie) => cookie.startsWith(`token=`));
+    if (!token) {
+        c.status(400);
+        return c.json({ message: "no token found" });
+    }
+    token = token.split("=")[1].trim();
 
-  const id = await checkToken(token, c.env.JWT_SECRET);
-  if (!id) {
-    c.status(400);
-    return c.json({ message: "bad token" });
-  }
+    const id = await checkToken(token, c.env.JWT_SECRET);
+    if (!id) {
+        c.status(400);
+        return c.json({ message: "bad token" });
+    }
 
-  const docs = await activityCollection
-    .find({
-      userId: new ObjectId(id.toString()),
-      location: { $exists: true, $ne: null }
-    });
+    const docs = await activityCollection
+        .find({
+            userId: new ObjectId(id.toString()),
+            location: { $exists: true, $ne: null }
+        });
 
-  const locations = docs
-    .filter(doc => doc.location)
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .map(doc => ({
-      name: doc.location!.name,
-      lat: doc.location!.lat,
-      lng: doc.location!.lng,
-      date: doc.date
-    }));
+    const locations = docs
+        .filter(doc => doc.location)
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .map(doc => ({
+            name: doc.location!.name,
+            lat: doc.location!.lat,
+            lng: doc.location!.lng,
+            date: doc.date
+        }));
 
-  return c.json(locations);
+    return c.json(locations);
 });
+
+StatisticsRoute.get('/userCount', async (c) => {
+    const db = await getDb(c, "calendar");
+    const userCollection = db.collection<User>("users");
+    const userCount = await userCollection.count();
+    return c.json({ count: userCount });
+})
 
 export default StatisticsRoute
