@@ -45,7 +45,7 @@ const Sidebar = () => {
       <nav className="flex flex-col p-4 space-y-4">
         <Link
           to="/calendar"
-          className={`p-3 rounded-lg ${isActive("/calendar") ? "bg-blue-500 text-white" : "hover:bg-blue-100 text-gray-700"
+          className={`p-3 rounded-lg ${isActive("/calendar") || isActive("/calendar/day") ? "bg-blue-500 text-white" : "hover:bg-blue-100 text-gray-700"
             }`}
         >
           <div className="flex items-center space-x-2">
