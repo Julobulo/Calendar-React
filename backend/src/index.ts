@@ -11,6 +11,7 @@ import { checkToken, defaultActivities, defaultNoteColor, defaultVariables, getD
 import StatisticsRoute from "../routes/Statistics";
 import SettingsRoute from "../routes/Settings";
 import LocationRoute from "../routes/Location";
+import { accessGuard } from "./middleware/auth";
 
 // The Worker's environment bindings
 type Bindings = {
@@ -40,22 +41,9 @@ app.use(
 // route that returns the time it took to connect to database
 app.get("/", async (c, next) => {
   const start = Date.now();
-  const url = new URL(c.req.url);
-  App = App || new Realm.App(c.env.ATLAS_APPID);
-
-  const userID = url.searchParams.get("id") || "";
-
-  try {
-    const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
-    const user = await App.logIn(credentials); // Attempt to authenticate
-    const client = user.mongoClient("mongodb-atlas");
-    const raceCollection = client
-      .db("calendar")
-      .collection<User>("users");
-  } catch (err) {
-    c.status(500);
-    return c.json({ message: "Error with authentication." });
-  }
+  const db = await getDb(c, "calendar");
+  const userCollection = db.collection<User>('users');
+  const user = await userCollection.findOne({});
 
   const end = Date.now();
 
@@ -208,37 +196,10 @@ app.get('/checkUserColors', async (c) => {
 });
 
 // Route to process the weekList and create new activities
-app.post('/importActivities', async (c) => {
-  App = App || new Realm.App(c.env.ATLAS_APPID);
-  const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
-  const user = await App.logIn(credentials);
-  const client = user.mongoClient("mongodb-atlas");
-  const userCollection = client
-    .db("calendar")
-    .collection<User>("users");
-  const activityCollection = client
-    .db("calendar")
-    .collection<UserActivity>("activity");
-
-  const cookieHeader = c.req.header("Cookie");
-  if (!cookieHeader) {
-    c.status(400);
-    return c.json({ message: "no cookies found" });
-  }
-
-  const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
-  let token = cookies.find((cookie) => cookie.startsWith(`token=`));
-  if (!token) {
-    c.status(400);
-    return c.json({ message: "no token found" });
-  }
-  token = token.split("=")[1].trim();
-
-  const id = await checkToken(token, c.env.JWT_SECRET);
-  if (!id) {
-    c.status(400);
-    return c.json({ message: "bad token" });
-  }
+app.post('/importActivities', accessGuard, async (c) => {
+  const db = await getDb(c, "calendar");
+  const userCollection = db.collection<User>('users');
+  const activityCollection = db.collection<UserActivity>('activity');
 
   const { userId, weekList, patching }: { userId: ObjectId, weekList: any[], patching?: boolean } = await c.req.json();
 
