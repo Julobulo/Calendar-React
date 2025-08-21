@@ -3,7 +3,7 @@ import * as Realm from "realm-web";
 import { ObjectId } from "bson";
 import { ActivityEntry, NewUserActivity, UserActivity } from "../models/UserActivityModel";
 import { User } from "../models/UserModel";
-import { checkToken } from "../utils/helpers";
+import { checkToken, getDb } from "../utils/helpers";
 
 // The Worker's environment bindings
 type Bindings = {
@@ -111,6 +111,34 @@ SettingsRoute.post('/import', async (c) => {
         }
     }
     return c.json({ message: `${results.length} day${results.length>1 ? 's' : ''} imported successfully` });
+})
+
+SettingsRoute.post('/delete-all-data', async (c) => {
+    const cookieHeader = c.req.header("Cookie");
+    if (!cookieHeader) {
+        c.status(400);
+        return c.json({ message: "no cookie found" });
+    }
+
+    const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
+    let token = cookies.find((cookie) => cookie.startsWith(`token=`));
+    if (!token) {
+        c.status(400);
+        return c.json({ message: "no token found" });
+    }
+    token = token.split("=")[1].trim();
+
+    const id = await checkToken(token, c.env.JWT_SECRET);
+    if (!id) {
+        c.status(400);
+        return c.json({ message: "bad token" });
+    }
+
+    const db = await getDb(c, 'calendar');
+    const activityCollection = db.collection<UserActivity>("activity");
+    await activityCollection.deleteMany({ userId: new ObjectId(id.toString()) });
+
+    return c.json({ message: "all data deleted successfully" });
 })
 
 export default SettingsRoute
