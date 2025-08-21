@@ -26,7 +26,7 @@ SettingsRoute.get('/export', accessGuard, async (c) => {
     const db = await getDb(c, 'calendar');
     const activityCollection = db.collection<UserActivity>("activity");
 
-    const id = c.var.user.id
+    const id = c.var.user.id;
 
     const data = await activityCollection
         .find({ userId: new ObjectId(id.toString()) }, { sort: { date: 1 } });
@@ -37,8 +37,7 @@ SettingsRoute.get('/export', accessGuard, async (c) => {
 SettingsRoute.post('/import', accessGuard, async (c) => {
     const db = await getDb(c, 'calendar');
     const activityCollection = db.collection<UserActivity>("activity");
-
-    const id = c.var.user.id
+    const id = c.var.user.id;
 
     const body = await c.req.json();
 
@@ -72,9 +71,7 @@ SettingsRoute.post('/import', accessGuard, async (c) => {
 SettingsRoute.post('/delete-all-data', accessGuard, async (c) => {
     const db = await getDb(c, 'calendar');
     const activityCollection = db.collection<UserActivity>("activity");
-    const user = c.get("user") as undefined | AuthPayload;
-    if (!user?.id) return c.json({ user: null });
-    await activityCollection.deleteMany({ userId: new ObjectId(user.id.toString()) });
+    await activityCollection.deleteMany({ userId: new ObjectId(c.var.user.id.toString()) });
 
     return c.json({ message: "all data deleted successfully" });
 })
