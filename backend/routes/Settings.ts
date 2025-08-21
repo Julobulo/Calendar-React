@@ -4,6 +4,8 @@ import { ObjectId } from "bson";
 import { ActivityEntry, NewUserActivity, UserActivity } from "../models/UserActivityModel";
 import { User } from "../models/UserModel";
 import { checkToken, getDb } from "../utils/helpers";
+import { accessGuard } from "../src/middleware/auth";
+import { AuthPayload, Variables } from "../src/utils/types";
 
 // The Worker's environment bindings
 type Bindings = {
@@ -15,39 +17,16 @@ type Bindings = {
     REDIRECT_URI: string;
 };
 
-const SettingsRoute = new Hono<{ Bindings: Bindings }>();
+const SettingsRoute = new Hono<{ Bindings: Bindings, Variables: Variables }>();
 
 let App: Realm.App;
 
 
-SettingsRoute.get('/export', async (c) => {
-    App = App || new Realm.App(c.env.ATLAS_APPID);
-    const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
-    const user = await App.logIn(credentials);
-    const client = user.mongoClient("mongodb-atlas");
-    const activityCollection = client
-        .db("calendar")
-        .collection<UserActivity>("activity");
+SettingsRoute.get('/export', accessGuard, async (c) => {
+    const db = await getDb(c, 'calendar');
+    const activityCollection = db.collection<UserActivity>("activity");
 
-    const cookieHeader = c.req.header("Cookie");
-    if (!cookieHeader) {
-        c.status(400);
-        return c.json({ message: "no cookie found" });
-    }
-
-    const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
-    let token = cookies.find((cookie) => cookie.startsWith(`token=`));
-    if (!token) {
-        c.status(400);
-        return c.json({ message: "no token found" });
-    }
-    token = token.split("=")[1].trim();
-
-    const id = await checkToken(token, c.env.JWT_SECRET);
-    if (!id) {
-        c.status(400);
-        return c.json({ message: "bad token" });
-    }
+    const id = c.var.user.id
 
     const data = await activityCollection
         .find({ userId: new ObjectId(id.toString()) }, { sort: { date: 1 } });
@@ -55,34 +34,11 @@ SettingsRoute.get('/export', async (c) => {
     return c.json(data);
 })
 
-SettingsRoute.post('/import', async (c) => {
-    App = App || new Realm.App(c.env.ATLAS_APPID);
-    const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
-    const user = await App.logIn(credentials);
-    const client = user.mongoClient("mongodb-atlas");
-    const activityCollection = client
-        .db("calendar")
-        .collection<UserActivity>("activity");
+SettingsRoute.post('/import', accessGuard, async (c) => {
+    const db = await getDb(c, 'calendar');
+    const activityCollection = db.collection<UserActivity>("activity");
 
-    const cookieHeader = c.req.header("Cookie");
-    if (!cookieHeader) {
-        c.status(400);
-        return c.json({ message: "no cookie found" });
-    }
-
-    const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
-    let token = cookies.find((cookie) => cookie.startsWith(`token=`));
-    if (!token) {
-        c.status(400);
-        return c.json({ message: "no token found" });
-    }
-    token = token.split("=")[1].trim();
-
-    const id = await checkToken(token, c.env.JWT_SECRET);
-    if (!id) {
-        c.status(400);
-        return c.json({ message: "bad token" });
-    }
+    const id = c.var.user.id
 
     const body = await c.req.json();
 
@@ -110,33 +66,15 @@ SettingsRoute.post('/import', async (c) => {
             results.push(insertResult);
         }
     }
-    return c.json({ message: `${results.length} day${results.length>1 ? 's' : ''} imported successfully` });
+    return c.json({ message: `${results.length} day${results.length > 1 ? 's' : ''} imported successfully` });
 })
 
-SettingsRoute.post('/delete-all-data', async (c) => {
-    const cookieHeader = c.req.header("Cookie");
-    if (!cookieHeader) {
-        c.status(400);
-        return c.json({ message: "no cookie found" });
-    }
-
-    const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
-    let token = cookies.find((cookie) => cookie.startsWith(`token=`));
-    if (!token) {
-        c.status(400);
-        return c.json({ message: "no token found" });
-    }
-    token = token.split("=")[1].trim();
-
-    const id = await checkToken(token, c.env.JWT_SECRET);
-    if (!id) {
-        c.status(400);
-        return c.json({ message: "bad token" });
-    }
-
+SettingsRoute.post('/delete-all-data', accessGuard, async (c) => {
     const db = await getDb(c, 'calendar');
     const activityCollection = db.collection<UserActivity>("activity");
-    await activityCollection.deleteMany({ userId: new ObjectId(id.toString()) });
+    const user = c.get("user") as undefined | AuthPayload;
+    if (!user?.id) return c.json({ user: null });
+    await activityCollection.deleteMany({ userId: new ObjectId(user.id.toString()) });
 
     return c.json({ message: "all data deleted successfully" });
 })
