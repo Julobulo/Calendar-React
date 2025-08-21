@@ -18,10 +18,10 @@ interface DailyActivity {
 }
 
 interface Location {
-    name: string;
-    lat: number;
-    lng: number;
-    date: string;
+  name: string;
+  lat: number;
+  lng: number;
+  date: string;
 }
 
 const Statistics = () => {

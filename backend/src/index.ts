@@ -1,16 +1,16 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import * as Realm from "realm-web";
-import { User } from "../models/UserModel";
-import OAuthRoute from "../routes/Oauth";
-import { ActivityEntry, NewUserActivity, UserActivity } from "../models/UserActivityModel";
-import ActivityRoute from "../routes/Activity";
+import { User } from "./models/UserModel";
+import OAuthRoute from "../src/routes/Oauth";
+import { ActivityEntry, NewUserActivity, UserActivity } from "./models/UserActivityModel";
+import ActivityRoute from "../src/routes/Activity";
 import { generateRandomColor, getTimeFromLongString } from "../../calendar/src/utils/helpers";
 import { ObjectId } from "bson";
-import { checkToken, defaultActivities, defaultNoteColor, defaultVariables, getDb } from "../utils/helpers";
-import StatisticsRoute from "../routes/Statistics";
-import SettingsRoute from "../routes/Settings";
-import LocationRoute from "../routes/Location";
+import { checkToken, defaultActivities, defaultNoteColor, defaultVariables, getDb } from "./utils/helpers";
+import StatisticsRoute from "../src/routes/Statistics";
+import SettingsRoute from "../src/routes/Settings";
+import LocationRoute from "../src/routes/Location";
 import { accessGuard } from "./middleware/auth";
 
 // The Worker's environment bindings

@@ -1,6 +1,6 @@
 import type { Context, Next } from "hono";
 import { getCookie } from "hono/cookie";
-import { checkToken } from "../../utils/helpers";
+import { checkToken } from "../utils/helpers";
 
 export async function accessGuard(c: Context, next: Next) {
   const token = getCookie(c, "token");

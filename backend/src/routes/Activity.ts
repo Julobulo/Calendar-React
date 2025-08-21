@@ -3,10 +3,10 @@ import * as Realm from "realm-web";
 import { ObjectId } from "bson";
 import { ActivityEntry, NewUserActivity, UserActivity } from "../models/UserActivityModel";
 import { User } from "../models/UserModel";
-import { generateRandomColor, getTimeFromLongString } from "../../calendar/src/utils/helpers";
+import { generateRandomColor, getTimeFromLongString } from "../../../calendar/src/utils/helpers";
 import { getDb, isActivityDocumentEmpty } from "../utils/helpers";
-import { Variables } from "../src/utils/types";
-import { accessGuard } from "../src/middleware/auth";
+import { Variables } from "../utils/types";
+import { accessGuard } from "../middleware/auth";
 
 // The Worker's environment bindings
 type Bindings = {

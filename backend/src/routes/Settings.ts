@@ -4,8 +4,8 @@ import { ObjectId } from "bson";
 import { ActivityEntry, NewUserActivity, UserActivity } from "../models/UserActivityModel";
 import { User } from "../models/UserModel";
 import { checkToken, getDb } from "../utils/helpers";
-import { accessGuard } from "../src/middleware/auth";
-import { AuthPayload, Variables } from "../src/utils/types";
+import { accessGuard } from "../middleware/auth";
+import { AuthPayload, Variables } from "../utils/types";
 
 // The Worker's environment bindings
 type Bindings = {

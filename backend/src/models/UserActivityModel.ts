@@ -2,9 +2,10 @@ import { ObjectId } from "bson";
 
 export interface ActivityEntry {
     activity: string;
-    duration: number; // number of minutes
+    start?: string;                   // "HH:mm" (local) — optional for quick logging
+    end?: string;                     // "HH:mm"
     description: string;
-    time?: string;
+    location?: Location;
 }
 
 interface Location {
