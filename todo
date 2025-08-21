@@ -1,4 +1,3 @@
-Use a middleware to check requests instead of always using the same lines
 Make activity duration determined by start and end time
 Remake the frontend so that the activities are displayed nicely
 Add search feature
@@ -6,6 +5,7 @@ Encrypt the activities content
 Adapt landing page to the new design
 
 DONE
+Use a middleware to check requests instead of always using the same lines - 21/08/2025 - 6:50pm
 Make calendar button blue when in /calendar/day - 21/08/2025 - 5:15pm
 Fix Calendar.tsx crashing when entries not defined + can also show variables and note if space - 20/04/2025 - 12:30pm
 Can add/edit/delete location for each day and save location - 19/04/2025 - 11:30pm
