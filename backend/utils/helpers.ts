@@ -1,5 +1,53 @@
 import { UserActivity } from "../models/UserActivityModel";
 
+// function that returns a token
+export async function getToken(id: string, secret: string): Promise<string> {
+    const header = {
+        alg: "HS256",
+        typ: "JWT",
+    };
+    const payload = {
+        id,
+        exp: Math.floor(Date.now() / 1000) + 3 * 24 * 60 * 60, // 3 days in seconds
+    };
+
+    const encoder = new TextEncoder();
+
+    const encodedHeader = btoa(JSON.stringify(header))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+    const encodedPayload = btoa(JSON.stringify(payload))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+    const token = `${encodedHeader}.${encodedPayload}`;
+
+    const key = await crypto.subtle.importKey(
+        // Create HMAC-SHA256 signature
+        "raw",
+        encoder.encode(secret),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"],
+    );
+
+    const signature = await crypto.subtle.sign(
+        // sign the token
+        "HMAC",
+        key,
+        encoder.encode(token),
+    );
+
+    const encodedSignature = btoa(
+        String.fromCharCode(...new Uint8Array(signature)),
+    ) // Convert signature to base64url
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+    return `${token}.${encodedSignature}`;
+}
+
 // function that checks if a token is valid, and if so, it returns the "id" field stored in the payload of the token
 export const checkToken = async (token: string, secret: string): Promise<string | boolean> => {
     const encoder = new TextEncoder();
@@ -72,6 +120,7 @@ export const defaultNoteColor = "#D9EAFB";
 
 import * as Realm from "realm-web";
 import { Context } from "hono";
+import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-generator";
 
 let app: Realm.App | null = null;
 let cachedUser: Realm.User | null = null;
@@ -89,3 +138,13 @@ export async function getDb(c: Context, dbName: string) {
   const client = cachedUser.mongoClient("mongodb-atlas");
   return client.db(dbName);
 }
+
+// Generate a funny username
+export const generateUsername = () => {
+    return uniqueNamesGenerator({
+        dictionaries: [adjectives, colors, animals], // Use adjectives and nouns
+        separator: "", // Space between the words
+        length: 2, // One adjective + one noun
+        style: "capital", // Capitalize each word (optional)
+    });
+};
