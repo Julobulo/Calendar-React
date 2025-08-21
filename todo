@@ -1,3 +1,4 @@
+Use a middleware to check requests instead of always using the same lines
 Make activity duration determined by start and end time
 Remake the frontend so that the activities are displayed nicely
 Add search feature
