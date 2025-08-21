@@ -1,6 +1,9 @@
-Add statistic "average time per activity per day/week/month/year" and have list of activities that can be selected or not
-Make a better suggestion filter
-Add/Edit/Delete activity names and colors
+Make calendar button blue when in /calendar/day
+Make activity duration determined by start and end time
+Remake the frontend so that the activities are displayed nicely
+Add search feature
+Encrypt the activities content
+Adapt landing page to the new design
 
 DONE
 Fix Calendar.tsx crashing when entries not defined + can also show variables and note if space - 20/04/2025 - 12:30pm
