@@ -1,55 +1,47 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 type FrontendUserActivity = Omit<NewUserActivity, "userId">;
 import { useNavigate } from "react-router-dom";
-import { dayNames, getHumanTimeFromMinutes, isLightOrDark, monthNames, NewUserActivity, UserActivity } from "../utils/helpers";
+import { dayNames, getHumanReadableDiffBetweenTimes, isLightOrDark, monthNames, NewUserActivity } from "../utils/helpers";
 import { VscSymbolVariable } from "react-icons/vsc";
 import { LuNotebookPen } from "react-icons/lu";
-import { toast } from "react-toastify";
-import Cookies from "js-cookie";
+import { useActivityMetadata } from "../hooks/useActivityMetadata";
+import { useCalendarState } from "../hooks/useCalendarState";
+import { useActivities } from "../hooks/useActivities";
+import { useCalendarPopup } from "../hooks/useCalendarPopup";
 
 const Calendar: React.FC = () => {
-  const [currentDate, setCurrentDate] = useState<Date>(
-    new Date(
-      Number(localStorage.getItem('year')) || (new Date()).getFullYear(),
-      Number(localStorage.getItem('month')) || (new Date()).getMonth(),
-      Number(localStorage.getItem('day')) || (new Date()).getDate(),
-    ));
-  const [popupState, setPopupState] = useState<{
-    type: "year" | "month" | null;
-    position: { top: number; left: number; width: number; height: number } | null;
-  }>({
-    type: null,
-    position: null,
-  });
-  const [tempYear, setTempYear] = useState<number>(currentDate.getFullYear());
-  const [tempMonth, setTempMonth] = useState<number>(currentDate.getMonth());
+  const [reload] = useState(false);
+  const { colors } = useActivityMetadata(reload);
+  const { selectedDate, goToDate } = useCalendarState();
+  const { activities } = useActivities(selectedDate.getFullYear(), selectedDate.getMonth());
+  // temp values for popup
+  const [tempYear, setTempYear] = useState<number>(selectedDate.getFullYear());
+  const [tempMonth, setTempMonth] = useState<number>(selectedDate.getMonth());
+  const applyDateChange = () => {
+      goToDate(new Date(tempYear, tempMonth, 1), { stayOnMonth: true });
+      setPopupState({ type: null, position: popupState.position });
+      console.log(`applied date change to ${tempYear}-${tempMonth}`)
+    };
+  const { popupState, setPopupState, popupRef } = useCalendarPopup(applyDateChange);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    console.log(`month: ${currentDate.getMonth()}, year: ${currentDate.getFullYear()}, day: ${currentDate.getDate()}`);
-    localStorage.setItem('day', currentDate.getDate().toString());
-    localStorage.setItem('month', currentDate.getMonth().toString());
-    localStorage.setItem('year', currentDate.getFullYear().toString());
-  }, [currentDate])
 
-  const popupRef = useRef<HTMLDivElement | null>(null);
+  const year = selectedDate.getFullYear();
+  const month = selectedDate.getMonth();
 
-  const daysInMonth = (year: number, month: number) => {
-    return new Date(year, month + 1, 0).getDate();
-  };
+  const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+  const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+  const lastMonthDays = (year: number, month: number) => daysInMonth(year, month - 1);
 
-  const firstDayOfMonth = (year: number, month: number) => {
-    return new Date(year, month, 1).getDay();
-  };
+  const days = daysInMonth(year, month);
+  const startDay = firstDayOfMonth(year, month);
+  const previousMonthDays = lastMonthDays(year, month);
 
-  const lastMonthDays = (year: number, month: number) => {
-    return daysInMonth(year, month - 1);
-  };
+  const goToToday = () => goToDate(new Date(), { stayOnMonth: true });
 
   const handleDayClick = (day: number) => {
     navigate(`/calendar/day?year=${year}&month=${month}&day=${day}`);
   };
-
 
   const handleMoreActivitesClick = (day: number) => {
     navigate(`/calendar/day?year=${year}&month=${month}&day=${day}`);
@@ -58,88 +50,10 @@ const Calendar: React.FC = () => {
 
   const showPopupNextToButton = (event: React.MouseEvent, popupType: "year" | "month") => {
     const rect = event.currentTarget.getBoundingClientRect();
-    setTempYear(currentDate.getFullYear());
-    setTempMonth(currentDate.getMonth());
+    setTempYear(selectedDate.getFullYear());
+    setTempMonth(selectedDate.getMonth());
     setPopupState({ type: popupType, position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: popupState.position?.width as number, height: popupState.position?.height as number } });
   };
-
-  const applyDateChange = () => {
-    setCurrentDate(new Date(tempYear, tempMonth, 1));
-    setPopupState({ type: null, position: popupState.position });
-  };
-
-  const goToToday = () => {
-    const today = new Date();
-    setCurrentDate(today);
-  };
-
-  const handleClickOutside = (event: MouseEvent) => {
-    if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-      setPopupState({ type: null, position: null });
-    }
-  };
-
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "Enter" && (popupState.type === "month" || popupState.type === "year")) {
-      applyDateChange();
-    }
-  };
-
-  useEffect(() => {
-    if (popupState.type) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleKeyDown);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [popupState.type, tempYear, tempMonth]);
-
-  const year: number = currentDate.getFullYear();
-  const month: number = currentDate.getMonth();
-  const days: number = daysInMonth(year, month);
-  const startDay: number = firstDayOfMonth(year, month);
-  const previousMonthDays: number = lastMonthDays(year, month);
-  const [activities, setActivities] = useState<UserActivity[]>([]);
-  const [colors, setColors] = useState<{
-    activities: { [activity: string]: string };
-    note: string;
-    variables: { [variable: string]: string };
-  }>({ activities: {}, note: "", variables: {} });
-
-  useEffect(() => {
-    const fetchActivities = async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_URI}/activity?year=${year}&month=${month}`, {
-        credentials: "include"
-      });
-      if (!response.ok) {
-        toast.error(`Failed to fetch activities: ${(await response.json()).message}`);
-        return
-      }
-      const data: UserActivity[] = await response.json();
-      setActivities(activities.concat(data));
-    };
-
-    if (Cookies.get('token')) fetchActivities();
-  }, [year, month]);
-
-  useEffect(() => {
-    const fetchColors = async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/colors`, {
-        method: "GET",
-        credentials: "include", // Include cookies in the request
-      });
-      if (!response.ok) {
-        toast.error(`Failed to fetch colors: ${(await response.json()).message}`);
-        return
-      }
-      const data = await response.json();
-      setColors(data);
-    };
-
-    if (Cookies.get('token')) fetchColors();
-  }, []);
 
   const renderDayCell = (
     day: number,
@@ -172,7 +86,7 @@ const Calendar: React.FC = () => {
           style={{ backgroundColor: bg }}
           className={`text-[5px] md:text-sm ${textColor} rounded px-2 py-1`}
         >
-          {entry.activity} - {getHumanTimeFromMinutes(entry.duration)}
+          {entry.activity} - {getHumanReadableDiffBetweenTimes(entry.start || "", entry.end || "")}
         </div>
       );
     }
@@ -205,7 +119,7 @@ const Calendar: React.FC = () => {
           style={{ backgroundColor: bg }}
           className={`text-[5px] md:text-sm ${textColor} rounded px-2 py-1 flex items-center space-x-1`}
         >
-          <LuNotebookPen className="text-sm"/>
+          <LuNotebookPen className="text-sm" />
           <span>{activitiesForDay.note}</span>
         </div>
       );

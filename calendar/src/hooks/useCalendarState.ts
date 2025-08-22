@@ -30,13 +30,19 @@ export function useCalendarState() {
     localStorage.setItem("year", selectedDate.getFullYear().toString());
   }, [selectedDate]);
 
-  const goToDate = (date: Date) => {
-    setSelectedDate(date);
-    setCurrentMonth(date);
+  const goToDate = (date: Date, options?: { stayOnMonth?: boolean }) => {
+  setSelectedDate(date);
+  setCurrentMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+
+  if (options?.stayOnMonth) {
+    navigate(`/calendar?year=${date.getFullYear()}&month=${date.getMonth()}`);
+  } else {
     navigate(
       `/calendar/day?year=${date.getFullYear()}&month=${date.getMonth()}&day=${date.getDate()}`
     );
-  };
+  }
+};
+
 
   return { selectedDate, currentMonth, setCurrentMonth, goToDate };
 }
