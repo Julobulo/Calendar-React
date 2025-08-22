@@ -330,24 +330,35 @@ export async function handleVariable(
 ) {
     const variable = (body.variable || "").trim();
     const value = (body.value || "").trim();
-    if (!variable || !value) throw { status: 400, message: "Missing variable fields" };
-
-    if (existingEntry?.variables?.some(v => v.variable === variable)) throw { status: 400, message: "Variable already defined for this date" };
+    if (!variable || !value) badRequest("Missing variable fields");
+    if (variable.length > 100) badRequest("Variable name too long");
 
     let updateQuery;
-    const newVariable = { variable, value };
-    if (existingEntry) {
-        updateQuery = { $push: { variables: newVariable } };
-    } else {
-        updateQuery = {
-            $setOnInsert: {
-                entries: [],
-                variables: [newVariable],
-            }
-        };
-    }
 
-    return updateQuery;
+    if (existingEntry?.variables?.some(v => v.variable === variable)) {
+        // EDIT MODE: update existing variable value
+        updateQuery = {
+            $set: { "variables.$[elem].value": value }
+        };
+        const arrayFilters = [{ "elem.variable": variable }];
+        return { updateQuery, arrayFilters };
+    } else {
+        // CREATE MODE: push new variable
+        const newVariable = { variable, value };
+        if (existingEntry) {
+            updateQuery = { $push: { variables: newVariable } };
+            return updateQuery;
+        } else {
+            updateQuery = {
+                $setOnInsert: {
+                    entries: [],
+                    variables: [newVariable]
+                }
+            };
+
+            return updateQuery;
+        }
+    }
 }
 
 export async function handleNote(
@@ -398,6 +409,9 @@ ActivityRoute.post('/new', accessGuard, async (c) => {
                 handleColors(currentUser, usedColors, userCollection, id, activity, '');
                 break;
             case "variable":
+                if (existingEntry?.variables?.some(v => v.variable === variable)) {
+                    badRequest("Variable already defined for this date");
+                }
                 updateQuery = await handleVariable(body, existingEntry);
                 handleColors(currentUser, usedColors, userCollection, id, '', variable);
                 break;
@@ -469,24 +483,14 @@ ActivityRoute.patch('/edit', accessGuard, async (c) => {
     //     if (!existingEntry?.note) return c.json({ message: "Note doesn't exist for this date" }, 400);
     //     updateQuery = { $set: { note } };
     // }
-    // else if (type === "variable") {
-    //     if (!variable || !value) return c.json({ message: "Missing variable fields" }, 400);
-    //     if (existingEntry.variables && !existingEntry.variables.some(e => e.variable === variable)) {
-    //         return c.json({ message: "Variable not defined for this date" }, 400);
-    //     }
-    //     // Update the existing variable instead of pushing a new one
-    //     updateQuery = {
-    //         $set: { "variables.$[elem].value": value }
-    //     };
-    // }
-
     let updateQuery;
+    let res;
     // let options: any = { upsert: false };
     try {
 
         switch (body.type) {
             case "activity":
-                const res = await handleActivity(body, existingEntry, _id);
+                res = await handleActivity(body, existingEntry, _id);
                 await activityCollection.updateOne(
                     { userId: new ObjectId(id.toString()), date },
                     res.updateQuery,
@@ -494,15 +498,17 @@ ActivityRoute.patch('/edit', accessGuard, async (c) => {
                 );
                 break;
             case "variable":
-                updateQuery = await handleVariable(body, existingEntry);
+                if (!existingEntry?.variables?.some(v => v.variable === variable)) {
+                    return c.json({ message: "Variable not defined for this date" }, 400);
+                }
+                res = await handleVariable(body, existingEntry);
+                await activityCollection.updateOne(
+                    { userId: new ObjectId(id.toString()), date },
+                    res.updateQuery,
+                    res.arrayFilters ? { arrayFilters: res.arrayFilters } : {}
+                );
                 // handleColors(currentUser, usedColors, userCollection, id, '', variable);
                 break;
-            // if (!variable || !value) return c.json({ message: "Missing variable fields" }, 400);
-            // updateQuery = {
-            //     $set: { "variables.$[elem].value": value },
-            // };
-            // options = { arrayFilters: [{ "elem.variable": variable }] };
-            // break;
             case "note":
                 if (!note) return c.json({ message: "Missing note field" }, 400);
                 if (!existingEntry?.note) return c.json({ message: "Note doesn't exist for this date" }, 400);
@@ -539,11 +545,9 @@ ActivityRoute.patch('/edit', accessGuard, async (c) => {
     }
 
     // await activityCollection.updateOne({ userId: new ObjectId(id.toString()), date }, updateQuery,
-    //     type === "activity"
-    //         ? { arrayFilters: [{ "elem.activity": activity }], upsert: true }
-    //         : (type === "variable"
-    //             ? { arrayFilters: [{ "elem.variable": variable }], upsert: true } :
-    //             { upsert: true })
+    //     type === "variable"
+    //         ? { arrayFilters: [{ "elem.variable": variable }] } :
+    //         { upsert: true }
     // );
 
     return c.json({ message: "activity updated successfully" });
