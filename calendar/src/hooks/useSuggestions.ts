@@ -7,6 +7,7 @@ export function useSuggestions({ colors, names, eventPopUp, setEventPopUp, selec
     const [cursorPosition, setCursorPosition] = useState<number>(0);
     const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
     const suggestionsTypeRef = useRef<SuggestionType>("");
+    const [query, setQuery] = useState("");
 
     const setSuggestionsType = (value: SuggestionType) => {
         suggestionsTypeRef.current = value;
@@ -14,10 +15,10 @@ export function useSuggestions({ colors, names, eventPopUp, setEventPopUp, selec
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
         const value = e.target.value;
+        setQuery(value);
         let filteredSuggestions: Array<string> = [];
         if (selectedForm === "activity") {
             if (suggestionsTypeRef.current === "activity") {
-                console.log(`suggestion for activity value: ${value}`)
                 setEventPopUp((prev: typeof eventPopUp) => ({ ...prev, activity: value }));
 
                 if (value.length === 0) {
@@ -28,7 +29,6 @@ export function useSuggestions({ colors, names, eventPopUp, setEventPopUp, selec
                 filteredSuggestions = Object.keys(colors.activities)
                     .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
                     .slice(0, 3);
-                console.log(`debugging: ${value}, current ${suggestionsTypeRef.current}`)
             }
             else if (suggestionsTypeRef.current === "name") {
                 setEventPopUp((prev: typeof eventPopUp) => ({ ...prev, description: value }));
@@ -41,6 +41,7 @@ export function useSuggestions({ colors, names, eventPopUp, setEventPopUp, selec
                 setCursorPosition(cursorPos);
                 const textBeforeCursor = value.slice(0, cursorPos);
                 const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
+                setQuery(match ? match[1] : "");
 
                 if (match) {
                     filteredSuggestions = names
@@ -49,7 +50,6 @@ export function useSuggestions({ colors, names, eventPopUp, setEventPopUp, selec
                 }
             }
         } else if (selectedForm === "note") {
-            console.log(`suggestion for note value: ${value}`)
             setEventPopUp((prev: typeof eventPopUp) => ({ ...prev, note: value }));
             if (value.length === 0) {
                 setSuggestions([]);
@@ -59,12 +59,12 @@ export function useSuggestions({ colors, names, eventPopUp, setEventPopUp, selec
             setCursorPosition(cursorPos);
             const textBeforeCursor = value.slice(0, cursorPos);
             const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
-            
+            setQuery(match ? match[1] : "");
+
             if (match) {
                 filteredSuggestions = names
-                .filter((name: string) => name.toLowerCase().includes(match[1].toLowerCase()))
-                .slice(0, 3);
-                console.log(`debugging: suggestions ${filteredSuggestions}`)
+                    .filter((name: string) => name.toLowerCase().includes(match[1].toLowerCase()))
+                    .slice(0, 3);
             }
         } else if (selectedForm === "variable") {
             if (suggestionsTypeRef.current === "variable") {
@@ -149,6 +149,7 @@ export function useSuggestions({ colors, names, eventPopUp, setEventPopUp, selec
         cursorPosition,
         selectedSuggestionIndex,
         suggestionsTypeRef,
+        query,
         setSuggestions,
         setSelectedSuggestionIndex,
         setSuggestionsType,

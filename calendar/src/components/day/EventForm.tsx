@@ -55,6 +55,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                                 onMouseEnter={suggestionsHook.setSelectedSuggestionIndex}
                                 onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
                                 onClick={suggestionsHook.handleSuggestionClick}
+                                query={suggestionsHook.query}
                             />
                         )}
                         <input type="time" value={eventPopUp.start} onChange={(e) => setEventPopUp((prev: typeof eventPopUp) => ({ ...prev, start: e.target.value }))} className="w-full p-2 border mt-2 rounded" />
@@ -74,6 +75,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                                 onMouseEnter={suggestionsHook.setSelectedSuggestionIndex}
                                 onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
                                 onClick={suggestionsHook.handleSuggestionClick}
+                                query={suggestionsHook.query}
                             />
                         )}
                     </div>
@@ -97,6 +99,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                                 onMouseEnter={suggestionsHook.setSelectedSuggestionIndex}
                                 onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
                                 onClick={suggestionsHook.handleSuggestionClick}
+                                query={suggestionsHook.query}
                             />
                         )}
                     </div>
@@ -122,6 +125,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                                 onMouseEnter={suggestionsHook.setSelectedSuggestionIndex}
                                 onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
                                 onClick={suggestionsHook.handleSuggestionClick}
+                                query={suggestionsHook.query}
                             />
                         )}
                         <input
