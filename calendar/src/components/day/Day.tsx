@@ -14,6 +14,7 @@ import { useActivityMetadata } from "../../hooks/useActivityMetadata";
 import { useEventForm } from "../../hooks/useEventForm";
 import { ObjectId } from "bson";
 import { useCalendarState } from "../../hooks/useCalendarState";
+import { useSuggestions } from "../../hooks/useSuggestions";
 
 const Day = () => {
     const [reload, setReload] = useState(false);
@@ -25,6 +26,9 @@ const Day = () => {
     const { selectedLocation, setSelectedLocation, isSavingLocation } = useDayLocation(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
     const { colors, names } = useActivityMetadata(reload);
     const { eventPopUp, setEventPopUp, selectedForm, setSelectedForm, actionLoading, handleEventFinish, handleDelete } = useEventForm(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), reload, setReload);
+    const suggestionsHook = useSuggestions({
+        colors, names, eventPopUp, setEventPopUp, selectedForm
+    });
 
     const handleClick = () => {
         if (window.innerWidth < 768) {
@@ -44,145 +48,6 @@ const Day = () => {
             setCalendarWidth(calendarRef.current.offsetWidth);
         }
     }, []);
-
-    const [suggestions, setSuggestions] = useState<string[]>([]);
-    const [cursorPosition, setCursorPosition] = useState<number>(0);
-
-    const suggestionsTypeRef = useRef<"activity" | "name" | "variable" | "">("");
-
-    const setSuggestionsType = (value: "activity" | "name" | "variable" | "") => {
-        suggestionsTypeRef.current = value;
-    };
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
-        const value = e.target.value;
-        let filteredSuggestions: Array<string> = [];
-        if (selectedForm === "activity") {
-            if (suggestionsTypeRef.current === "activity") {
-                setEventPopUp((prev) => ({ ...prev, activity: value }));
-
-                if (value.length === 0) {
-                    setSuggestions([]);
-                    return;
-                }
-
-                filteredSuggestions = Object.keys(colors.activities)
-                    .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
-                    .slice(0, 3);
-            }
-            else if (suggestionsTypeRef.current === "name") {
-                setEventPopUp((prev) => ({ ...prev, description: value }));
-
-                if (value.length === 0) {
-                    setSuggestions([]);
-                    return;
-                }
-                const cursorPos = e.target.selectionStart || 0;
-                setCursorPosition(cursorPos);
-                const textBeforeCursor = value.slice(0, cursorPos);
-                const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
-
-                if (match) {
-                    filteredSuggestions = names
-                        .filter((name: string) => name.toLowerCase().includes(match[1].toLowerCase()))
-                        .slice(0, 3);
-                }
-            }
-        } else if (selectedForm === "note") {
-            setEventPopUp((prev) => ({ ...prev, note: value }));
-            if (value.length === 0) {
-                setSuggestions([]);
-                return;
-            }
-            const cursorPos = e.target.selectionStart || 0;
-            setCursorPosition(cursorPos);
-            const textBeforeCursor = value.slice(0, cursorPos);
-            const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
-
-            if (match) {
-                filteredSuggestions = names
-                    .filter((name: string) => name.toLowerCase().includes(match[1].toLowerCase()))
-                    .slice(0, 3);
-            }
-        } else if (selectedForm === "variable") {
-            if (suggestionsTypeRef.current === "variable") {
-                setEventPopUp((prev) => ({ ...prev, variable: value }));
-
-                if (value.length === 0) {
-                    setSuggestions([]);
-                    return;
-                }
-
-                filteredSuggestions = Object.keys(colors.variables)
-                    .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
-                    .slice(0, 3);
-            }
-            else if (suggestionsTypeRef.current === "name") {
-                setEventPopUp((prev) => ({ ...prev, value: value }));
-            }
-        }
-
-        setSuggestions(filteredSuggestions);
-    };
-
-    const handleSuggestionClick = (suggestion: string) => {
-        if (selectedForm === "activity") {
-            if (suggestionsTypeRef.current === "activity") {
-                setEventPopUp((prev) => ({ ...prev, activity: suggestion }));
-            }
-            else if (suggestionsTypeRef.current === "name") {
-                const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
-                setEventPopUp((prev) => ({ ...prev, description: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestion}`) + eventPopUp.description.slice(cursorPosition) }));
-            }
-        } else if (selectedForm === "note") {
-            const textBeforeCursor = eventPopUp.note.slice(0, cursorPosition);
-            setEventPopUp((prev) => ({ ...prev, note: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestion}`) + eventPopUp.note.slice(cursorPosition) }));
-        } else if (selectedForm === "variable") {
-            setEventPopUp((prev) => ({ ...prev, variable: suggestion }));
-        }
-        setSuggestions([]);
-    };
-
-    const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState<number>(-1);
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        if (suggestions.length === 0) return;
-
-        if (e.key === "ArrowDown") {
-            e.preventDefault(); // Prevents the cursor from moving
-            setSelectedSuggestionIndex((prev) =>
-                prev < suggestions.length - 1 ? prev + 1 : prev
-            );
-        } else if (e.key === "ArrowUp") {
-            if (selectedSuggestionIndex !== -1) e.preventDefault(); // Prevents the cursor from moving
-            if (selectedSuggestionIndex > 0) {
-                setSelectedSuggestionIndex((prevIndex) => prevIndex - 1);
-            } else {
-                // Stop selecting suggestions if already at the top
-                setSelectedSuggestionIndex(-1);
-            }
-        } else if (e.key === "Enter" && selectedSuggestionIndex !== -1) {
-            e.preventDefault(); // Prevents the cursor from moving
-            if (selectedForm === "activity") {
-                if (suggestionsTypeRef.current === "activity") {
-                    setEventPopUp((prev) => ({ ...prev, activity: suggestions[selectedSuggestionIndex] }));
-                }
-                else if (suggestionsTypeRef.current === "name") {
-                    const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
-                    setEventPopUp((prev) => ({ ...prev, description: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestions[selectedSuggestionIndex]}`) + eventPopUp.description.slice(cursorPosition) }));
-                }
-            } else if (selectedForm === "note") {
-                const textBeforeCursor = eventPopUp.note.slice(0, cursorPosition);
-                setEventPopUp((prev) => ({ ...prev, note: textBeforeCursor.replace(/@([a-zA-Z]*)$/, `@${suggestions[selectedSuggestionIndex]}`) + eventPopUp.note.slice(cursorPosition) }));
-            } else if (suggestionsTypeRef.current === "variable") {
-                setEventPopUp((prev) => ({ ...prev, variable: suggestions[selectedSuggestionIndex] }));
-            }
-            setSuggestions([]);
-            setSelectedSuggestionIndex(-1);
-        } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-            setSuggestions([]);
-        }
-    };
 
     const handleClose = () => {
         setMobileShowForm(false);
@@ -336,19 +201,19 @@ const Day = () => {
                             <h3 className="text-lg font-semibold">{eventPopUp.state} activity</h3>
                             <div>
                                 <input type="text" placeholder="Activity, e.g. Running" className="w-full p-2 border rounded" value={eventPopUp.activity}
-                                    onChange={(e) => { setSuggestionsType("activity"); handleInputChange(e) }}
-                                    onKeyDown={handleKeyDown}
+                                    onChange={(e) => { suggestionsHook.setSuggestionsType("activity"); suggestionsHook.handleInputChange(e) }}
+                                    onKeyDown={suggestionsHook.handleKeyDown}
                                     disabled={eventPopUp.state !== "add"} />
-                                {suggestions.length > 0 && suggestionsTypeRef.current === "activity" && (
+                                {suggestionsHook.suggestions.length > 0 && suggestionsHook.suggestionsTypeRef?.current === "activity" && (
                                     <ul className="bg-white border rounded shadow-lg">
-                                        {suggestions.map((suggestion, index) => (
+                                        {suggestionsHook.suggestions.map((suggestion, index) => (
                                             <li
                                                 key={suggestion}
-                                                className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
+                                                className={`p-2 cursor-pointer ${index === suggestionsHook.selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
                                                     }`}
-                                                onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                                                onMouseLeave={() => setSelectedSuggestionIndex(-1)}
-                                                onClick={() => handleSuggestionClick(suggestion)}
+                                                onMouseEnter={() => suggestionsHook.setSelectedSuggestionIndex(index)}
+                                                onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
+                                                onClick={() => suggestionsHook.handleSuggestionClick(suggestion)}
                                             >
                                                 {suggestion.split("").map((char, index) => (
                                                     <span key={index} className={eventPopUp.activity.toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
@@ -387,20 +252,20 @@ const Day = () => {
                                     placeholder="Description, e.g. 1h22min morning run, followed by a 15min evening run"
                                     className="w-full p-2 border mt-2 rounded"
                                     value={eventPopUp.description}
-                                    onChange={(e) => { setSuggestionsType("name"); handleInputChange(e) }}
-                                    onKeyDown={handleKeyDown}></textarea>
-                                {suggestions.length > 0 && suggestionsTypeRef.current === "name" && (
+                                    onChange={(e) => { suggestionsHook.setSuggestionsType("name"); suggestionsHook.handleInputChange(e) }}
+                                    onKeyDown={suggestionsHook.handleKeyDown}></textarea>
+                                {suggestionsHook.suggestions.length > 0 && suggestionsHook.suggestionsTypeRef?.current === "name" && (
                                     <ul className="bg-white border rounded shadow-lg">
-                                        {suggestions.map((suggestion, index) => {
-                                            const textBeforeCursor = eventPopUp.description.slice(0, cursorPosition);
+                                        {suggestionsHook.suggestions.map((suggestion, index) => {
+                                            const textBeforeCursor = eventPopUp.description.slice(0, suggestionsHook.cursorPosition);
                                             const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
                                             return <li
                                                 key={suggestion}
-                                                className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
+                                                className={`p-2 cursor-pointer ${index === suggestionsHook.selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
                                                     }`}
-                                                onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                                                onMouseLeave={() => setSelectedSuggestionIndex(-1)}
-                                                onClick={() => handleSuggestionClick(suggestion)}
+                                                onMouseEnter={() => suggestionsHook.setSelectedSuggestionIndex(index)}
+                                                onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
+                                                onClick={() => suggestionsHook.handleSuggestionClick(suggestion)}
                                             >
                                                 {suggestion.split("").map((char, index) => (
                                                     <span key={index} className={match?.[1].toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
@@ -465,20 +330,20 @@ const Day = () => {
                                     placeholder="Note for the day, e.g. visited @Michael and saw an aligator on my way home"
                                     className="w-full p-2 border mt-2 rounded"
                                     value={eventPopUp.note}
-                                    onChange={(e) => { handleInputChange(e) }}
-                                    onKeyDown={handleKeyDown}></textarea>
-                                {suggestions.length > 0 && (
+                                    onChange={(e) => { suggestionsHook.handleInputChange(e) }}
+                                    onKeyDown={suggestionsHook.handleKeyDown}></textarea>
+                                {suggestionsHook.suggestions.length > 0 && (
                                     <ul className="bg-white border rounded shadow-lg">
-                                        {suggestions.map((suggestion, index) => {
-                                            const textBeforeCursor = eventPopUp.note.slice(0, cursorPosition);
+                                        {suggestionsHook.suggestions.map((suggestion, index) => {
+                                            const textBeforeCursor = eventPopUp.note.slice(0, suggestionsHook.cursorPosition);
                                             const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
                                             return <li
                                                 key={suggestion}
-                                                className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
+                                                className={`p-2 cursor-pointer ${index === suggestionsHook.selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
                                                     }`}
-                                                onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                                                onMouseLeave={() => setSelectedSuggestionIndex(-1)}
-                                                onClick={() => handleSuggestionClick(suggestion)}
+                                                onMouseEnter={() => suggestionsHook.setSelectedSuggestionIndex(index)}
+                                                onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
+                                                onClick={() => suggestionsHook.handleSuggestionClick(suggestion)}
                                             >
                                                 {suggestion.split("").map((char, index) => (
                                                     <span key={index} className={match?.[1].toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
@@ -541,19 +406,19 @@ const Day = () => {
                             <h3 className="text-lg font-semibold">{eventPopUp.state} variable</h3>
                             <div>
                                 <input type="text" placeholder="Variable, e.g. Weight" className="w-full p-2 border rounded" value={eventPopUp.variable}
-                                    onChange={(e) => { setSuggestionsType("variable"); handleInputChange(e) }}
-                                    onKeyDown={handleKeyDown}
+                                    onChange={(e) => { suggestionsHook.setSuggestionsType("variable"); suggestionsHook.handleInputChange(e) }}
+                                    onKeyDown={suggestionsHook.handleKeyDown}
                                     disabled={eventPopUp.state !== "add"} />
-                                {suggestions.length > 0 && suggestionsTypeRef.current === "variable" && (
+                                {suggestionsHook.suggestions.length > 0 && suggestionsHook.suggestionsTypeRef?.current === "variable" && (
                                     <ul className="bg-white border rounded shadow-lg">
-                                        {suggestions.map((suggestion, index) => (
+                                        {suggestionsHook.suggestions.map((suggestion, index) => (
                                             <li
                                                 key={suggestion}
-                                                className={`p-2 cursor-pointer ${index === selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
+                                                className={`p-2 cursor-pointer ${index === suggestionsHook.selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
                                                     }`}
-                                                onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                                                onMouseLeave={() => setSelectedSuggestionIndex(-1)}
-                                                onClick={() => handleSuggestionClick(suggestion)}
+                                                onMouseEnter={() => suggestionsHook.setSelectedSuggestionIndex(index)}
+                                                onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
+                                                onClick={() => suggestionsHook.handleSuggestionClick(suggestion)}
                                             >
                                                 {suggestion.split("").map((char, index) => (
                                                     <span key={index} className={eventPopUp.variable.toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
@@ -569,7 +434,7 @@ const Day = () => {
                                     placeholder="Value, e.g. 70"
                                     className="w-full p-2 border mt-2 rounded"
                                     value={eventPopUp.value}
-                                    onChange={(e) => { setSuggestionsType("name"); handleInputChange(e) }}></input>
+                                    onChange={(e) => { suggestionsHook.setSuggestionsType("name"); suggestionsHook.handleInputChange(e) }}></input>
                                 {
                                     eventPopUp.state === "add" ? (
                                         actionLoading ? (
