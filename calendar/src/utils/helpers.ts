@@ -68,6 +68,20 @@ export const getTimeFromLongString = (input: string): number => {
     return totalMinutes;
 }
 
+export const getHumanReadableDiffBetweenTimes = (start: string, end: string): string => {
+  const [startH, startM] = start.split(":").map(Number);
+  const [endH, endM] = end.split(":").map(Number);
+
+  const startMinutes = startH * 60 + startM;
+  const endMinutes = endH * 60 + endM;
+
+  let diff = endMinutes - startMinutes;
+
+  if (diff < 0) diff += 24 * 60; // handle overnight
+
+  return getHumanTimeFromMinutes(diff);
+}
+
 export const monthNames = [
     "January",
     "February",
@@ -88,10 +102,12 @@ export const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 import { ObjectId } from "bson";
 
 export interface ActivityEntry {
+    _id: ObjectId,
     activity: string;
-    duration: number; // number of minutes
+    start?: string;                   // "HH:mm" (local) — optional for quick logging
+    end?: string;                     // "HH:mm"
     description: string;
-    time?: string;
+    location?: Location;
 }
 
 interface Location {
