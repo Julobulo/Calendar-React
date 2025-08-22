@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import Spinner from "../Spinner";
-import { MdDelete } from "react-icons/md";
 import { FaRegCalendarTimes } from "react-icons/fa";
 import { LocationPicker } from "../LocationPicker";
 import Cookies from "js-cookie";
@@ -14,6 +13,7 @@ import { ObjectId } from "bson";
 import { useCalendarState } from "../../hooks/useCalendarState";
 import { useSuggestions } from "../../hooks/useSuggestions";
 import { EventList } from "./EventList";
+import { EventForm } from "./EventForm";
 
 const Day = () => {
     const [reload, setReload] = useState(false);
@@ -123,292 +123,17 @@ const Day = () => {
                         <option value="variable">Variable</option>
                         <option value="note">Note</option>
                     </select>
-                    {selectedForm === "activity" && (<div>
-                        {/* Add Event Form */}
-                        <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
-                            <h3 className="text-lg font-semibold">{eventPopUp.state} activity</h3>
-                            <div>
-                                <input type="text" placeholder="Activity, e.g. Running" className="w-full p-2 border rounded" value={eventPopUp.activity}
-                                    onChange={(e) => { suggestionsHook.setSuggestionsType("activity"); suggestionsHook.handleInputChange(e) }}
-                                    onKeyDown={suggestionsHook.handleKeyDown}
-                                    disabled={eventPopUp.state !== "add"} />
-                                {suggestionsHook.suggestions.length > 0 && suggestionsHook.suggestionsTypeRef?.current === "activity" && (
-                                    <ul className="bg-white border rounded shadow-lg">
-                                        {suggestionsHook.suggestions.map((suggestion, index) => (
-                                            <li
-                                                key={suggestion}
-                                                className={`p-2 cursor-pointer ${index === suggestionsHook.selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
-                                                    }`}
-                                                onMouseEnter={() => suggestionsHook.setSelectedSuggestionIndex(index)}
-                                                onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
-                                                onClick={() => suggestionsHook.handleSuggestionClick(suggestion)}
-                                            >
-                                                {suggestion.split("").map((char, index) => (
-                                                    <span key={index} className={eventPopUp.activity.toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
-                                                        {char}
-                                                    </span>
-                                                ))}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                                <input
-                                    type="time"
-                                    id="start"
-                                    className="w-full p-2 border mt-2 rounded"
-                                    value={eventPopUp.start}
-                                    onChange={(e) =>
-                                        setEventPopUp((prev) => ({
-                                            ...prev,
-                                            start: e.target.value,
-                                        }))
-                                    }
-                                />
-                                <input
-                                    type="time"
-                                    id="end"
-                                    className="w-full p-2 border mt-2 rounded"
-                                    value={eventPopUp.end ?? new Date().toISOString().slice(11, 16)} // fallback to current time if undefined
-                                    onChange={(e) =>
-                                        setEventPopUp((prev) => ({
-                                            ...prev,
-                                            end: e.target.value,
-                                        }))
-                                    }
-                                />
-                                <textarea
-                                    placeholder="Description, e.g. 1h22min morning run, followed by a 15min evening run"
-                                    className="w-full p-2 border mt-2 rounded"
-                                    value={eventPopUp.description}
-                                    onChange={(e) => { suggestionsHook.setSuggestionsType("name"); suggestionsHook.handleInputChange(e) }}
-                                    onKeyDown={suggestionsHook.handleKeyDown}></textarea>
-                                {suggestionsHook.suggestions.length > 0 && suggestionsHook.suggestionsTypeRef?.current === "name" && (
-                                    <ul className="bg-white border rounded shadow-lg">
-                                        {suggestionsHook.suggestions.map((suggestion, index) => {
-                                            const textBeforeCursor = eventPopUp.description.slice(0, suggestionsHook.cursorPosition);
-                                            const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
-                                            return <li
-                                                key={suggestion}
-                                                className={`p-2 cursor-pointer ${index === suggestionsHook.selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
-                                                    }`}
-                                                onMouseEnter={() => suggestionsHook.setSelectedSuggestionIndex(index)}
-                                                onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
-                                                onClick={() => suggestionsHook.handleSuggestionClick(suggestion)}
-                                            >
-                                                {suggestion.split("").map((char, index) => (
-                                                    <span key={index} className={match?.[1].toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
-                                                        {char}
-                                                    </span>
-                                                ))}
-                                            </li>
-                                        })}
-                                    </ul>
-                                )}
-                                {
-                                    eventPopUp.state === "add" ? (
-                                        actionLoading ? (
-                                            <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
-                                                <Spinner />
-                                            </div>
-                                        ) : (
-                                            <button
-                                                className="w-full p-2 bg-blue-500 text-white rounded mt-2"
-                                                onClick={async () => {
-                                                    await handleEventFinish();
-                                                }}
-                                            >
-                                                {eventPopUp.state}
-                                            </button>
-                                        )
-                                    ) : (
-                                        actionLoading ? (
-                                            <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
-                                                <Spinner />
-                                            </div>
-                                        ) :
-                                            (<div className="flex gap-2 mt-2">
-                                                <button
-                                                    className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                                    onClick={async () => {
-                                                        await handleEventFinish();
-                                                    }}
-                                                >
-                                                    {eventPopUp.state}
-                                                </button>
-                                                <button
-                                                    className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
-                                                    onClick={async () => {
-                                                        await handleDelete();
-                                                    }}
-                                                >
-                                                    <MdDelete className="text-xl" />
-                                                </button>
-                                            </div>)
-                                    )
-                                }
-                            </div>
-                        </div>
-                        <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
-                    </div>)}
-                    {selectedForm === "note" && (<div>
-                        <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
-                            <h3 className="text-lg font-semibold">{eventPopUp.state} note</h3>
-                            <div>
-                                <textarea
-                                    placeholder="Note for the day, e.g. visited @Michael and saw an aligator on my way home"
-                                    className="w-full p-2 border mt-2 rounded"
-                                    value={eventPopUp.note}
-                                    onChange={(e) => { suggestionsHook.handleInputChange(e) }}
-                                    onKeyDown={suggestionsHook.handleKeyDown}></textarea>
-                                {suggestionsHook.suggestions.length > 0 && (
-                                    <ul className="bg-white border rounded shadow-lg">
-                                        {suggestionsHook.suggestions.map((suggestion, index) => {
-                                            const textBeforeCursor = eventPopUp.note.slice(0, suggestionsHook.cursorPosition);
-                                            const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
-                                            return <li
-                                                key={suggestion}
-                                                className={`p-2 cursor-pointer ${index === suggestionsHook.selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
-                                                    }`}
-                                                onMouseEnter={() => suggestionsHook.setSelectedSuggestionIndex(index)}
-                                                onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
-                                                onClick={() => suggestionsHook.handleSuggestionClick(suggestion)}
-                                            >
-                                                {suggestion.split("").map((char, index) => (
-                                                    <span key={index} className={match?.[1].toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
-                                                        {char}
-                                                    </span>
-                                                ))}
-                                            </li>
-                                        })}
-                                    </ul>
-                                )}
-                                {
-                                    eventPopUp.state === "add" ? (
-                                        actionLoading ? (
-                                            <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
-                                                <Spinner />
-                                            </div>
-                                        ) : (
-                                            <button
-                                                className="w-full p-2 bg-blue-500 text-white rounded mt-2"
-                                                onClick={async () => {
-                                                    await handleEventFinish();
-                                                }}
-                                            >
-                                                {eventPopUp.state}
-                                            </button>
-                                        )
-                                    ) : (
-                                        actionLoading ? (
-                                            <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
-                                                <Spinner />
-                                            </div>
-                                        ) :
-                                            (<div className="flex gap-2 mt-2">
-                                                <button
-                                                    className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                                    onClick={async () => {
-                                                        await handleEventFinish();
-                                                    }}
-                                                >
-                                                    {eventPopUp.state}
-                                                </button>
-                                                <button
-                                                    className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
-                                                    onClick={async () => {
-                                                        await handleDelete();
-                                                    }}
-                                                >
-                                                    <MdDelete className="text-xl" />
-                                                </button>
-                                            </div>)
-                                    )
-                                }
-                            </div>
-                        </div>
-                        <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
-                    </div>)}
-                    {selectedForm === "variable" && (<div>
-                        {/* Add Event Form */}
-                        <div className="p-4 border rounded mr-0 lg:mr-2 xl:mr-14" style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}>
-                            <h3 className="text-lg font-semibold">{eventPopUp.state} variable</h3>
-                            <div>
-                                <input type="text" placeholder="Variable, e.g. Weight" className="w-full p-2 border rounded" value={eventPopUp.variable}
-                                    onChange={(e) => { suggestionsHook.setSuggestionsType("variable"); suggestionsHook.handleInputChange(e) }}
-                                    onKeyDown={suggestionsHook.handleKeyDown}
-                                    disabled={eventPopUp.state !== "add"} />
-                                {suggestionsHook.suggestions.length > 0 && suggestionsHook.suggestionsTypeRef?.current === "variable" && (
-                                    <ul className="bg-white border rounded shadow-lg">
-                                        {suggestionsHook.suggestions.map((suggestion, index) => (
-                                            <li
-                                                key={suggestion}
-                                                className={`p-2 cursor-pointer ${index === suggestionsHook.selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"
-                                                    }`}
-                                                onMouseEnter={() => suggestionsHook.setSelectedSuggestionIndex(index)}
-                                                onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
-                                                onClick={() => suggestionsHook.handleSuggestionClick(suggestion)}
-                                            >
-                                                {suggestion.split("").map((char, index) => (
-                                                    <span key={index} className={eventPopUp.variable.toLowerCase().includes(char.toLowerCase()) ? "bg-purple-300" : ""}>
-                                                        {char}
-                                                    </span>
-                                                ))}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                                <input
-                                    type="number"
-                                    placeholder="Value, e.g. 70"
-                                    className="w-full p-2 border mt-2 rounded"
-                                    value={eventPopUp.value}
-                                    onChange={(e) => { suggestionsHook.setSuggestionsType("name"); suggestionsHook.handleInputChange(e) }}></input>
-                                {
-                                    eventPopUp.state === "add" ? (
-                                        actionLoading ? (
-                                            <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
-                                                <Spinner />
-                                            </div>
-                                        ) : (
-                                            <button
-                                                className="w-full p-2 bg-blue-500 text-white rounded mt-2"
-                                                onClick={async () => {
-                                                    await handleEventFinish();
-                                                }}
-                                            >
-                                                {eventPopUp.state}
-                                            </button>
-                                        )
-                                    ) : (
-                                        actionLoading ? (
-                                            <div className="w-full flex justify-center p-2 bg-blue-300 text-white rounded mt-2">
-                                                <Spinner />
-                                            </div>
-                                        ) :
-                                            (<div className="flex gap-2 mt-2">
-                                                <button
-                                                    className="flex-1 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                                    onClick={async () => {
-                                                        await handleEventFinish();
-                                                    }}
-                                                >
-                                                    {eventPopUp.state}
-                                                </button>
-                                                <button
-                                                    className="w-12 h-10 flex items-center justify-center bg-red-500 text-white rounded hover:bg-red-600"
-                                                    onClick={async () => {
-                                                        await handleDelete();
-                                                    }}
-                                                >
-                                                    <MdDelete className="text-xl" />
-                                                </button>
-                                            </div>)
-                                    )
-                                }
-                            </div>
-                        </div>
-                        <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
-                    </div>)}
+                    <EventForm
+                        calendarWidth={calendarWidth}
+                        selectedForm={selectedForm}
+                        eventPopUp={eventPopUp}
+                        setEventPopUp={setEventPopUp}
+                        suggestionsHook={suggestionsHook}
+                        actionLoading={actionLoading}
+                        handleEventFinish={handleEventFinish}
+                        handleDelete={handleDelete}
+                        handleClose={handleClose}
+                    />
                 </div>
             )}
         </div>
