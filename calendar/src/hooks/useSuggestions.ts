@@ -79,9 +79,9 @@ export function useSuggestions({ colors, names, eventPopUp, setEventPopUp, selec
                     .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
                     .slice(0, 3);
             }
-            // else if (suggestionsTypeRef.current === "name") {
-            //     setEventPopUp((prev: typeof eventPopUp) => ({ ...prev, value: value }));
-            // }
+            else if (suggestionsTypeRef.current === "name") {
+                setEventPopUp((prev: typeof eventPopUp) => ({ ...prev, value: value }));
+            }
         }
 
         setSuggestions(filteredSuggestions);

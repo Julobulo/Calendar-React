@@ -133,7 +133,7 @@ export const EventForm: React.FC<EventFormProps> = ({
                             placeholder="Value"
                             className="w-full p-2 border mt-2 rounded"
                             value={eventPopUp.value}
-                            onChange={(e) => { suggestionsHook.handleInputChange(e); }}
+                            onChange={(e) => { suggestionsHook.setSuggestionsType("name"); suggestionsHook.handleInputChange(e); }}
                         />
                     </>
                 )}
