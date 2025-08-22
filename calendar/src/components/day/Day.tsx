@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import Spinner from "../Spinner";
 import { FaRegCalendarTimes } from "react-icons/fa";
@@ -14,6 +13,7 @@ import { useCalendarState } from "../../hooks/useCalendarState";
 import { useSuggestions } from "../../hooks/useSuggestions";
 import { EventList } from "./EventList";
 import { EventForm } from "./EventForm";
+import { CalendarPicker } from "./CalendarPicker";
 
 const Day = () => {
     const [reload, setReload] = useState(false);
@@ -51,8 +51,6 @@ const Day = () => {
     const handleClose = () => {
         setMobileShowForm(false);
     }
-
-    const isInitialLocationLoad = useRef(true);
 
     return (
         <div className="flex flex-col md:flex-row h-screen p-3">
@@ -97,32 +95,16 @@ const Day = () => {
             {/* Calendar & Form (Hidden on mobile) */}
             {((window.innerWidth < 768 && mobileShowForm) || (window.innerWidth >= 768)) && (
                 <div className="md:inline-flex flex-col px-4 bg-white max-w-fit">
-                    {/* Simple Calendar */}
-                    <div ref={calendarRef} className="p-4 border rounded mb-4 w-max">
-                        <DayPicker
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={(date) => {
-                                if (!date) return; // Prevent clearing the date
-                                isInitialLocationLoad.current = true;
-                                goToDate(date!);
-                            }}
-                            captionLayout="dropdown"
-                            month={currentMonth}
-                            onMonthChange={setCurrentMonth}
-                        />
-                    </div>
-                    {/* Dropdown to select form type */}
-                    <select
-                        value={selectedForm}
-                        onChange={(e) => { setSelectedForm(e.target.value as "activity" | "note" | "variable"); setEventPopUp({ state: "add", _id: new ObjectId, activity: "", description: "", start: "", end: "", note: "", variable: "", value: "" }) }}
-                        className="p-4 border mb-4 rounded w-full mx-auto lg:mr-2 xl:mr-14 bg-white focus:bg-gray-200"
-                        style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}
-                    >
-                        <option value="activity">Activity</option>
-                        <option value="variable">Variable</option>
-                        <option value="note">Note</option>
-                    </select>
+                    <CalendarPicker
+                        selectedDate={selectedDate}
+                        currentMonth={currentMonth}
+                        setCurrentMonth={setCurrentMonth}
+                        goToDate={goToDate}
+                        calendarRef={calendarRef}
+                        calendarWidth={calendarWidth}
+                        selectedForm={selectedForm}
+                        setSelectedForm={setSelectedForm}
+                    />
                     <EventForm
                         calendarWidth={calendarWidth}
                         selectedForm={selectedForm}
