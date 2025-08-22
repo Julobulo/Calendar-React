@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { highlightTimesAndNames, UserActivity } from "../utils/helpers";
-import { getHumanTimeFromMinutes, isLightOrDark } from "../utils/helpers";
+import { getHumanReadableDiffBetweenTimes, highlightTimesAndNames } from "../utils/helpers";
+import { isLightOrDark } from "../utils/helpers";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import Spinner from "./Spinner";
@@ -10,6 +10,7 @@ import { MdDelete } from "react-icons/md";
 import { FaRegCalendarTimes } from "react-icons/fa";
 import { LocationPicker } from "./LocationPicker";
 import Cookies from "js-cookie";
+import { useActivities } from "../hooks/useActivities";
 
 interface Location {
     name: string;
@@ -24,7 +25,6 @@ const Day = () => {
     const day = searchParams.get("day") !== null ? Number(searchParams.get("day")) : new Date().getDate();
     // useEffect(() => {setSearchParams({ year: year.toString(), month: month.toString(), day: day.toString() })}, [year, month, day])
 
-    const [dayActivities, setDayActivities] = useState<UserActivity>();
     const [colors, setColors] = useState<{
         activities: { [activity: string]: string };
         note: string;
@@ -35,6 +35,8 @@ const Day = () => {
 
     const [mobileShowForm, setMobileShowForm] = useState<boolean>(false);
 
+    const { activities: dayActivities, loading } = useActivities(year, month, day, reload);
+
     useEffect(() => {
         const fetchColors = async () => {
             const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/colors`, {
@@ -43,7 +45,7 @@ const Day = () => {
             });
             if (!response.ok) {
                 toast.error(`Failed to fetch colors: ${(await response.json()).message}`);
-                setLoading(false);
+                // setLoading(false);
                 return
             }
             const data = await response.json();
@@ -60,7 +62,7 @@ const Day = () => {
             });
             if (!response.ok) {
                 toast.error(`Failed to fetch names: ${(await response.json()).message}`);
-                setLoading(false);
+                // setLoading(false);
                 return;
             }
             const data = await response.json();
@@ -69,46 +71,14 @@ const Day = () => {
         if (Cookies.get('token')) fetchNames();
     }, [reload]);
 
-    useEffect(() => {
-        const fetchActivities = async () => {
-            setLoading(true);
-            const response = await fetch(`${import.meta.env.VITE_API_URI}/activity?year=${year}&month=${month}&day=${day}`, {
-                credentials: "include"
-            });
-            if (!response.ok) {
-                toast.error(`Failed to fetch activities: ${(await response.json()).message}`);
-                setLoading(false);
-                return;
-            }
-            const data: UserActivity[] = await response.json();
-            const sortedActivities = data[0]?.entries.sort((a, b) => {
-                const aHasTime = typeof a.time === "string";
-                const bHasTime = typeof b.time === "string";
-                if (aHasTime && bHasTime) {
-                    // Compare times: "HH:MM"
-                    return a.time!.localeCompare(b.time!);
-                } else if (aHasTime) {
-                    return -1; // a before b
-                } else if (bHasTime) {
-                    return 1; // b before a
-                } else {
-                    return 0; // both have no time
-                }
-            })
-            if (data[0]) {setDayActivities({ ...data[0], entries: sortedActivities || [] })} else {setDayActivities(undefined)}
-            setLoading(false);
-        }
-        if (Cookies.get('token')) fetchActivities();
-    }, [year, month, day, reload]);
-
     const navigate = useNavigate();
     const handleClick = () => {
         if (window.innerWidth < 768) {
             setMobileShowForm(true);
-            setEventPopUp({ state: "add", activity: "", description: "", time: new Date().toISOString().slice(11, 16), note: "", variable: "", value: "" });
+            setEventPopUp({ state: "add", activity: "", description: "", start: "", end: new Date().toISOString().slice(11, 16), note: "", variable: "", value: "" });
         }
         else {
-            setEventPopUp({ state: "add", activity: "", description: "", time: new Date().toISOString().slice(11, 16), note: "", variable: "", value: "" });
+            setEventPopUp({ state: "add", activity: "", description: "", start: "", end: new Date().toISOString().slice(11, 16), note: "", variable: "", value: "" });
         }
     };
 
@@ -122,9 +92,9 @@ const Day = () => {
         localStorage.setItem('year', selectedDate.getFullYear().toString());
     }, [selectedDate])
 
-    const [eventPopUp, setEventPopUp] = useState<{ state: "add" | "edit"; activity: string; description: string, time: string, note: string, variable: string, value: string }>({ state: "add", activity: "", description: "", time: "", note: "", variable: "", value: "" });
+    const [eventPopUp, setEventPopUp] = useState<{ state: "add" | "edit"; activity: string; description: string, start: string, end: string, note: string, variable: string, value: string }>({ state: "add", activity: "", description: "", start: "", end: "", note: "", variable: "", value: "" });
 
-    const [loading, setLoading] = useState(false);
+    // const [loading, setLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState<boolean>(false);
 
     const handleEventFinish = async () => {
@@ -134,6 +104,7 @@ const Day = () => {
             let body;
             if (selectedForm === "activity") {
                 if (!eventPopUp.activity || !eventPopUp.description) { toast.error('Please fill in both activity and description'); setActionLoading(false); return }
+                if (!eventPopUp.start && !eventPopUp.end) { toast.error('Please fill the start and end time'); setActionLoading(false); return }
                 body = {
                     year: year,
                     month: month,
@@ -141,7 +112,8 @@ const Day = () => {
                     type: "activity",
                     activity: eventPopUp.activity,
                     description: eventPopUp.description,
-                    time: eventPopUp.time,
+                    start: eventPopUp.start,
+                    end: eventPopUp.end,
                 }
             } else if (selectedForm === "note") {
                 if (!eventPopUp.note) { toast.error('Please fill in the note'); setActionLoading(false); return }
@@ -177,7 +149,7 @@ const Day = () => {
                 console.log(`the event wasn't successfully created`);
             }
             else {
-                setEventPopUp({ state: "add", activity: "", description: "", time: "", note: "", variable: "", value: "" });
+                setEventPopUp({ state: "add", activity: "", description: "", start: "", end: "", note: "", variable: "", value: "" });
                 setReload(!reload);
             }
             setActionLoading(false);
@@ -194,7 +166,8 @@ const Day = () => {
                     type: "activity",
                     activity: eventPopUp.activity,
                     description: eventPopUp.description,
-                    time: eventPopUp.time,
+                    start: eventPopUp.start,
+                    end: eventPopUp.end,
                 }
             } else if (selectedForm === "note") {
                 if (!eventPopUp.note) { toast.error('Please fill in the note'); setActionLoading(false); return }
@@ -230,7 +203,7 @@ const Day = () => {
                 console.log(`the event wasn't successfully edited`);
             }
             else {
-                setEventPopUp({ state: "add", activity: "", description: "", time: "", note: "", variable: "", value: "" });
+                setEventPopUp({ state: "add", activity: "", description: "", start: "", end: "", note: "", variable: "", value: "" });
                 setReload(!reload);
             }
             setTimeout('', 5000);
@@ -280,7 +253,7 @@ const Day = () => {
             console.log(`the event wasn't successfully deleted`);
         }
         else {
-            setEventPopUp({ state: "add", activity: "", description: "", time: "", note: "", variable: "", value: "" });
+            setEventPopUp({ state: "add", activity: "", description: "", start: "", end: "", note: "", variable: "", value: "" });
             setReload(!reload);
         }
         setMobileShowForm(false);
@@ -562,7 +535,7 @@ const Day = () => {
                                     onClick={(e) => {
                                         e.stopPropagation(); // Prevent handleClick from running
                                         setSelectedForm("activity");
-                                        setEventPopUp({ state: "edit", activity: entry.activity, description: entry.description, time: entry.time || "", note: "", variable: "", value: "" });
+                                        setEventPopUp({ state: "edit", activity: entry.activity, description: entry.description, start: entry.start || "", end: entry.end || "", note: "", variable: "", value: "" });
                                         setMobileShowForm(true);
                                     }}
                                 >
@@ -573,10 +546,10 @@ const Day = () => {
                                         <div className="flex justify-between items-center">
                                             <div className="flex items-center space-x-2">
                                                 <h3 className="font-semibold text-lg">{entry.activity}</h3>
-                                                <span className="text-sm opacity-90">({getHumanTimeFromMinutes(entry.duration)})</span>
+                                                <span className="text-sm opacity-90">({getHumanReadableDiffBetweenTimes(entry.start||"", entry.end||"")})</span>
                                             </div>
-                                            {entry.time && (
-                                                <span className="text-sm opacity-80">{entry.time}</span>
+                                            {entry.start && (
+                                                <span className="text-sm opacity-80">{entry.start}</span>
                                             )}
                                         </div>
 
@@ -602,7 +575,7 @@ const Day = () => {
                                             onClick={(e) => {
                                                 e.stopPropagation(); // Prevent handleClick from running
                                                 setSelectedForm("variable");
-                                                setEventPopUp({ state: "edit", activity: "", description: "", time: "", variable: entry.variable, value: entry.value, note: "" })
+                                                setEventPopUp({ state: "edit", activity: "", description: "", start: "", end: "", variable: entry.variable, value: entry.value, note: "" })
                                                 setMobileShowForm(true);
                                             }}
                                         >
@@ -622,7 +595,7 @@ const Day = () => {
                                         onClick={(e) => {
                                             e.stopPropagation(); // Prevent handleClick from running
                                             setSelectedForm("note");
-                                            setEventPopUp({ state: "edit", activity: "", description: "", time: "", note: dayActivities?.note || "", variable: "", value: "" })
+                                            setEventPopUp({ state: "edit", activity: "", description: "", start: "", end: "", note: dayActivities?.note || "", variable: "", value: "" })
                                             setMobileShowForm(true);
                                         }}
                                     >
@@ -670,7 +643,7 @@ const Day = () => {
                     {/* Dropdown to select form type */}
                     <select
                         value={selectedForm}
-                        onChange={(e) => { setSelectedForm(e.target.value as "activity" | "note" | "variable"); setEventPopUp({ state: "add", activity: "", description: "", time: "", note: "", variable: "", value: "" }) }}
+                        onChange={(e) => { setSelectedForm(e.target.value as "activity" | "note" | "variable"); setEventPopUp({ state: "add", activity: "", description: "", start: "", end: "", note: "", variable: "", value: "" }) }}
                         className="p-4 border mb-4 rounded w-full mx-auto lg:mr-2 xl:mr-14 bg-white focus:bg-gray-200"
                         style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}
                     >
@@ -684,7 +657,6 @@ const Day = () => {
                             <h3 className="text-lg font-semibold">{eventPopUp.state} activity</h3>
                             <div>
                                 <input type="text" placeholder="Activity, e.g. Running" className="w-full p-2 border rounded" value={eventPopUp.activity}
-                                    // onChange={(e) => { if (eventPopUp.state === "add") { setEventPopup((prev) => ({ ...eventPopUp, activity: e.target.value }) } }}
                                     onChange={(e) => { setSuggestionsType("activity"); handleInputChange(e) }}
                                     onKeyDown={handleKeyDown}
                                     disabled={eventPopUp.state !== "add"} />
@@ -710,12 +682,24 @@ const Day = () => {
                                 )}
                                 <input
                                     type="time"
+                                    id="start"
                                     className="w-full p-2 border mt-2 rounded"
-                                    value={eventPopUp.time ?? new Date().toISOString().slice(11, 16)} // fallback to current time if undefined
                                     onChange={(e) =>
                                         setEventPopUp((prev) => ({
                                             ...prev,
-                                            time: e.target.value,
+                                            start: e.target.value,
+                                        }))
+                                    }
+                                />
+                                <input
+                                    type="time"
+                                    id="end"
+                                    className="w-full p-2 border mt-2 rounded"
+                                    value={eventPopUp.end ?? new Date().toISOString().slice(11, 16)} // fallback to current time if undefined
+                                    onChange={(e) =>
+                                        setEventPopUp((prev) => ({
+                                            ...prev,
+                                            end: e.target.value,
                                         }))
                                     }
                                 />
