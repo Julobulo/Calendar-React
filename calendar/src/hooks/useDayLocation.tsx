@@ -33,8 +33,9 @@ export function useDayLocation(year: number, month: number, day: number) {
         }
 
         const data = await res.json();
-        if (data.location) isInitialLocationLoad.current = true; // prevent saving immediately
-        setSelectedLocation(data.location);
+        isInitialLocationLoad.current = true; // always skip first run after fetching from API
+        setSelectedLocation(data.location ?? null);
+
       } catch (err) {
         toast.error("Failed to fetch location");
         setSelectedLocation(null);
