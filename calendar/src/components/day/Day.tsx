@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { getHumanReadableDiffBetweenTimes, highlightTimesAndNames } from "../../utils/helpers";
-import { isLightOrDark } from "../../utils/helpers";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import Spinner from "../Spinner";
@@ -15,6 +13,7 @@ import { useEventForm } from "../../hooks/useEventForm";
 import { ObjectId } from "bson";
 import { useCalendarState } from "../../hooks/useCalendarState";
 import { useSuggestions } from "../../hooks/useSuggestions";
+import { EventList } from "./EventList";
 
 const Day = () => {
     const [reload, setReload] = useState(false);
@@ -72,84 +71,13 @@ const Day = () => {
                         </div>
                     )}
                     {!loading && dayActivities && (
-                        <div className="mt-2 flex flex-col space-y-2">
-                            {(dayActivities.entries?.length ?? 0) > 0 && dayActivities.entries.map((entry, index) => (
-                                <div
-                                    key={index}
-                                    style={{ backgroundColor: colors.activities[entry.activity] || "#ffffff" }}
-                                    className="rounded-2xl shadow-md"
-                                    onClick={(e) => {
-                                        e.stopPropagation(); // Prevent handleClick from running
-                                        setSelectedForm("activity");
-                                        setEventPopUp({ state: "edit", _id: entry._id, activity: entry.activity, description: entry.description, start: entry.start || "", end: entry.end || "", note: "", variable: "", value: "" });
-                                        setMobileShowForm(true);
-                                    }}
-                                >
-                                    <div
-                                        className={`p-4 text-left text-[14px] ${isLightOrDark(colors.activities[entry.activity]) ? "text-black" : "text-white"
-                                            }`}
-                                    >
-                                        <div className="flex justify-between items-center">
-                                            <div className="flex items-center space-x-2">
-                                                <h3 className="font-semibold text-lg">{entry.activity}</h3>
-                                                <span className="text-sm opacity-90">({getHumanReadableDiffBetweenTimes(entry.start || "", entry.end || "")})</span>
-                                            </div>
-                                            {entry.start && (
-                                                <span className="text-sm opacity-80">{entry.start}</span>
-                                            )}
-                                        </div>
-
-                                        <p
-                                            className="text-sm leading-snug mt-1"
-                                            dangerouslySetInnerHTML={{
-                                                __html: highlightTimesAndNames(entry.description),
-                                            }}
-                                        ></p>
-                                    </div>
-                                </div>
-                            ))}
-                            {(dayActivities.variables?.length ?? 0) > 0 && (
-                                <div className="space-y-2">
-                                    {(dayActivities.entries?.length ?? 0) > 0 && <hr className="my-2" />}
-                                    {dayActivities.variables.map((entry, index) => (
-                                        <div
-                                            key={index}
-                                            style={{
-                                                backgroundColor: colors.variables[entry.variable] || "#ffffff", // Default color if no match found
-                                            }}
-                                            className={`text-[14px] ${isLightOrDark(colors.variables[entry.variable]) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
-                                            onClick={(e) => {
-                                                e.stopPropagation(); // Prevent handleClick from running
-                                                setSelectedForm("variable");
-                                                setEventPopUp({ state: "edit", _id: new ObjectId, activity: "", description: "", start: "", end: "", variable: entry.variable, value: entry.value, note: "" })
-                                                setMobileShowForm(true);
-                                            }}
-                                        >
-                                            {entry.variable} - {entry.value}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            {dayActivities?.note && (
-                                <div>
-                                    {((dayActivities.entries?.length ?? 0) > 0 || (dayActivities.variables?.length ?? 0) > 0) && <hr className="my-2" />}
-                                    <div
-                                        style={{
-                                            backgroundColor: colors.note || "#ffffff", // Default color if no match found
-                                        }}
-                                        className={`${isLightOrDark(colors.note) ? 'text-black' : 'text-white'} rounded px-2 py-1`}
-                                        onClick={(e) => {
-                                            e.stopPropagation(); // Prevent handleClick from running
-                                            setSelectedForm("note");
-                                            setEventPopUp({ state: "edit", _id: new ObjectId, activity: "", description: "", start: "", end: "", note: dayActivities?.note || "", variable: "", value: "" })
-                                            setMobileShowForm(true);
-                                        }}
-                                    >
-                                        <span className="text-[14px]" dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(dayActivities.note || "") }}></span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        <EventList
+                            dayActivities={dayActivities}
+                            colors={colors}
+                            setSelectedForm={setSelectedForm}
+                            setEventPopUp={setEventPopUp}
+                            setMobileShowForm={setMobileShowForm}
+                        />
                     )}
                     {!loading && !dayActivities && (
                         <div className="flex items-center gap-2 text-gray-500 text-sm p-2">
