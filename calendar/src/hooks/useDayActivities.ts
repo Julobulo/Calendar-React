@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 import { toast } from "react-toastify";
 import { UserActivity } from "../utils/helpers";
 
-export function useActivities(year: number, month: number, day: number, reload: boolean) {
+export function useDayActivities(year: number, month: number, day: number, reload: boolean) {
   const [activities, setActivities] = useState<UserActivity>();
   const [loading, setLoading] = useState(false);
 

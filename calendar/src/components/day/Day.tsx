@@ -4,7 +4,7 @@ import Spinner from "../Spinner";
 import { FaRegCalendarTimes } from "react-icons/fa";
 import { LocationPicker } from "../LocationPicker";
 import Cookies from "js-cookie";
-import { useActivities } from "../../hooks/useActivities";
+import { useDayActivities } from "../../hooks/useDayActivities";
 import { useDayLocation } from "../../hooks/useDayLocation";
 import { useActivityMetadata } from "../../hooks/useActivityMetadata";
 import { useEventForm } from "../../hooks/useEventForm";
@@ -21,7 +21,7 @@ const Day = () => {
     const [mobileShowForm, setMobileShowForm] = useState<boolean>(false);
 
     const { selectedDate, currentMonth, goToDate, setCurrentMonth } = useCalendarState();
-    const { activities: dayActivities, loading } = useActivities(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), reload);
+    const { activities: dayActivities, loading } = useDayActivities(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), reload);
     const { selectedLocation, setSelectedLocation, isSavingLocation } = useDayLocation(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
     const { colors, names } = useActivityMetadata(reload);
     const { eventPopUp, setEventPopUp, selectedForm, setSelectedForm, actionLoading, handleEventFinish, handleDelete } = useEventForm(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), reload, setReload);
