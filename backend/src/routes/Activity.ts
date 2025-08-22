@@ -364,6 +364,7 @@ export async function handleVariable(
 export async function handleNote(
     body: any,
     existingEntry: UserActivity | null,
+    editing?: "edit"
 ) {
     const note = (body.note || "").trim();
     if (!note) badRequest("Missing note field");
@@ -372,6 +373,7 @@ export async function handleNote(
     let updateQuery;
 
     if (existingEntry) {
+        if (existingEntry?.note && editing !== "edit") badRequest("Note already exists")
         updateQuery = { $set: { note } };
         return updateQuery;
     } else {
@@ -468,17 +470,11 @@ ActivityRoute.patch('/edit', accessGuard, async (c) => {
     const id = c.var.user.id;
     const body = await c.req.json();
 
-    let { year, month, day, type, activity, description, start, end, note, variable, value, _id } = body;
-    year = (year || "").trim();
-    month = (month || "").trim();
-    day = (day || "").trim();
+    let { type, activity, description, note, variable, _id } = body;
     activity = (activity || "").trim();
     description = (description || "").trim();
-    start = (start || "").trim();
-    end = (end || "").trim();
     note = (note || "").trim();
     variable = (variable || "").trim();
-    value = (value || "").trim();
 
     if (body.year === undefined || body.month === undefined || body.day === undefined || !type) return c.json({ message: "Missing required fields" }, 400);
     const date = new Date(Date.UTC(+body.year, +body.month, +body.day));
@@ -515,7 +511,7 @@ ActivityRoute.patch('/edit', accessGuard, async (c) => {
                 // handleColors(currentUser, usedColors, userCollection, id, '', variable);
                 break;
             case "note":
-                updateQuery = await handleNote(body, existingEntry);
+                updateQuery = await handleNote(body, existingEntry, "edit");
                 await activityCollection.updateOne({ userId: new ObjectId(id.toString()), date }, updateQuery, { upsert: true });
                 break;
             default:
