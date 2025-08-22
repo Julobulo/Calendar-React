@@ -49,6 +49,7 @@ export function useSuggestions({ colors, names, eventPopUp, setEventPopUp, selec
                 }
             }
         } else if (selectedForm === "note") {
+            console.log(`suggestion for note value: ${value}`)
             setEventPopUp((prev: typeof eventPopUp) => ({ ...prev, note: value }));
             if (value.length === 0) {
                 setSuggestions([]);
@@ -58,11 +59,12 @@ export function useSuggestions({ colors, names, eventPopUp, setEventPopUp, selec
             setCursorPosition(cursorPos);
             const textBeforeCursor = value.slice(0, cursorPos);
             const match = textBeforeCursor.match(/@([a-zA-Z]*)$/);
-
+            
             if (match) {
                 filteredSuggestions = names
-                    .filter((name: string) => name.toLowerCase().includes(match[1].toLowerCase()))
-                    .slice(0, 3);
+                .filter((name: string) => name.toLowerCase().includes(match[1].toLowerCase()))
+                .slice(0, 3);
+                console.log(`debugging: suggestions ${filteredSuggestions}`)
             }
         } else if (selectedForm === "variable") {
             if (suggestionsTypeRef.current === "variable") {
@@ -77,9 +79,9 @@ export function useSuggestions({ colors, names, eventPopUp, setEventPopUp, selec
                     .filter((key) => key.toLowerCase().includes(value.toLowerCase()))
                     .slice(0, 3);
             }
-            else if (suggestionsTypeRef.current === "name") {
-                setEventPopUp((prev: typeof eventPopUp) => ({ ...prev, value: value }));
-            }
+            // else if (suggestionsTypeRef.current === "name") {
+            //     setEventPopUp((prev: typeof eventPopUp) => ({ ...prev, value: value }));
+            // }
         }
 
         setSuggestions(filteredSuggestions);
@@ -147,6 +149,7 @@ export function useSuggestions({ colors, names, eventPopUp, setEventPopUp, selec
         cursorPosition,
         selectedSuggestionIndex,
         suggestionsTypeRef,
+        setSuggestions,
         setSelectedSuggestionIndex,
         setSuggestionsType,
         handleInputChange,

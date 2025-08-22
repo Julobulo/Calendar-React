@@ -33,9 +33,15 @@ const Day = () => {
         if (window.innerWidth < 768) {
             setMobileShowForm(true);
             setEventPopUp({ state: "add", _id: new ObjectId, activity: "", description: "", start: "", end: new Date().toISOString().slice(11, 16), note: "", variable: "", value: "" });
+            suggestionsHook.setSuggestions([]);
+            suggestionsHook.setSelectedSuggestionIndex(-1);
+            suggestionsHook.setSuggestionsType("");
         }
         else {
             setEventPopUp({ state: "add", _id: new ObjectId, activity: "", description: "", start: "", end: new Date().toISOString().slice(11, 16), note: "", variable: "", value: "" });
+            suggestionsHook.setSuggestions([]);
+            suggestionsHook.setSelectedSuggestionIndex(-1);
+            suggestionsHook.setSuggestionsType("");
         }
     };
 

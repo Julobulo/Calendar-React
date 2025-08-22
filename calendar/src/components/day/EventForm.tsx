@@ -2,6 +2,7 @@ import React from "react";
 import Spinner from "../Spinner";
 import { MdDelete } from "react-icons/md";
 import { useSuggestions } from "../../hooks/useSuggestions";
+import { SuggestionsDropdown } from "./SuggestionsDropdown";
 
 interface EventFormProps {
     calendarWidth: number | null;
@@ -36,7 +37,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
                 {/* Activity Form */}
                 {selectedForm === "activity" && (
-                    <>
+                    <div>
                         <input
                             type="text"
                             placeholder="Activity"
@@ -48,17 +49,13 @@ export const EventForm: React.FC<EventFormProps> = ({
                         />
                         {/* Suggestion dropdown */}
                         {suggestionsHook.suggestions.length > 0 && suggestionsHook.suggestionsTypeRef?.current === "activity" && (
-                            <ul className="bg-white border rounded shadow-lg">
-                                {suggestionsHook.suggestions.map((s, idx) => (
-                                    <li key={s} className={`p-2 cursor-pointer ${idx === suggestionsHook.selectedSuggestionIndex ? "bg-gray-300" : "hover:bg-gray-200"}`}
-                                        onMouseEnter={() => suggestionsHook.setSelectedSuggestionIndex(idx)}
-                                        onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
-                                        onClick={() => suggestionsHook.handleSuggestionClick(s)}
-                                    >
-                                        {s}
-                                    </li>
-                                ))}
-                            </ul>
+                            <SuggestionsDropdown
+                                suggestions={suggestionsHook.suggestions}
+                                selectedIndex={suggestionsHook.selectedSuggestionIndex}
+                                onMouseEnter={suggestionsHook.setSelectedSuggestionIndex}
+                                onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
+                                onClick={suggestionsHook.handleSuggestionClick}
+                            />
                         )}
                         <input type="time" value={eventPopUp.start} onChange={(e) => setEventPopUp((prev: typeof eventPopUp) => ({ ...prev, start: e.target.value }))} className="w-full p-2 border mt-2 rounded" />
                         <input type="time" value={eventPopUp.end} onChange={(e) => setEventPopUp((prev: typeof eventPopUp) => ({ ...prev, end: e.target.value }))} className="w-full p-2 border mt-2 rounded" />
@@ -69,18 +66,40 @@ export const EventForm: React.FC<EventFormProps> = ({
                             onChange={(e) => { suggestionsHook.setSuggestionsType("name"); suggestionsHook.handleInputChange(e); }}
                             onKeyDown={suggestionsHook.handleKeyDown}
                         ></textarea>
-                    </>
+                        {/* Suggestion dropdown */}
+                        {suggestionsHook.suggestions.length > 0 && suggestionsHook.suggestionsTypeRef?.current === "name" && (
+                            <SuggestionsDropdown
+                                suggestions={suggestionsHook.suggestions}
+                                selectedIndex={suggestionsHook.selectedSuggestionIndex}
+                                onMouseEnter={suggestionsHook.setSelectedSuggestionIndex}
+                                onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
+                                onClick={suggestionsHook.handleSuggestionClick}
+                            />
+                        )}
+                    </div>
                 )}
 
                 {/* Note Form */}
                 {selectedForm === "note" && (
-                    <textarea
-                        placeholder="Note for the day"
-                        className="w-full p-2 border mt-2 rounded"
-                        value={eventPopUp.note}
-                        onChange={(e) => suggestionsHook.handleInputChange(e)}
-                        onKeyDown={suggestionsHook.handleKeyDown}
-                    ></textarea>
+                    <div>
+                        <textarea
+                            placeholder="Note for the day"
+                            className="w-full p-2 border mt-2 rounded"
+                            value={eventPopUp.note}
+                            onChange={(e) => { suggestionsHook.setSuggestionsType("name"); suggestionsHook.handleInputChange(e) }}
+                            onKeyDown={suggestionsHook.handleKeyDown}
+                        ></textarea>
+                        {/* Suggestion dropdown */}
+                        {suggestionsHook.suggestions.length > 0 && suggestionsHook.suggestionsTypeRef?.current === "name" && (
+                            <SuggestionsDropdown
+                                suggestions={suggestionsHook.suggestions}
+                                selectedIndex={suggestionsHook.selectedSuggestionIndex}
+                                onMouseEnter={suggestionsHook.setSelectedSuggestionIndex}
+                                onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
+                                onClick={suggestionsHook.handleSuggestionClick}
+                            />
+                        )}
+                    </div>
                 )}
 
                 {/* Variable Form */}
@@ -95,12 +114,22 @@ export const EventForm: React.FC<EventFormProps> = ({
                             onKeyDown={suggestionsHook.handleKeyDown}
                             disabled={eventPopUp.state !== "add"}
                         />
+                        {/* Suggestion dropdown */}
+                        {suggestionsHook.suggestions.length > 0 && suggestionsHook.suggestionsTypeRef?.current === "variable" && (
+                            <SuggestionsDropdown
+                                suggestions={suggestionsHook.suggestions}
+                                selectedIndex={suggestionsHook.selectedSuggestionIndex}
+                                onMouseEnter={suggestionsHook.setSelectedSuggestionIndex}
+                                onMouseLeave={() => suggestionsHook.setSelectedSuggestionIndex(-1)}
+                                onClick={suggestionsHook.handleSuggestionClick}
+                            />
+                        )}
                         <input
                             type="number"
                             placeholder="Value"
                             className="w-full p-2 border mt-2 rounded"
                             value={eventPopUp.value}
-                            onChange={(e) => { suggestionsHook.setSuggestionsType("name"); suggestionsHook.handleInputChange(e); }}
+                            onChange={(e) => { suggestionsHook.handleInputChange(e); }}
                         />
                     </>
                 )}
