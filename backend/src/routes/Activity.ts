@@ -224,7 +224,7 @@ function computeEndFromStart(start: string, description: string): string {
     const endMinutes = startMinutes + duration;
     const end = minutesToTime(endMinutes);
     if (end === start) {
-        throw Error(JSON.stringify({ status: 400, message: "End time cannot equal start time" }));
+        badRequest("End time cannot equal start time");
     }
     return end;
 }
@@ -235,7 +235,7 @@ function computeStartFromEnd(end: string, description: string): string {
     const startMinutes = (endMinutes - duration + 24 * 60) % (24 * 60); // wrap around backwards
     const start = minutesToTime(startMinutes);
     if (start === end) {
-        throw Error(JSON.stringify({ status: 400, message: "Start time cannot equal end time" }));
+        badRequest("Start time cannot equal end time");
     }
     return start;
 }
@@ -247,13 +247,10 @@ function badRequest(message: string): never {
 export async function handleActivity(
     body: any,
     existingEntry: UserActivity | null,
+    editingId?: string, // pass this for edit mode
 ): Promise<any> {
-
     const activity = (body.activity || "").trim();
     const description = (body.description || "").trim();
-    if (!activity || !description) badRequest("Missing activity fields");
-    if (activity.length > 100) badRequest("Activity name too long");
-    if (description.length > 500) badRequest("Description too long");
     if (!activity || !description) badRequest("Missing activity fields");
     if (activity.length > 100) badRequest("Activity name too long");
     if (description.length > 500) badRequest("Description too long");
@@ -265,20 +262,41 @@ export async function handleActivity(
     let end = endProvided;
 
     if (startProvided && endProvided) {
-        // both defined → just validate
         if (startProvided === endProvided) {
-            badRequest("Start and end time cannot be the same")
+            badRequest("Start and end time cannot be the same");
         }
     } else if (startProvided && !endProvided) {
         end = computeEndFromStart(startProvided, description);
     } else if (!startProvided && endProvided) {
-        start = computeStartFromEnd(startProvided, description);
+        start = computeStartFromEnd(endProvided, description);
     } else {
         throw badRequest("Either start or end time must be defined");
     }
 
     const location = body.location;
 
+    if (editingId) {
+        // Make sure the activity exists
+        const existing = existingEntry?.entries?.find(e => e._id.toString() === editingId);
+        if (!existing) badRequest("Activity with this ID does not exist");
+
+        // Build the $set update and arrayFilters
+        const updateQuery = {
+            $set: {
+                "entries.$[elem].activity": activity,
+                "entries.$[elem].description": description,
+                "entries.$[elem].start": start,
+                "entries.$[elem].end": end,
+                "entries.$[elem].location": location,
+            }
+        };
+        const arrayFilters = [{ "elem._id": new ObjectId(editingId) }];
+
+        return { updateQuery, arrayFilters };
+    }
+
+
+    // CREATE MODE
     const newEntry: ActivityEntry = {
         _id: new ObjectId(),
         activity,
@@ -288,8 +306,6 @@ export async function handleActivity(
         location,
     };
 
-
-    let updateQuery;
     if (existingEntry) {
         if ((existingEntry?.entries?.length || 0) >= 100) {
             badRequest("Too many activities for this day");
@@ -297,17 +313,15 @@ export async function handleActivity(
         if (existingEntry?.entries?.some(e => e.activity === activity && e.start === start)) {
             badRequest("Activity with the same start time already exists");
         }
-        updateQuery = { $push: { entries: newEntry } };
+        return { $push: { entries: newEntry } };
     } else {
-        updateQuery = {
+        return {
             $setOnInsert: {
                 entries: [newEntry],
                 variables: [],
-            }
+            },
         };
     }
-
-    return updateQuery;
 }
 
 export async function handleVariable(
@@ -355,24 +369,12 @@ ActivityRoute.post('/new', accessGuard, async (c) => {
     const userCollection = db.collection<User>("users");
     const activityCollection = db.collection<UserActivity>("activity");
     const id = c.var.user.id;
-    // const body = newActivitySchema.parse(await c.req.json());
     const body = await c.req.json();
 
-    let { year, month, day, type, activity, description, start, end, note, variable, value } = body;
-    year = (year || "").trim();
-    month = (month || "").trim();
-    day = (day || "").trim();
-    activity = (activity || "").trim();
-    description = (description || "").trim();
-    start = (start || "").trim();
-    end = (end || "").trim();
-    note = (note || "").trim();
-    variable = (variable || "").trim();
-    value = (value || "").trim();
+    let { type, activity, description, note, variable } = body;
 
     if (body.year === undefined || body.month === undefined || body.day === undefined || !type) return c.json({ message: "Missing required fields" }, 400);
     const date = new Date(Date.UTC(+body.year, +body.month, +body.day));
-    console.log(`got all the variables: ${type}, ${activity}, ${description}, ${start}, ${end}, ${note}, ${variable}, ${value}`)
 
 
     const existingEntry = await activityCollection.findOne({ userId: new ObjectId(id.toString()), date });
@@ -439,18 +441,22 @@ ActivityRoute.patch('/edit', accessGuard, async (c) => {
     const userCollection = db.collection<User>("users");
     const activityCollection = db.collection<UserActivity>("activity");
     const id = c.var.user.id;
+    const body = await c.req.json();
 
-    // Parse request body
-    let { year, month, day, type, activity, description, time, note, variable, value } = await c.req.json();
+    let { year, month, day, type, activity, description, start, end, note, variable, value, _id } = body;
+    year = (year || "").trim();
+    month = (month || "").trim();
+    day = (day || "").trim();
     activity = (activity || "").trim();
     description = (description || "").trim();
-    time = (time || "").trim();
+    start = (start || "").trim();
+    end = (end || "").trim();
     note = (note || "").trim();
     variable = (variable || "").trim();
     value = (value || "").trim();
-    if (year === undefined || month === undefined || day === undefined || !type) return c.json({ message: "Missing required fields" }, 400);
 
-    const date = new Date(Date.UTC(parseInt(year), parseInt(month), parseInt(day)));
+    if (body.year === undefined || body.month === undefined || body.day === undefined || !type) return c.json({ message: "Missing required fields" }, 400);
+    const date = new Date(Date.UTC(+body.year, +body.month, +body.day));
 
     const existingEntry = await activityCollection.findOne({ userId: new ObjectId(id.toString()), date });
     if (!existingEntry) {
@@ -458,40 +464,63 @@ ActivityRoute.patch('/edit', accessGuard, async (c) => {
         return c.json({ message: "no entry for this day" });
     }
 
-    let updateQuery = {};
+    // else if (type === "note") {
+    //     if (!note) return c.json({ message: "Missing note field" }, 400);
+    //     if (!existingEntry?.note) return c.json({ message: "Note doesn't exist for this date" }, 400);
+    //     updateQuery = { $set: { note } };
+    // }
+    // else if (type === "variable") {
+    //     if (!variable || !value) return c.json({ message: "Missing variable fields" }, 400);
+    //     if (existingEntry.variables && !existingEntry.variables.some(e => e.variable === variable)) {
+    //         return c.json({ message: "Variable not defined for this date" }, 400);
+    //     }
+    //     // Update the existing variable instead of pushing a new one
+    //     updateQuery = {
+    //         $set: { "variables.$[elem].value": value }
+    //     };
+    // }
 
-    if (type === "activity") {
-        if (!activity || !description) return c.json({ message: "Missing activity fields" }, 400);
-        const newEntry: ActivityEntry = { activity, duration: getTimeFromLongString(description), description, time };
+    let updateQuery;
+    // let options: any = { upsert: false };
+    try {
 
-        if (!existingEntry.entries || !existingEntry.entries.some(e => e.activity === activity)) {
-            return c.json({ message: "Activity not defined for this date" }, 400);
+        switch (body.type) {
+            case "activity":
+                const res = await handleActivity(body, existingEntry, _id);
+                await activityCollection.updateOne(
+                    { userId: new ObjectId(id.toString()), date },
+                    res.updateQuery,
+                    { arrayFilters: res.arrayFilters } // use the one from handleActivity
+                );
+                break;
+            case "variable":
+                updateQuery = await handleVariable(body, existingEntry);
+                // handleColors(currentUser, usedColors, userCollection, id, '', variable);
+                break;
+            // if (!variable || !value) return c.json({ message: "Missing variable fields" }, 400);
+            // updateQuery = {
+            //     $set: { "variables.$[elem].value": value },
+            // };
+            // options = { arrayFilters: [{ "elem.variable": variable }] };
+            // break;
+            case "note":
+                if (!note) return c.json({ message: "Missing note field" }, 400);
+                if (!existingEntry?.note) return c.json({ message: "Note doesn't exist for this date" }, 400);
+                updateQuery = { $set: { note } };
+                // OU
+                updateQuery = await handleNote(body, existingEntry);
+                break;
+            default:
+                return c.json({ message: "Invalid type" }, 400);
         }
-        updateQuery = {
-            $set: {
-                "entries.$[elem].description": description,
-                "entries.$[elem].duration": getTimeFromLongString(description),
-                "entries.$[elem].time": time,
-            }
-        };
     }
-    else if (type === "note") {
-        if (!note) return c.json({ message: "Missing note field" }, 400);
-        if (!existingEntry?.note) return c.json({ message: "Note doesn't exist for this date" }, 400);
-        updateQuery = { $set: { note } };
-    }
-    else if (type === "variable") {
-        if (!variable || !value) return c.json({ message: "Missing variable fields" }, 400);
-        if (existingEntry.variables && !existingEntry.variables.some(e => e.variable === variable)) {
-            return c.json({ message: "Variable not defined for this date" }, 400);
+    catch (err) {
+        if (typeof err === "object" && err !== null && "status" in err && "message" in err) {
+            const appErr = err as AppError;
+            return c.json({ message: appErr.message }, appErr.status);
         }
-        // Update the existing variable instead of pushing a new one
-        updateQuery = {
-            $set: { "variables.$[elem].value": value }
-        };
-    }
-    else {
-        return c.json({ message: "Invalid type" }, 400);
+        // fallback for unexpected errors
+        return c.json({ message: "Internal server error" }, 500);
     }
 
     // Extract user names from the description (those after "@")
@@ -509,13 +538,14 @@ ActivityRoute.patch('/edit', accessGuard, async (c) => {
         }
     }
 
-    await activityCollection.updateOne({ userId: new ObjectId(id.toString()), date }, updateQuery,
-        type === "activity"
-            ? { arrayFilters: [{ "elem.activity": activity }], upsert: true }
-            : (type === "variable"
-                ? { arrayFilters: [{ "elem.variable": variable }], upsert: true } :
-                { upsert: true })
-    );
+    // await activityCollection.updateOne({ userId: new ObjectId(id.toString()), date }, updateQuery,
+    //     type === "activity"
+    //         ? { arrayFilters: [{ "elem.activity": activity }], upsert: true }
+    //         : (type === "variable"
+    //             ? { arrayFilters: [{ "elem.variable": variable }], upsert: true } :
+    //             { upsert: true })
+    // );
+
     return c.json({ message: "activity updated successfully" });
 })
 
