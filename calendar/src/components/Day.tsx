@@ -11,12 +11,7 @@ import { FaRegCalendarTimes } from "react-icons/fa";
 import { LocationPicker } from "./LocationPicker";
 import Cookies from "js-cookie";
 import { useActivities } from "../hooks/useActivities";
-
-interface Location {
-    name: string;
-    lat: number;
-    lng: number;
-}
+import { useDayLocation } from "../hooks/useDayLocation";
 
 const Day = () => {
     const [searchParams] = useSearchParams();
@@ -36,6 +31,7 @@ const Day = () => {
     const [mobileShowForm, setMobileShowForm] = useState<boolean>(false);
 
     const { activities: dayActivities, loading } = useActivities(year, month, day, reload);
+    const { selectedLocation, setSelectedLocation, isSavingLocation } = useDayLocation(year, month, day);
 
     useEffect(() => {
         const fetchColors = async () => {
@@ -94,7 +90,6 @@ const Day = () => {
 
     const [eventPopUp, setEventPopUp] = useState<{ state: "add" | "edit"; activity: string; description: string, start: string, end: string, note: string, variable: string, value: string }>({ state: "add", activity: "", description: "", start: "", end: "", note: "", variable: "", value: "" });
 
-    // const [loading, setLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState<boolean>(false);
 
     const handleEventFinish = async () => {
@@ -414,100 +409,7 @@ const Day = () => {
 
     const [selectedForm, setSelectedForm] = useState<"activity" | "note" | "variable">("activity");
 
-    const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-
-    const [isSavingLocation, setIsSavingLocation] = useState(false);
     const isInitialLocationLoad = useRef(true);
-
-    useEffect(() => {
-        const setLocation = async () => {
-            console.log(`setLocation is being run: ${selectedLocation?.name}`);
-            if (isInitialLocationLoad.current) {
-                console.log(`not going to set location because isIntialLocationLoad is true`)
-                isInitialLocationLoad.current = false;
-                return; // skip saving on initial load
-            }
-            if (!selectedLocation) {
-                const res = await fetch(`${import.meta.env.VITE_API_URI}/location/dayLocation/delete`, {
-                    method: "DELETE",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ year: year, month: month, day: day, })
-                });
-                if (!res.ok) {
-                    toast.error("Failed to delete location for this day.");
-                    return;
-                }
-                return
-            };
-
-            setIsSavingLocation(true);
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 5000); // Abort after 5s
-
-            try {
-                const response = await fetch(`${import.meta.env.VITE_API_URI}/location/dayLocation`, {
-                    method: "PUT",
-                    credentials: "include",
-                    signal: controller.signal,
-                    body: JSON.stringify({
-                        year,
-                        month,
-                        day,
-                        name: selectedLocation.name,
-                        lat: selectedLocation.lat,
-                        lng: selectedLocation.lng,
-                    }),
-                });
-
-                if (!response.ok) {
-                    const { message } = await response.json();
-                    toast.error(`Failed to set location: ${message}`);
-                    setSelectedLocation(null);
-                    return;
-                }
-            } catch (err: any) {
-                if (err.name === "AbortError") {
-                    toast.error("Request timed out while setting location");
-                } else {
-                    toast.error("Something went wrong while setting location");
-                }
-                setSelectedLocation(null);
-            } finally {
-                clearTimeout(timeout);
-                setIsSavingLocation(false);
-            }
-        };
-
-        if (Cookies.get('token')) setLocation();
-    }, [selectedLocation]);
-
-    useEffect(() => {
-        const fetchLocation = async () => {
-            setIsSavingLocation(true);
-            const res = await fetch(`${import.meta.env.VITE_API_URI}/location/dayLocation/get`, {
-                method: "POST",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    year: year,
-                    month: month,
-                    day: day,
-                }),
-            });
-            if (res.ok) {
-                const data = await res.json();
-                if (data.location) isInitialLocationLoad.current = true; // flag that this is initial data
-                setSelectedLocation(data.location);
-            } else {
-                setSelectedLocation(null);
-                toast.error(`there was an error fetching the location: ${(await res.json()).message}`)
-            }
-            setIsSavingLocation(false);
-        };
-
-        if (Cookies.get('token')) fetchLocation();
-    }, [year, month, day]);
 
     return (
         <div className="flex flex-col md:flex-row h-screen p-3">
