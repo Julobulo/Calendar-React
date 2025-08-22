@@ -5,7 +5,6 @@ import { isLightOrDark } from "../utils/helpers";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import Spinner from "./Spinner";
-import { toast } from "react-toastify";
 import { MdDelete } from "react-icons/md";
 import { FaRegCalendarTimes } from "react-icons/fa";
 import { LocationPicker } from "./LocationPicker";
@@ -13,6 +12,8 @@ import Cookies from "js-cookie";
 import { useActivities } from "../hooks/useActivities";
 import { useDayLocation } from "../hooks/useDayLocation";
 import { useActivityMetadata } from "../hooks/useActivityMetadata";
+import { useEventForm } from "../hooks/useEventForm";
+import { ObjectId } from "bson";
 
 const Day = () => {
     const [searchParams] = useSearchParams();
@@ -28,15 +29,16 @@ const Day = () => {
     const { activities: dayActivities, loading } = useActivities(year, month, day, reload);
     const { selectedLocation, setSelectedLocation, isSavingLocation } = useDayLocation(year, month, day);
     const { colors, names } = useActivityMetadata(reload);
+    const { eventPopUp, setEventPopUp, selectedForm, setSelectedForm, actionLoading, handleEventFinish, handleDelete } = useEventForm(year, month, day, reload, setReload);
 
     const navigate = useNavigate();
     const handleClick = () => {
         if (window.innerWidth < 768) {
             setMobileShowForm(true);
-            setEventPopUp({ state: "add", activity: "", description: "", start: "", end: new Date().toISOString().slice(11, 16), note: "", variable: "", value: "" });
+            setEventPopUp({ state: "add", _id: new ObjectId, activity: "", description: "", start: "", end: new Date().toISOString().slice(11, 16), note: "", variable: "", value: "" });
         }
         else {
-            setEventPopUp({ state: "add", activity: "", description: "", start: "", end: new Date().toISOString().slice(11, 16), note: "", variable: "", value: "" });
+            setEventPopUp({ state: "add", _id: new ObjectId, activity: "", description: "", start: "", end: new Date().toISOString().slice(11, 16), note: "", variable: "", value: "" });
         }
     };
 
@@ -49,173 +51,6 @@ const Day = () => {
         localStorage.setItem('month', selectedDate.getMonth().toString());
         localStorage.setItem('year', selectedDate.getFullYear().toString());
     }, [selectedDate])
-
-    const [eventPopUp, setEventPopUp] = useState<{ state: "add" | "edit"; activity: string; description: string, start: string, end: string, note: string, variable: string, value: string }>({ state: "add", activity: "", description: "", start: "", end: "", note: "", variable: "", value: "" });
-
-    const [actionLoading, setActionLoading] = useState<boolean>(false);
-
-    const handleEventFinish = async () => {
-        if (!Cookies.get('token')) return
-        if (eventPopUp.state === "add") {
-            setActionLoading(true);
-            let body;
-            if (selectedForm === "activity") {
-                if (!eventPopUp.activity || !eventPopUp.description) { toast.error('Please fill in both activity and description'); setActionLoading(false); return }
-                if (!eventPopUp.start && !eventPopUp.end) { toast.error('Please fill the start and end time'); setActionLoading(false); return }
-                body = {
-                    year: year,
-                    month: month,
-                    day: day,
-                    type: "activity",
-                    activity: eventPopUp.activity,
-                    description: eventPopUp.description,
-                    start: eventPopUp.start,
-                    end: eventPopUp.end,
-                }
-            } else if (selectedForm === "note") {
-                if (!eventPopUp.note) { toast.error('Please fill in the note'); setActionLoading(false); return }
-                body = {
-                    year: year,
-                    month: month,
-                    day: day,
-                    type: "note",
-                    note: eventPopUp.note,
-                }
-            } else if (selectedForm === "variable") {
-                if (!eventPopUp.variable || !eventPopUp.value) { toast.error('Please fill in both variable and value'); setActionLoading(false); return }
-                body = {
-                    year: year,
-                    month: month,
-                    day: day,
-                    type: "variable",
-                    variable: eventPopUp.variable,
-                    value: eventPopUp.value,
-                }
-            }
-            const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/new`, {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json", // Tell the server we're sending JSON
-                },
-                body: JSON.stringify(body),
-            });
-            const data = await response.json();
-            if (response.status !== 200) {
-                toast.error(data.message);
-                console.log(`the event wasn't successfully created`);
-            }
-            else {
-                setEventPopUp({ state: "add", activity: "", description: "", start: "", end: "", note: "", variable: "", value: "" });
-                setReload(!reload);
-            }
-            setActionLoading(false);
-        }
-        else if (eventPopUp.state === "edit") {
-            setActionLoading(true);
-            let body;
-            if (selectedForm === "activity") {
-                if (!eventPopUp.activity || !eventPopUp.description) { toast.error('Please fill in both activity and description'); setActionLoading(false); return }
-                body = {
-                    year: year,
-                    month: month,
-                    day: day,
-                    type: "activity",
-                    activity: eventPopUp.activity,
-                    description: eventPopUp.description,
-                    start: eventPopUp.start,
-                    end: eventPopUp.end,
-                }
-            } else if (selectedForm === "note") {
-                if (!eventPopUp.note) { toast.error('Please fill in the note'); setActionLoading(false); return }
-                body = {
-                    year: year,
-                    month: month,
-                    day: day,
-                    type: "note",
-                    note: eventPopUp.note,
-                }
-            } else if (selectedForm === "variable") {
-                if (!eventPopUp.variable || !eventPopUp.value) { toast.error('Please fill in both variable and value'); setActionLoading(false); return }
-                body = {
-                    year: year,
-                    month: month,
-                    day: day,
-                    type: "variable",
-                    variable: eventPopUp.variable,
-                    value: eventPopUp.value,
-                }
-            }
-            const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/edit`, {
-                method: "PATCH",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json", // Tell the server we're sending JSON
-                },
-                body: JSON.stringify(body),
-            });
-            const data = await response.json();
-            if (response.status !== 200) {
-                toast.error(data.message);
-                console.log(`the event wasn't successfully edited`);
-            }
-            else {
-                setEventPopUp({ state: "add", activity: "", description: "", start: "", end: "", note: "", variable: "", value: "" });
-                setReload(!reload);
-            }
-            setTimeout('', 5000);
-            setActionLoading(false);
-        }
-        setMobileShowForm(false);
-    }
-
-    const handleDelete = async () => {
-        setActionLoading(true);
-        let body;
-        if (selectedForm === "activity") {
-            body = {
-                year: year,
-                month: month,
-                day: day,
-                type: "activity",
-                activity: eventPopUp.activity,
-            }
-        } else if (selectedForm === "note") {
-            body = {
-                year: year,
-                month: month,
-                day: day,
-                type: "note",
-            }
-        } else if (selectedForm === "variable") {
-            body = {
-                year: year,
-                month: month,
-                day: day,
-                type: "variable",
-                variable: eventPopUp.variable,
-            }
-        }
-        const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/delete`, {
-            method: "DELETE",
-            credentials: "include",
-            headers: {
-                "Content-Type": "application/json", // Tell the server we're sending JSON
-            },
-            body: JSON.stringify(body),
-        });
-        const data = await response.json();
-        if (response.status !== 200) {
-            toast.error(data.message);
-            console.log(`the event wasn't successfully deleted`);
-        }
-        else {
-            setEventPopUp({ state: "add", activity: "", description: "", start: "", end: "", note: "", variable: "", value: "" });
-            setReload(!reload);
-        }
-        setMobileShowForm(false);
-        setActionLoading(false);
-    }
 
     const calendarRef = useRef<HTMLDivElement>(null);
     const [calendarWidth, setCalendarWidth] = useState<number | null>(null);
@@ -369,8 +204,6 @@ const Day = () => {
         setMobileShowForm(false);
     }
 
-    const [selectedForm, setSelectedForm] = useState<"activity" | "note" | "variable">("activity");
-
     const isInitialLocationLoad = useRef(true);
 
     return (
@@ -399,7 +232,7 @@ const Day = () => {
                                     onClick={(e) => {
                                         e.stopPropagation(); // Prevent handleClick from running
                                         setSelectedForm("activity");
-                                        setEventPopUp({ state: "edit", activity: entry.activity, description: entry.description, start: entry.start || "", end: entry.end || "", note: "", variable: "", value: "" });
+                                        setEventPopUp({ state: "edit", _id: entry._id, activity: entry.activity, description: entry.description, start: entry.start || "", end: entry.end || "", note: "", variable: "", value: "" });
                                         setMobileShowForm(true);
                                     }}
                                 >
@@ -439,7 +272,7 @@ const Day = () => {
                                             onClick={(e) => {
                                                 e.stopPropagation(); // Prevent handleClick from running
                                                 setSelectedForm("variable");
-                                                setEventPopUp({ state: "edit", activity: "", description: "", start: "", end: "", variable: entry.variable, value: entry.value, note: "" })
+                                                setEventPopUp({ state: "edit", _id: new ObjectId, activity: "", description: "", start: "", end: "", variable: entry.variable, value: entry.value, note: "" })
                                                 setMobileShowForm(true);
                                             }}
                                         >
@@ -459,7 +292,7 @@ const Day = () => {
                                         onClick={(e) => {
                                             e.stopPropagation(); // Prevent handleClick from running
                                             setSelectedForm("note");
-                                            setEventPopUp({ state: "edit", activity: "", description: "", start: "", end: "", note: dayActivities?.note || "", variable: "", value: "" })
+                                            setEventPopUp({ state: "edit", _id: new ObjectId, activity: "", description: "", start: "", end: "", note: dayActivities?.note || "", variable: "", value: "" })
                                             setMobileShowForm(true);
                                         }}
                                     >
@@ -507,7 +340,7 @@ const Day = () => {
                     {/* Dropdown to select form type */}
                     <select
                         value={selectedForm}
-                        onChange={(e) => { setSelectedForm(e.target.value as "activity" | "note" | "variable"); setEventPopUp({ state: "add", activity: "", description: "", start: "", end: "", note: "", variable: "", value: "" }) }}
+                        onChange={(e) => { setSelectedForm(e.target.value as "activity" | "note" | "variable"); setEventPopUp({ state: "add", _id: new ObjectId, activity: "", description: "", start: "", end: "", note: "", variable: "", value: "" }) }}
                         className="p-4 border mb-4 rounded w-full mx-auto lg:mr-2 xl:mr-14 bg-white focus:bg-gray-200"
                         style={{ width: calendarWidth ? `${calendarWidth}px` : "auto" }}
                     >
