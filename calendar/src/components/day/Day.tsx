@@ -1,19 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import { getHumanReadableDiffBetweenTimes, highlightTimesAndNames } from "../utils/helpers";
-import { isLightOrDark } from "../utils/helpers";
+import { getHumanReadableDiffBetweenTimes, highlightTimesAndNames } from "../../utils/helpers";
+import { isLightOrDark } from "../../utils/helpers";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
-import Spinner from "./Spinner";
+import Spinner from "../Spinner";
 import { MdDelete } from "react-icons/md";
 import { FaRegCalendarTimes } from "react-icons/fa";
-import { LocationPicker } from "./LocationPicker";
+import { LocationPicker } from "../LocationPicker";
 import Cookies from "js-cookie";
-import { useActivities } from "../hooks/useActivities";
-import { useDayLocation } from "../hooks/useDayLocation";
-import { useActivityMetadata } from "../hooks/useActivityMetadata";
-import { useEventForm } from "../hooks/useEventForm";
+import { useActivities } from "../../hooks/useActivities";
+import { useDayLocation } from "../../hooks/useDayLocation";
+import { useActivityMetadata } from "../../hooks/useActivityMetadata";
+import { useEventForm } from "../../hooks/useEventForm";
 import { ObjectId } from "bson";
-import { useCalendarState } from "../hooks/useCalendarState";
+import { useCalendarState } from "../../hooks/useCalendarState";
 
 const Day = () => {
     const [reload, setReload] = useState(false);

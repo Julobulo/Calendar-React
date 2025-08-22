@@ -6,7 +6,7 @@ import Home from "./components/Home";
 import Login from "./components/Login";
 import Cookies from "js-cookie";
 import { Analytics } from "@vercel/analytics/react"
-import Day from "./components/Day";
+import Day from "./components/day/Day";
 import { ToastContainer, Bounce } from "react-toastify";
 import Settings from "./components/Settings";
 
