@@ -1,11 +1,11 @@
 import { Hono } from "hono";
 import * as Realm from "realm-web";
 import { ObjectId } from "bson";
-import { ActivityEntry, NewUserActivity, UserActivity } from "../models/UserActivityModel";
+import { ActivityEntry, NewUserActivity, UserActivity, Location } from "../models/UserActivityModel";
 import { User } from "../models/UserModel";
 import { generateRandomColor, getTimeFromLongString } from "../../../calendar/src/utils/helpers";
 import { getDb, isActivityDocumentEmpty } from "../utils/helpers";
-import { Variables } from "../utils/types";
+import { AppError, Variables } from "../utils/types";
 import { accessGuard } from "../middleware/auth";
 
 // The Worker's environment bindings
@@ -19,8 +19,6 @@ type Bindings = {
 };
 
 const ActivityRoute = new Hono<{ Bindings: Bindings, Variables: Variables }>();
-
-let App: Realm.App;
 
 ActivityRoute.get('/', accessGuard, async (c) => {
     const db = await getDb(c, 'calendar');
@@ -150,23 +148,233 @@ ActivityRoute.get('/names', accessGuard, async (c) => {
     return c.json(names);
 })
 
+export async function handleColors(currentUser: User | null, usedColors: Set<string>, userCollection: any, userId: string, activity: string, variable: string) {
+    // Assign color if not exists
+    if (activity && !currentUser?.colors?.activities?.[activity]) {
+        let newColor;
+        do {
+            newColor = generateRandomColor();
+        } while (usedColors.has(newColor));
+
+        // Ensure structure exists
+        await userCollection.updateOne(
+            { _id: new ObjectId(userId) },
+            {
+                $setOnInsert: {
+                    "colors.activities": {},
+                    "colors.variables": {},
+                    "colors.note": ""
+                }
+            },
+            { upsert: true }
+        );
+
+        // Set the activity color
+        await userCollection.updateOne(
+            { _id: new ObjectId(userId) },
+            { $set: { [`colors.activities.${activity}`]: newColor } }
+        );
+    }
+
+    if (variable && !currentUser?.colors?.variables?.[variable]) {
+        let newColor;
+        do {
+            newColor = generateRandomColor();
+        } while (usedColors.has(newColor));
+
+        // Ensure structure exists (safe no-op if user already exists)
+        await userCollection.updateOne(
+            { _id: new ObjectId(userId.toString()) },
+            {
+                $setOnInsert: {
+                    "colors.activities": {},
+                    "colors.variables": {},
+                    "colors.note": ""
+                }
+            },
+            { upsert: true }
+        );
+
+        // Now safely update the nested variable color
+        await userCollection.updateOne(
+            { _id: new ObjectId(userId.toString()) },
+            {
+                $set: {
+                    [`colors.variables.${variable}`]: newColor
+                }
+            }
+        );
+    }
+}
+
+function parseTimeToMinutes(time: string): number {
+    const [h, m] = time.split(":").map(Number);
+    return h * 60 + m;
+}
+
+function minutesToTime(totalMinutes: number): string {
+    const hours = Math.floor(totalMinutes / 60) % 24;
+    const minutes = totalMinutes % 60;
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+}
+
+function computeEndFromStart(start: string, description: string): string {
+    const duration = getTimeFromLongString(description);
+    const startMinutes = parseTimeToMinutes(start);
+    const endMinutes = startMinutes + duration;
+    const end = minutesToTime(endMinutes);
+    if (end === start) {
+        throw Error(JSON.stringify({ status: 400, message: "End time cannot equal start time" }));
+    }
+    return end;
+}
+
+function computeStartFromEnd(end: string, description: string): string {
+    const duration = getTimeFromLongString(description);
+    const endMinutes = parseTimeToMinutes(end);
+    const startMinutes = (endMinutes - duration + 24 * 60) % (24 * 60); // wrap around backwards
+    const start = minutesToTime(startMinutes);
+    if (start === end) {
+        throw Error(JSON.stringify({ status: 400, message: "Start time cannot equal end time" }));
+    }
+    return start;
+}
+
+function badRequest(message: string): never {
+    throw { status: 400, message } as AppError;
+}
+
+export async function handleActivity(
+    body: any,
+    existingEntry: UserActivity | null,
+): Promise<any> {
+
+    const activity = (body.activity || "").trim();
+    const description = (body.description || "").trim();
+    if (!activity || !description) badRequest("Missing activity fields");
+    if (activity.length > 100) badRequest("Activity name too long");
+    if (description.length > 500) badRequest("Description too long");
+    if (!activity || !description) badRequest("Missing activity fields");
+    if (activity.length > 100) badRequest("Activity name too long");
+    if (description.length > 500) badRequest("Description too long");
+
+    const startProvided = (body.start || "").trim();
+    const endProvided = (body.end || "").trim();
+
+    let start = startProvided;
+    let end = endProvided;
+
+    if (startProvided && endProvided) {
+        // both defined → just validate
+        if (startProvided === endProvided) {
+            badRequest("Start and end time cannot be the same")
+        }
+    } else if (startProvided && !endProvided) {
+        end = computeEndFromStart(startProvided, description);
+    } else if (!startProvided && endProvided) {
+        start = computeStartFromEnd(startProvided, description);
+    } else {
+        throw badRequest("Either start or end time must be defined");
+    }
+
+    const location = body.location;
+
+    const newEntry: ActivityEntry = {
+        _id: new ObjectId(),
+        activity,
+        description,
+        start,
+        end,
+        location,
+    };
+
+
+    let updateQuery;
+    if (existingEntry) {
+        if ((existingEntry?.entries?.length || 0) >= 100) {
+            badRequest("Too many activities for this day");
+        }
+        if (existingEntry?.entries?.some(e => e.activity === activity && e.start === start)) {
+            badRequest("Activity with the same start time already exists");
+        }
+        updateQuery = { $push: { entries: newEntry } };
+    } else {
+        updateQuery = {
+            $setOnInsert: {
+                entries: [newEntry],
+                variables: [],
+            }
+        };
+    }
+
+    return updateQuery;
+}
+
+export async function handleVariable(
+    body: any,
+    existingEntry: UserActivity | null,
+) {
+    const variable = (body.variable || "").trim();
+    const value = (body.value || "").trim();
+    if (!variable || !value) throw { status: 400, message: "Missing variable fields" };
+
+    if (existingEntry?.variables?.some(v => v.variable === variable)) throw { status: 400, message: "Variable already defined for this date" };
+
+    let updateQuery;
+    const newVariable = { variable, value };
+    if (existingEntry) {
+        updateQuery = { $push: { variables: newVariable } };
+    } else {
+        updateQuery = {
+            $setOnInsert: {
+                entries: [],
+                variables: [newVariable],
+            }
+        };
+    }
+
+    return updateQuery;
+}
+
+export async function handleNote(
+    body: any,
+    existingEntry: UserActivity | null,
+) {
+    const note = (body.note || "").trim();
+    if (!note) throw { status: 400, message: "Missing note field" };
+
+
+    let updateQuery;
+
+    if (existingEntry?.note) throw { status: 400, message: "Note already defined for this date" };
+    updateQuery = { $set: { note } };
+}
+
 ActivityRoute.post('/new', accessGuard, async (c) => {
     const db = await getDb(c, 'calendar');
     const userCollection = db.collection<User>("users");
     const activityCollection = db.collection<UserActivity>("activity");
     const id = c.var.user.id;
+    // const body = newActivitySchema.parse(await c.req.json());
+    const body = await c.req.json();
 
-    let { year, month, day, type, activity, description, time, note, variable, value } = await c.req.json();
+    let { year, month, day, type, activity, description, start, end, note, variable, value } = body;
+    year = (year || "").trim();
+    month = (month || "").trim();
+    day = (day || "").trim();
     activity = (activity || "").trim();
     description = (description || "").trim();
-    time = (time || "").trim();
+    start = (start || "").trim();
+    end = (end || "").trim();
     note = (note || "").trim();
     variable = (variable || "").trim();
     value = (value || "").trim();
 
-    if (year === undefined || month === undefined || day === undefined || !type) return c.json({ message: "Missing required fields" }, 400);
+    if (body.year === undefined || body.month === undefined || body.day === undefined || !type) return c.json({ message: "Missing required fields" }, 400);
+    const date = new Date(Date.UTC(+body.year, +body.month, +body.day));
+    console.log(`got all the variables: ${type}, ${activity}, ${description}, ${start}, ${end}, ${note}, ${variable}, ${value}`)
 
-    const date = new Date(Date.UTC(parseInt(year), parseInt(month), parseInt(day)));
+
     const existingEntry = await activityCollection.findOne({ userId: new ObjectId(id.toString()), date });
     console.log(`here are the documents found: ${await activityCollection.find({ userId: new ObjectId(id.toString()), date })}`);
 
@@ -178,113 +386,33 @@ ActivityRoute.post('/new', accessGuard, async (c) => {
         ...(Object.values(currentUser?.colors?.variables || {}))
     ]);
 
-    let updateQuery = {};
 
-    if (type === "activity") {
-        if (!activity || !description) return c.json({ message: "Missing activity fields" }, 400);
-        const newEntry: ActivityEntry = {
-            activity,
-            duration: getTimeFromLongString(description),
-            description,
-            time,
-        };
+    let updateQuery;
+    try {
 
-        if (existingEntry) {
-            if (existingEntry.entries?.some(e => e.activity === activity)) {
-                return c.json({ message: "Activity already defined for this date" }, 400);
-            }
-            updateQuery = { $push: { entries: newEntry } };
-        } else {
-            updateQuery = {
-                $setOnInsert: {
-                    entries: [newEntry],
-                    variables: [],
-                }
-            };
+        switch (body.type) {
+            case "activity":
+                updateQuery = await handleActivity(body, existingEntry);
+                handleColors(currentUser, usedColors, userCollection, id, activity, '');
+                break;
+            case "variable":
+                updateQuery = await handleVariable(body, existingEntry);
+                handleColors(currentUser, usedColors, userCollection, id, '', variable);
+                break;
+            case "note":
+                updateQuery = await handleNote(body, existingEntry);
+                break;
+            default:
+                return c.json({ message: "Invalid type" }, 400);
         }
-
-        if (!currentUser?.colors?.activities?.[activity]) {
-            let newColor;
-            do {
-                newColor = generateRandomColor();
-            } while (usedColors.has(newColor));
-
-            // Ensure structure exists (safe no-op if user already exists)
-            await userCollection.updateOne(
-                { _id: new ObjectId(id.toString()) },
-                {
-                    $setOnInsert: {
-                        "colors.activities": {},
-                        "colors.variables": {},
-                        "colors.note": ""
-                    }
-                },
-                { upsert: true }
-            );
-
-            // Now safely update the nested activity color
-            await userCollection.updateOne(
-                { _id: new ObjectId(id.toString()) },
-                {
-                    $set: {
-                        [`colors.activities.${activity}`]: newColor
-                    }
-                }
-            );
+    }
+    catch (err) {
+        if (typeof err === "object" && err !== null && "status" in err && "message" in err) {
+            const appErr = err as AppError;
+            return c.json({ message: appErr.message }, appErr.status);
         }
-    } else if (type === "variable") {
-        if (!variable || !value) return c.json({ message: "Missing variable fields" }, 400);
-        if (existingEntry?.variables?.some(v => v.variable === variable)) {
-            return c.json({ message: "Variable already exists for this date" }, 400);
-        }
-
-        const newVariable = { variable, value };
-        if (existingEntry) {
-            updateQuery = { $push: { variables: newVariable } };
-        } else {
-            updateQuery = {
-                $setOnInsert: {
-                    entries: [],
-                    variables: [newVariable],
-                }
-            };
-        }
-
-        if (!currentUser?.colors?.variables?.[variable]) {
-            let newColor;
-            do {
-                newColor = generateRandomColor();
-            } while (usedColors.has(newColor));
-
-            // Ensure structure exists (safe no-op if user already exists)
-            await userCollection.updateOne(
-                { _id: new ObjectId(id.toString()) },
-                {
-                    $setOnInsert: {
-                        "colors.activities": {},
-                        "colors.variables": {},
-                        "colors.note": ""
-                    }
-                },
-                { upsert: true }
-            );
-
-            // Now safely update the nested variable color
-            await userCollection.updateOne(
-                { _id: new ObjectId(id.toString()) },
-                {
-                    $set: {
-                        [`colors.variables.${variable}`]: newColor
-                    }
-                }
-            );
-        }
-    } else if (type === "note") {
-        if (!note) return c.json({ message: "Missing note field" }, 400);
-        if (existingEntry?.note) return c.json({ message: "Note already exists for this date" }, 400);
-        updateQuery = { $set: { note } };
-    } else {
-        return c.json({ message: "Invalid type" }, 400);
+        // fallback for unexpected errors
+        return c.json({ message: "Internal server error" }, 500);
     }
 
     // Extract user names from the description (those after "@")

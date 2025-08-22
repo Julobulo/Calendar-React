@@ -1,6 +1,7 @@
 import { ObjectId } from "bson";
 
 export interface ActivityEntry {
+    _id: ObjectId,
     activity: string;
     start?: string;                   // "HH:mm" (local) — optional for quick logging
     end?: string;                     // "HH:mm"
@@ -8,7 +9,7 @@ export interface ActivityEntry {
     location?: Location;
 }
 
-interface Location {
+export interface Location {
     name: string;
     lat: number;
     lng: number;
