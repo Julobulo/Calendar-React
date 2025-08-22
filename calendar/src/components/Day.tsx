@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
 import { getHumanReadableDiffBetweenTimes, highlightTimesAndNames } from "../utils/helpers";
 import { isLightOrDark } from "../utils/helpers";
 import { DayPicker } from "react-day-picker";
@@ -14,24 +13,19 @@ import { useDayLocation } from "../hooks/useDayLocation";
 import { useActivityMetadata } from "../hooks/useActivityMetadata";
 import { useEventForm } from "../hooks/useEventForm";
 import { ObjectId } from "bson";
+import { useCalendarState } from "../hooks/useCalendarState";
 
 const Day = () => {
-    const [searchParams] = useSearchParams();
-    const year = searchParams.get("year") !== null ? Number(searchParams.get("year")) : new Date().getFullYear();
-    const month = searchParams.get("month") !== null ? Number(searchParams.get("month")) : new Date().getMonth();
-    const day = searchParams.get("day") !== null ? Number(searchParams.get("day")) : new Date().getDate();
-    // useEffect(() => {setSearchParams({ year: year.toString(), month: month.toString(), day: day.toString() })}, [year, month, day])
-
     const [reload, setReload] = useState(false);
 
     const [mobileShowForm, setMobileShowForm] = useState<boolean>(false);
 
-    const { activities: dayActivities, loading } = useActivities(year, month, day, reload);
-    const { selectedLocation, setSelectedLocation, isSavingLocation } = useDayLocation(year, month, day);
+    const { selectedDate, currentMonth, goToDate, setCurrentMonth } = useCalendarState();
+    const { activities: dayActivities, loading } = useActivities(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), reload);
+    const { selectedLocation, setSelectedLocation, isSavingLocation } = useDayLocation(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
     const { colors, names } = useActivityMetadata(reload);
-    const { eventPopUp, setEventPopUp, selectedForm, setSelectedForm, actionLoading, handleEventFinish, handleDelete } = useEventForm(year, month, day, reload, setReload);
+    const { eventPopUp, setEventPopUp, selectedForm, setSelectedForm, actionLoading, handleEventFinish, handleDelete } = useEventForm(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), reload, setReload);
 
-    const navigate = useNavigate();
     const handleClick = () => {
         if (window.innerWidth < 768) {
             setMobileShowForm(true);
@@ -41,16 +35,6 @@ const Day = () => {
             setEventPopUp({ state: "add", _id: new ObjectId, activity: "", description: "", start: "", end: new Date().toISOString().slice(11, 16), note: "", variable: "", value: "" });
         }
     };
-
-    const [selectedDate, setSelectedDate] = useState(new Date(year, month, day));
-    const [currentMonth, setCurrentMonth] = useState(new Date(year, month, 1));
-
-
-    useEffect(() => {
-        localStorage.setItem('day', selectedDate.getDate().toString());
-        localStorage.setItem('month', selectedDate.getMonth().toString());
-        localStorage.setItem('year', selectedDate.getFullYear().toString());
-    }, [selectedDate])
 
     const calendarRef = useRef<HTMLDivElement>(null);
     const [calendarWidth, setCalendarWidth] = useState<number | null>(null);
@@ -212,7 +196,7 @@ const Day = () => {
             {((window.innerWidth < 768 && !mobileShowForm) || (window.innerWidth >= 768)) && (
                 <div className="w-full h-full overflow-y-auto p-4 bg-gray-100" onClick={handleClick}>
                     <LocationPicker
-                        date={new Date(year, month, day)}
+                        date={new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate())}
                         selectedLocation={selectedLocation}
                         onLocationChange={setSelectedLocation}
                         isSavingLocation={isSavingLocation}
@@ -243,7 +227,7 @@ const Day = () => {
                                         <div className="flex justify-between items-center">
                                             <div className="flex items-center space-x-2">
                                                 <h3 className="font-semibold text-lg">{entry.activity}</h3>
-                                                <span className="text-sm opacity-90">({getHumanReadableDiffBetweenTimes(entry.start||"", entry.end||"")})</span>
+                                                <span className="text-sm opacity-90">({getHumanReadableDiffBetweenTimes(entry.start || "", entry.end || "")})</span>
                                             </div>
                                             {entry.start && (
                                                 <span className="text-sm opacity-80">{entry.start}</span>
@@ -328,9 +312,7 @@ const Day = () => {
                             onSelect={(date) => {
                                 if (!date) return; // Prevent clearing the date
                                 isInitialLocationLoad.current = true;
-                                setSelectedDate(date!);
-                                setCurrentMonth(date!); // Update the month when a date is selected
-                                navigate(`/calendar/day?year=${date?.getFullYear()}&month=${date?.getMonth()}&day=${date?.getDate()}`);
+                                goToDate(date!);
                             }}
                             captionLayout="dropdown"
                             month={currentMonth}
