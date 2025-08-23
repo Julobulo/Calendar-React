@@ -21,7 +21,6 @@ const StatisticsRoute = new Hono<{ Bindings: Bindings, Variables: Variables }>()
 
 let App: Realm.App;
 
-
 StatisticsRoute.get('/lifetime-activity', accessGuard, async (c) => {
     const db = await getDb(c, 'calendar');
     const activityCollection = db.collection<UserActivity>("activity");
@@ -126,47 +125,128 @@ StatisticsRoute.get("/daily-activity-count", accessGuard, async (c) => {
 });
 
 StatisticsRoute.post("/line-graph", accessGuard, async (c) => {
-    const db = await getDb(c, 'calendar');
+    const db = await getDb(c, "calendar");
     const activityCollection = db.collection<UserActivity>("activity");
-    const id = c.var.user.id;
+    const userId = new ObjectId(c.var.user.id.toString());
 
     const body = await c.req.json();
-    const { type, name } = body;
+    const type = String(body?.type || "").trim();      // "activity" | "variable"
+    const name = String(body?.name || "").trim();      // e.g., "total", "Running", "Weight"
 
     if (!type || !name) {
         return c.json({ message: "type and name required" }, 400);
     }
+    if (type !== "activity" && type !== "variable") {
+        return c.json({ message: "invalid type" }, 400);
+    }
 
-    // Correct field for match
-    const matchField = type === "activity" ? "entries.activity" : "variables.variable";
-    const isTotal = type === "activity" && name === "total";
+    const isTotal = type === "activity" && name.toLowerCase() === "total";
 
-    const activityData = await activityCollection.aggregate([
-        { $match: { userId: new ObjectId(id.toString()) } },
-        { $unwind: type === "activity" ? "$entries" : "$variables" },
-        ...(isTotal ? [] : [{ $match: { [matchField]: name } }]),
-        {
+    // Common first stages
+    const pipeline: any[] = [
+        { $match: { userId } },
+    ];
+
+    if (type === "activity") {
+        // Unwind entries and (optionally) filter by activity name
+        pipeline.push({ $unwind: "$entries" });
+        if (!isTotal) {
+            pipeline.push({ $match: { "entries.activity": name } });
+        }
+
+        // Compute duration in minutes from "HH:mm" strings.
+        // We only count entries where both start and end are non-empty strings.
+        const bothTimesPresent = {
+            $and: [
+                { $gt: [{ $strLenCP: { $ifNull: ["$entries.start", ""] } }, 0] },
+                { $gt: [{ $strLenCP: { $ifNull: ["$entries.end", ""] } }, 0] },
+            ],
+        };
+
+        const durationMinutesExpr = {
+            $let: {
+                vars: {
+                    s: { $split: ["$entries.start", ":"] }, // ["HH","mm"]
+                    e: { $split: ["$entries.end", ":"] },
+                },
+                in: {
+                    // max(end - start, 0) in minutes
+                    $max: [
+                        {
+                            $subtract: [
+                                {
+                                    $add: [
+                                        { $multiply: [{ $toInt: { $arrayElemAt: ["$$e", 0] } }, 60] },
+                                        { $toInt: { $arrayElemAt: ["$$e", 1] } },
+                                    ],
+                                },
+                                {
+                                    $add: [
+                                        { $multiply: [{ $toInt: { $arrayElemAt: ["$$s", 0] } }, 60] },
+                                        { $toInt: { $arrayElemAt: ["$$s", 1] } },
+                                    ],
+                                },
+                            ],
+                        },
+                        0,
+                    ],
+                },
+            },
+        };
+
+        pipeline.push({
             $group: {
                 _id: "$date",
-                value: type === "activity"
-                    ? (isTotal
-                        ? { $sum: "$entries.duration" } // ✅ sum all durations for that day
-                        : { $first: "$entries.duration" }) // pick first for a specific activity
-                    : { $first: "$variables.value" },
+                value: {
+                    // Sum durations for the day. If either time is missing, contribute 0.
+                    $sum: { $cond: [bothTimesPresent, durationMinutesExpr, 0] },
+                },
             },
-        },
+        });
+    } else {
+        // type === "variable"
+        pipeline.push({ $unwind: "$variables" });
+        pipeline.push({ $match: { "variables.variable": name } });
+
+        // Convert string value to number (double). Non-numeric -> null.
+        pipeline.push({
+            $addFields: {
+                numericValue: {
+                    $convert: { input: "$variables.value", to: "double", onError: null, onNull: null },
+                },
+            },
+        });
+
+        // If a day has multiple entries for the same variable (unlikely), just take the last one.
+        pipeline.push({
+            $group: {
+                _id: "$date",
+                value: { $last: "$numericValue" },
+            },
+        });
+    }
+
+    // Format and sort
+    pipeline.push(
         {
             $project: {
                 _id: 0,
-                date: "$_id",
+                date: { $dateToString: { date: "$_id", format: "%Y-%m-%d" } },
                 value: 1,
             },
         },
-        { $sort: { date: 1 } },
-    ]);
+        { $sort: { date: 1 } }
+    );
 
+    const data = await activityCollection.aggregate(pipeline);
 
-    return c.json({ data: activityData });
+    // Ensure the exact return shape
+    const result: { date: string; value: number | null }[] = data.map((d: any) => ({
+        date: d.date,
+        value: typeof d.value === "number" ? d.value : d.value === null ? null : Number(d.value),
+    }));
+
+    return c.json({ data: result }, 200);
 });
 
 StatisticsRoute.get("/latest-week-data", accessGuard, async (c) => {
