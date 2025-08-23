@@ -21,45 +21,81 @@ const StatisticsRoute = new Hono<{ Bindings: Bindings, Variables: Variables }>()
 
 let App: Realm.App;
 
-StatisticsRoute.get('/lifetime-activity', accessGuard, async (c) => {
-    const db = await getDb(c, 'calendar');
-    const activityCollection = db.collection<UserActivity>("activity");
-    const id = c.var.user.id;
+StatisticsRoute.get("/lifetime-activity", accessGuard, async (c) => {
+  const db = await getDb(c, "calendar");
+  const activityCollection = db.collection<UserActivity>("activity");
+  const userId = new ObjectId(c.var.user.id);
 
-    // Get the earliest recorded activity date (first time user used the website)
-    const firstActivity = await activityCollection
-        .aggregate([
-            { $match: { userId: new ObjectId(id.toString()) } }, // Filter by userId
-            { $unwind: "$entries" }, // Unwind the array of entries
-            { $sort: { "date": 1 } }, // Sort by date ascending to get the first date
-            { $limit: 1 }, // Get only the first entry
-            { $project: { _id: 0, firstActivityDate: "$date" } }
-        ]);
+  // Earliest recorded activity date (only if there was at least one entry)
+  const firstActivity = await activityCollection.aggregate([
+    { $match: { userId } },
+    { $unwind: "$entries" },
+    { $sort: { date: 1 } },
+    { $limit: 1 },
+    { $project: { _id: 0, firstActivityDate: "$date" } },
+  ]);
 
-    const activities = await activityCollection.aggregate([
-        { $match: { userId: new ObjectId(id.toString()) } }, // Filter by userId
-        { $unwind: "$entries" }, // Unwind the entries array
-        {
-            $group: {
-                _id: "$entries.activity",  // Group by activity name
-                totalTime: { $sum: "$entries.duration" }  // Sum the durations for each activity
-            }
+  // Sum total minutes per activity across all days
+  const activities = await activityCollection.aggregate([
+    { $match: { userId } },
+    { $unwind: "$entries" },
+    {
+      $addFields: {
+        entryMinutes: {
+          $cond: [
+            { $and: [{ $ne: ["$entries.start", null] }, { $ne: ["$entries.end", null] }] },
+            {
+              $let: {
+                vars: {
+                  sh: { $toInt: { $substrBytes: ["$entries.start", 0, 2] } },
+                  sm: { $toInt: { $substrBytes: ["$entries.start", 3, 2] } },
+                  eh: { $toInt: { $substrBytes: ["$entries.end", 0, 2] } },
+                  em: { $toInt: { $substrBytes: ["$entries.end", 3, 2] } },
+                },
+                in: {
+                  $let: {
+                    vars: {
+                      smin: { $add: [{ $multiply: ["$$sh", 60] }, "$$sm"] },
+                      emin: { $add: [{ $multiply: ["$$eh", 60] }, "$$em"] },
+                    },
+                    in: {
+                      // If end < start (crossing midnight), wrap by +1440
+                      $let: {
+                        vars: { diff: { $subtract: ["$$emin", "$$smin"] } },
+                        in: {
+                          $cond: [{ $lt: ["$$diff", 0] }, { $add: ["$$diff", 1440] }, "$$diff"],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            0,
+          ],
         },
-        { $sort: { totalTime: -1 } } // Sort by total time spent, descending
-    ]);
+      },
+    },
+    {
+      $group: {
+        _id: "$entries.activity",
+        totalTime: { $sum: "$entryMinutes" },
+      },
+    },
+    { $sort: { totalTime: -1 } },
+  ]);
 
-    console.log(`activities: ${JSON.stringify(activities)}`);
+  const result = {
+    activities: activities.map(({ _id, totalTime }: { _id: string; totalTime: number }) => ({
+      activity: _id,
+      totalTime, // minutes
+    })),
+    firstActivityDate: firstActivity.length ? firstActivity[0].firstActivityDate : null,
+  };
 
-    const result = {
-        activities: activities.map(({ _id, totalTime }: { _id: string; totalTime: number }) => ({
-            activity: _id,
-            totalTime
-        })),
-        firstActivityDate: firstActivity.length ? firstActivity[0].firstActivityDate : null
-    };
+  return c.json(result);
+});
 
-    return c.json(result);
-})
 
 StatisticsRoute.get("/daily-activity-count", accessGuard, async (c) => {
     const db = await getDb(c, 'calendar');
