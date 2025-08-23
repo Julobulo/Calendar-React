@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Card, CardContent } from "../utils/Card";
-import { isLightOrDark, highlightTimesAndNames } from "../../utils/helpers";
+import { isLightOrDark } from "../../utils/helpers";
 import { HomeColors } from "./constants/HomeColors";
 
 export const VariableCard = ({ entry, delay = 0 }: any) => (

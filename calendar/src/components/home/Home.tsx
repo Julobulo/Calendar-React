@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   BarChart,
   Bar,
@@ -14,7 +13,7 @@ import {
   Line,
   CartesianGrid,
 } from "recharts";
-import { getDiffBetweenTimes, getHumanTimeFromMinutes, highlightTimesAndNames, isLightOrDark } from "../../utils/helpers";
+import { getDiffBetweenTimes, getHumanTimeFromMinutes } from "../../utils/helpers";
 import { useState } from "react";
 import { LocationPicker } from "../utils/LocationPicker";
 import { Card, CardContent } from "../utils/Card";
@@ -27,6 +26,7 @@ import { allActivityNames, chartData, compareActivities, highestAvgPerWeek, mock
 import { scrollToSignup } from "./ScrollButton";
 import { ActivityCard } from "./ActivityCard";
 import { VariableCard } from "./VariableCard";
+import { NoteCard } from "./NoteCard";
 
 const Home = () => {
   const { userCount, loading: userCountLoading } = useUserCount();
@@ -87,23 +87,7 @@ const Home = () => {
 
             <hr className="my-4" />
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                delay:
-                  mockActivities[0].entries.length * 0.1 +
-                  mockActivities[0].variables.length * 0.1,
-              }}
-            >
-              <div style={{ backgroundColor: HomeColors.note }} className="rounded-2xl shadow-md">
-                <Card className="bg-transparent">
-                  <CardContent className={`${isLightOrDark(HomeColors.note) ? "text-black" : "text-white"} text-[14px] p-4`}>
-                    <span dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(mockActivities[0].note) }}></span>
-                  </CardContent>
-                </Card>
-              </div>
-            </motion.div>
+            <NoteCard note={mockActivities[0].note} />
           </div>
         </div>
       </div>
