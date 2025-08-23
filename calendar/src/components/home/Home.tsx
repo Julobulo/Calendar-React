@@ -15,7 +15,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { getHumanTimeFromMinutes, highlightTimesAndNames, isLightOrDark } from "../../utils/helpers";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LocationPicker } from "../utils/LocationPicker";
 import { Card, CardContent } from "../utils/Card";
 import { FaRegClock } from "react-icons/fa";
@@ -23,6 +23,7 @@ import { TbTarget } from "react-icons/tb";
 import { format } from "date-fns";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
+import { useUserCount } from "../../hooks/home/useCount";
 
 const colors: {
   activities: { [activity: string]: string };
@@ -247,30 +248,10 @@ const scrollToSignup = () => {
 };
 
 const Home = () => {
+  const { userCount, loading: userCountLoading } = useUserCount();
   const [selectedLocation, setSelectedLocation] = useState<{ name: string, lat: number, lng: number } | null>({ name: "New York", lat: 40.712776, lng: -74.005974 });
   const isSavingLocation = false;
   const navigate = useNavigate();
-  const [userCount, setUserCount] = useState<number | null>(null);
-  const [userCountLoading, setUserCountLoading] = useState<boolean>(false);
-
-  const fetchUserCount = async () => {
-    setUserCountLoading(true);
-    const response = await fetch(`${import.meta.env.VITE_API_URI}/statistics/userCount`, {
-      credentials: "include",
-    });
-
-    setUserCountLoading(false);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch user count: ${(await response.json()).message}`);
-    }
-
-    const data = await response.json();
-    setUserCount(data.count); // expects backend response: { count: number }
-  };
-
-  useEffect(() => {
-    fetchUserCount();
-  }, []);
 
   const handleClick = () => { };
   return (
