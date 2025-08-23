@@ -26,18 +26,7 @@ import { HeroSection } from "./HeroSection";
 import { ProductiveTimeChart } from "./charts/ProductiveTimeChart";
 import { HomeColors } from "./constants/HomeColors";
 import { allActivityNames, chartData, compareActivities, highestAvgPerWeek, mockActivities, sortedActivitySummary, streaks, totalActivityTime } from "./constants/mockData";
-
-const scrollToSignup = () => {
-  const el = document.getElementById("signup");
-  if (el) {
-    el.scrollIntoView({ behavior: "smooth" });
-
-    setTimeout(() => {
-      el.classList.add("pop-on-scroll");
-      setTimeout(() => el.classList.remove("pop-on-scroll"), 800);
-    }, 600);
-  }
-};
+import { scrollToSignup } from "./ScrollButton";
 
 const Home = () => {
   const { userCount, loading: userCountLoading } = useUserCount();
