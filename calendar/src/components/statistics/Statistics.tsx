@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import Spinner from "../utils/Spinner";
 import { formatTime, getDiffBetweenTimes, getHumanTimeFromMinutes } from "../../utils/helpers";
@@ -7,15 +6,14 @@ import { format } from "date-fns";
 import { Props } from "recharts/types/cartesian/Bar";
 import 'react-calendar-heatmap/dist/styles.css';
 import 'react-tooltip/dist/react-tooltip.css';
-import Cookies from "js-cookie";
 import LocationTravelGraph from "../utils/LocationMap";
-import { UserActivity } from "../../utils/types";
 import { useLifetimeActivity } from "../../hooks/statistics/useLifetimeActivity";
 import { useEntryCountData } from "../../hooks/statistics/useEntryCountData";
 import ActivityHeatmap from "./ActivityHeatmap";
 import { useColors } from "../../hooks/useColors";
 import { useLineGraphData } from "../../hooks/statistics/useLineGraphData";
 import { LineGraphOverTime } from "./LineGraphOverTime";
+import { useTimeBreakdownByDay } from "../../hooks/statistics/useTimeBreakdownByDay";
 
 interface Location {
   name: string;
@@ -29,44 +27,7 @@ const Statistics = () => {
   const { data: lifetimeActivity, firstActivityDate, loading: lifetimeLoading } = useLifetimeActivity();
   const { entryCountData, heatmapLoading, heatmapType, setHeatmapType, selectedYear, setSelectedYear, maxCount } = useEntryCountData();
   const { lineGraphData, lineGraphSelected, setLineGraphSelected, lineGraphLoading } = useLineGraphData();
-
-  const [timeBreakdownByDayLoading, setTimeBreakdownByDayLoading] = useState(false);
-  const [timeBreakdownByDayData, setTimeBreakdownByDayData] = useState<UserActivity[]>([]);
-
-  useEffect(() => {
-    const fetchLatestWeekData = async () => {
-      setTimeBreakdownByDayLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URI}/statistics/latest-week-data`, {
-        method: "GET",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!response.ok) {
-        toast.error(`Failed to fetch time breakdown by day graph data: ${(await response.json()).message}`);
-        setTimeBreakdownByDayLoading(false);
-        return
-      }
-      setTimeBreakdownByDayLoading(false);
-      const json = await response.json();
-      // Convert mockActivities into chart-friendly format
-
-      setTimeBreakdownByDayData(json.map((activityDocument: UserActivity) => {
-        const day = new Date(activityDocument.date).toLocaleDateString("en-US", { weekday: "short" });
-        const dayData: any = { day };
-
-        for (const entry of activityDocument?.entries || []) {
-          if (getDiffBetweenTimes(entry.start || "", entry.end || "") > 0) {
-            dayData[entry.activity] = getDiffBetweenTimes(entry.start || "", entry.end || "");
-            // if (entry.activity === "Studying") console.log(`entry.activity: ${entry.activity}, entry.duration: ${entry.duration}, dayData[entry.activity]: ${dayData[entry.activity]}`)
-          }
-        }
-
-        return dayData;
-      }))
-    }
-
-    if (Cookies.get('token')) fetchLatestWeekData();
-  }, [])
+  const { timeBreakdownByDayData, timeBreakdownByDayLoading } = useTimeBreakdownByDay();
 
   const [locations, setLocations] = useState<
     Location[]
