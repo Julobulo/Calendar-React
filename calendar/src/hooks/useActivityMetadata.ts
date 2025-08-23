@@ -2,12 +2,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
-
-interface Colors {
-  activities: { [activity: string]: string };
-  note: string;
-  variables: { [variable: string]: string };
-}
+import { Colors } from "../utils/types";
 
 export function useActivityMetadata(reload: boolean) {
   const [colors, setColors] = useState<Colors>({ activities: {}, note: "", variables: {} });
