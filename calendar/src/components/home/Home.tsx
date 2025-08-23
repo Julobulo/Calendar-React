@@ -19,11 +19,12 @@ import { useUserCount } from "../../hooks/home/useCount";
 import { HeroSection } from "./HeroSection";
 import { ProductiveTimeChart } from "./charts/ProductiveTimeChart";
 import { HomeColors } from "./constants/HomeColors";
-import { allActivityNames, chartData, compareActivities, highestAvgPerWeek, mockActivities, sortedActivitySummary, streaks, totalActivityTime } from "./constants/mockData";
+import { allActivityNames, chartData, highestAvgPerWeek, mockActivities, sortedActivitySummary, streaks, totalActivityTime } from "./constants/mockData";
 import { scrollToSignup } from "./ScrollButton";
 import { DailyOverview } from "./DailyOverview";
 import { GoalsCard } from "./charts/GoalsCard";
 import { StudyingVSYoutube } from "./charts/StudyingVSYoutube";
+import { FeaturesSection } from "./FeaturesSection";
 
 const Home = () => {
   const { userCount, loading: userCountLoading } = useUserCount();
@@ -221,34 +222,7 @@ const Home = () => {
         </div>
       </section >
 
-
-      {/* Features */}
-      < section className="space-y-6" >
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Features</h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="p-4 text-center hover:scale-[1.03] transition-transform">
-            <CardContent>
-              <div className="text-3xl">📅</div>
-              <h3 className="font-semibold mt-2">Log Each Day</h3>
-              <p className="text-sm mt-1">Add activities, time, and notes — it's quick and flexible</p>
-            </CardContent>
-          </Card>
-          <Card className="p-4 text-center hover:scale-[1.03] transition-transform">
-            <CardContent>
-              <div className="text-3xl">📊</div>
-              <h3 className="font-semibold mt-2">View Your Progress</h3>
-              <p className="text-sm mt-1">Visualize your habits over time with clean charts</p>
-            </CardContent>
-          </Card>
-          <Card className="p-4 text-center hover:scale-[1.03] transition-transform">
-            <CardContent>
-              <div className="text-3xl">🧠</div>
-              <h3 className="font-semibold mt-2">Stay Accountable</h3>
-              <p className="text-sm mt-1">Seeing your data helps you stay consistent</p>
-            </CardContent>
-          </Card>
-        </div>
-      </section >
+      <FeaturesSection />
 
       <div className="text-center mt-8">
         <p className="text-gray-500 text-sm mb-4">Try it yourself — head to your calendar and start logging today.</p>
