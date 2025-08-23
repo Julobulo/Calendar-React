@@ -1,8 +1,8 @@
 import React from "react";
-import { getHumanReadableDiffBetweenTimes, isLightOrDark } from "../utils/helpers";
+import { getHumanReadableDiffBetweenTimes, isLightOrDark } from "../../utils/helpers";
 import { VscSymbolVariable } from "react-icons/vsc";
 import { LuNotebookPen } from "react-icons/lu";
-import { Colors, NewUserActivity } from "../utils/types";
+import { Colors, NewUserActivity } from "../../utils/types";
 type FrontendUserActivity = Omit<NewUserActivity, "userId">;
 
 interface DayCellProps {

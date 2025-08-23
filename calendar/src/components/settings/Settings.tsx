@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-import Spinner from "./Spinner";
+import Spinner from "../utils/Spinner";
 
 const Settings = () => {
   const [isExporting, setIsExporting] = useState(false);

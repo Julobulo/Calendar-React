@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import "react-day-picker/dist/style.css";
-import Spinner from "../Spinner";
+import Spinner from "../utils/Spinner";
 import { FaRegCalendarTimes } from "react-icons/fa";
-import { LocationPicker } from "../LocationPicker";
+import { LocationPicker } from "../utils/LocationPicker";
 import Cookies from "js-cookie";
 import { useDayActivities } from "../../hooks/useDayActivities";
 import { useDayLocation } from "../../hooks/useDayLocation";

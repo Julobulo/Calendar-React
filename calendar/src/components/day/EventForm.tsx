@@ -1,5 +1,5 @@
 import React from "react";
-import Spinner from "../Spinner";
+import Spinner from "../utils/Spinner";
 import { MdDelete } from "react-icons/md";
 import { useSuggestions } from "../../hooks/useSuggestions";
 import { SuggestionsDropdown } from "./SuggestionsDropdown";

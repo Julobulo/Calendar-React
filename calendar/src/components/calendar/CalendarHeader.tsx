@@ -1,5 +1,5 @@
 import React, { SetStateAction } from "react";
-import { monthNames } from "../utils/helpers";
+import { monthNames } from "../../utils/helpers";
 
 interface CalendarHeaderProps {
     goToDate: (date: Date, options?: { stayOnMonth?: boolean }) => void;

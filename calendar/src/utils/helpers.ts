@@ -68,18 +68,23 @@ export const getTimeFromLongString = (input: string): number => {
     return totalMinutes;
 }
 
+export const getDiffBetweenTimes = (start: string, end: string): number => {
+    const [startH, startM] = start.split(":").map(Number);
+    const [endH, endM] = end.split(":").map(Number);
+
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+
+    const diff = endMinutes - startMinutes;
+    return diff
+}
+
 export const getHumanReadableDiffBetweenTimes = (start: string, end: string): string => {
-  const [startH, startM] = start.split(":").map(Number);
-  const [endH, endM] = end.split(":").map(Number);
+    let diff = getDiffBetweenTimes(start, end)
 
-  const startMinutes = startH * 60 + startM;
-  const endMinutes = endH * 60 + endM;
+    if (diff < 0) diff += 24 * 60; // handle overnight
 
-  let diff = endMinutes - startMinutes;
-
-  if (diff < 0) diff += 24 * 60; // handle overnight
-
-  return getHumanTimeFromMinutes(diff);
+    return getHumanTimeFromMinutes(diff);
 }
 
 export const monthNames = [

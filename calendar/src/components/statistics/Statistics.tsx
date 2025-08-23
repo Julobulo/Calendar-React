@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, CartesianGrid, Line, Legend } from "recharts";
-import Spinner from "./Spinner";
-import { formatTime, getHumanTimeFromMinutes, UserActivity } from "../utils/helpers";
+import Spinner from "../utils/Spinner";
+import { formatTime, getDiffBetweenTimes, getHumanTimeFromMinutes } from "../../utils/helpers";
 import { format } from "date-fns";
 import { Props } from "recharts/types/cartesian/Bar";
 import CalendarHeatmap, { ReactCalendarHeatmapValue, TooltipDataAttrs } from 'react-calendar-heatmap';
@@ -10,7 +10,8 @@ import 'react-calendar-heatmap/dist/styles.css';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
 import Cookies from "js-cookie";
-import LocationTravelGraph from "./LocationMap";
+import LocationTravelGraph from "../utils/LocationMap";
+import { UserActivity } from "../../utils/types";
 
 interface DailyActivity {
   date: string;
@@ -219,8 +220,8 @@ const Statistics = () => {
         const dayData: any = { day };
 
         for (const entry of activityDocument?.entries || []) {
-          if (entry.duration > 0) {
-            dayData[entry.activity] = entry.duration;
+          if (getDiffBetweenTimes(entry.start || "", entry.end || "") > 0) {
+            dayData[entry.activity] = getDiffBetweenTimes(entry.start || "", entry.end || "");
             // if (entry.activity === "Studying") console.log(`entry.activity: ${entry.activity}, entry.duration: ${entry.duration}, dayData[entry.activity]: ${dayData[entry.activity]}`)
           }
         }
@@ -551,7 +552,7 @@ const Statistics = () => {
                   ticks={(() => {
                     const maxDailyMinutes = Math.max(
                       ...timeBreakdownByDayData.map((activity) =>
-                        (activity?.entries || []).reduce((sum, entry) => sum + entry.duration, 0)
+                        (activity?.entries || []).reduce((sum, entry) => sum + getDiffBetweenTimes(entry.start || "", entry.end || ""), 0)
                       )
                     );
 

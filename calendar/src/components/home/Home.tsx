@@ -14,10 +14,10 @@ import {
   Line,
   CartesianGrid,
 } from "recharts";
-import { getHumanTimeFromMinutes, highlightTimesAndNames, isLightOrDark } from "../utils/helpers";
+import { getHumanTimeFromMinutes, highlightTimesAndNames, isLightOrDark } from "../../utils/helpers";
 import { useEffect, useState } from "react";
-import { LocationPicker } from "./LocationPicker";
-import { Card, CardContent } from "./Card";
+import { LocationPicker } from "../utils/LocationPicker";
+import { Card, CardContent } from "../utils/Card";
 import { FaRegClock } from "react-icons/fa";
 import { TbTarget } from "react-icons/tb";
 import { format } from "date-fns";

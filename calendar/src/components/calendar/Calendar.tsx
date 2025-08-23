@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { dayNames } from "../utils/helpers";
-import { useActivityMetadata } from "../hooks/useActivityMetadata";
-import { useCalendarState } from "../hooks/useCalendarState";
-import { useActivities } from "../hooks/useActivities";
-import { useCalendarPopup } from "../hooks/useCalendarPopup";
+import { dayNames } from "../../utils/helpers";
+import { useActivityMetadata } from "../../hooks/useActivityMetadata";
+import { useCalendarState } from "../../hooks/useCalendarState";
+import { useActivities } from "../../hooks/useActivities";
+import { useCalendarPopup } from "../../hooks/useCalendarPopup";
 import { DayCell } from "./DayCell";
 import { CalendarHeader } from "./CalendarHeader";
 

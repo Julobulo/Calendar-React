@@ -2,7 +2,7 @@ import { MapContainer, TileLayer, Marker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
-import Timeline from './Timeline';
+import Timeline from '../statistics/Timeline';
 
 const userIcon = new L.DivIcon({
     className: 'custom-person-icon',

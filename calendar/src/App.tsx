@@ -1,14 +1,14 @@
 import { Routes, Route } from "react-router-dom";
-import Calendar from "./components/Calendar";
-import Statistics from "./components/Statistics";
+import Calendar from "./components/calendar/Calendar";
+import Statistics from "./components/statistics/Statistics";
 import Sidebar from "./components/Sidebar";
-import Home from "./components/Home";
+import Home from "./components/home/Home";
 import Login from "./components/Login";
 import Cookies from "js-cookie";
 import { Analytics } from "@vercel/analytics/react"
 import Day from "./components/day/Day";
 import { ToastContainer, Bounce } from "react-toastify";
-import Settings from "./components/Settings";
+import Settings from "./components/settings/Settings";
 
 const App = () => {
   return (
