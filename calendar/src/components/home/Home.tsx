@@ -14,27 +14,19 @@ import {
   CartesianGrid,
 } from "recharts";
 import { getDiffBetweenTimes, getHumanTimeFromMinutes } from "../../utils/helpers";
-import { useState } from "react";
-import { LocationPicker } from "../utils/LocationPicker";
 import { Card, CardContent } from "../utils/Card";
-import { TbTarget } from "react-icons/tb";
 import { useUserCount } from "../../hooks/home/useCount";
 import { HeroSection } from "./HeroSection";
 import { ProductiveTimeChart } from "./charts/ProductiveTimeChart";
 import { HomeColors } from "./constants/HomeColors";
 import { allActivityNames, chartData, compareActivities, highestAvgPerWeek, mockActivities, sortedActivitySummary, streaks, totalActivityTime } from "./constants/mockData";
 import { scrollToSignup } from "./ScrollButton";
-import { ActivityCard } from "./ActivityCard";
-import { VariableCard } from "./VariableCard";
-import { NoteCard } from "./NoteCard";
 import { DailyOverview } from "./DailyOverview";
+import { GoalsCard } from "./charts/GoalsCard";
 
 const Home = () => {
   const { userCount, loading: userCountLoading } = useUserCount();
-  const [selectedLocation, setSelectedLocation] = useState<{ name: string, lat: number, lng: number } | null>({ name: "New York", lat: 40.712776, lng: -74.005974 });
-  const isSavingLocation = false;
 
-  const handleClick = () => { };
   return (
     <div className="flex flex-col gap-10 items-center justify-center p-10 pt-5 max-w-4xl mx-auto">
       <style>
@@ -64,34 +56,7 @@ const Home = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ProductiveTimeChart />
 
-          <Card>
-            <CardContent>
-              <div className="flex items-center mb-3">
-                <TbTarget className="text-xl mr-2" color="#FF5722" />
-                <h3 className="text-xl font-bold">Goals For This Week</h3>
-              </div>
-              <div className="space-y-3">
-                {[
-                  { name: "Study", actual: 9, target: 10, color: "bg-indigo-500" },
-                  { name: "Gym", actual: 3, target: 3, color: "bg-green-500" },
-                  { name: "Reading", actual: 2, target: 5, color: "bg-yellow-500" }
-                ].map((goal, i) => {
-                  const percent = Math.min(100, (goal.actual / goal.target) * 100);
-                  return (
-                    <div key={i}>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>{goal.name}</span>
-                        <span>{goal.actual}h / {goal.target}h</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className={`h-2 rounded-full ${goal.color}`} style={{ width: `${percent}%` }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+          <GoalsCard />
 
           <Card>
             <CardContent>
