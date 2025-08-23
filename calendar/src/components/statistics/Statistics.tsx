@@ -14,6 +14,7 @@ import { useLifetimeActivity } from "../../hooks/statistics/useLifetimeActivity"
 import { useEntryCountData } from "../../hooks/statistics/useEntryCountData";
 import ActivityHeatmap from "./ActivityHeatmap";
 import { useColors } from "../../hooks/useColors";
+import { useLineGraphData } from "../../hooks/statistics/useLineGraphData";
 
 interface Location {
   name: string;
@@ -26,93 +27,7 @@ const Statistics = () => {
   const { colors } = useColors();
   const { data: lifetimeActivity, firstActivityDate, loading: lifetimeLoading } = useLifetimeActivity();
   const { entryCountData, heatmapLoading, heatmapType, setHeatmapType, selectedYear, setSelectedYear, maxCount } = useEntryCountData();
-
-  const [lineGraphData, setLineGraphData] = useState<{ date: Date, value: number | null }[]>([]);
-
-  const [lineGraphSelected, setLineGraphSelected] = useState<{ type: "activity" | "variable", name: string }>({
-    type: "activity",
-    name: "activity-total",
-  });
-  const [lineGraphLoading, setLineGraphLoading] = useState<boolean>(false);
-  const [showAverageLineGraph, setShowAverageLineGraph] = useState<boolean>(false);
-
-  const fetchLineGraphData = async () => {
-    if (!lineGraphSelected) return;
-    setLineGraphLoading(true);
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URI}/statistics/line-graph`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: lineGraphSelected?.type, name: lineGraphSelected?.name.split("-")[1] }),
-      });
-      if (!response.ok) {
-        toast.error(`Failed to fetch line graph data: ${(await response.json()).message}`);
-        setLineGraphLoading(false);
-        return
-      }
-      const json = await response.json();
-      // setLineGraphData(json.data || []);
-      const rawData: { date: string; value: number | null }[] = json.data || [];
-
-      // Convert date strings to Date objects
-      const parsedData = rawData.map(entry => ({
-        date: new Date(entry.date),
-        value: entry.value ?? 0,
-      }));
-
-      // Find min and max dates (by converting to timestamps)
-      const timestamps = parsedData.map(entry => entry.date.getTime());
-      const minDate = new Date(Math.min(...timestamps));
-      // const maxDate = new Date(Math.max(...timestamps));
-      const maxDate = new Date();
-
-      // Generate all dates in the range
-      const allDates: Date[] = [];
-      const current = new Date(minDate);
-      while (current <= maxDate) {
-        // Set the time to 12:00:00 to ensure consistency
-        current.setHours(12, 0, 0, 0);
-        allDates.push(new Date(current));
-        current.setDate(current.getDate() + 1);
-      }
-
-      // Map existing dates to strings for easier lookup
-      const dataMap = new Map(parsedData.map(d => [d.date.toISOString().split("T")[0], d.value]));
-
-      // Fill in missing dates
-      const filledData = allDates.map(date => {
-        const key = date.toISOString().split("T")[0];
-        return {
-          date,
-          value: dataMap.has(key) ? dataMap.get(key)! : 0,
-        };
-      });
-
-      // setLineGraphData(filledData);
-
-      // 1. Calculate average (ignoring nulls if needed)
-      const total = filledData.reduce((sum, entry) => sum + (Number(entry.value) ?? 0), 0);
-      const count = filledData.filter(entry => entry.value !== null).length;
-      const average = count > 0 ? total / count : 0;
-
-      // 2. Add average to each data point
-      const withAverage = filledData.map(entry => ({
-        ...entry,
-        average,
-      }));
-
-      setLineGraphData(withAverage);
-    } catch (err) {
-      console.error(err);
-      toast.error(err?.toString());
-    }
-    setLineGraphLoading(false);
-  };
-
-  useEffect(() => {
-    if (Cookies.get('token')) fetchLineGraphData();
-  }, [lineGraphSelected]);
+  const { lineGraphData, lineGraphSelected, setLineGraphSelected, lineGraphLoading, showAverageLineGraph, setShowAverageLineGraph } = useLineGraphData();
 
   const [timeBreakdownByDayLoading, setTimeBreakdownByDayLoading] = useState(false);
   const [timeBreakdownByDayData, setTimeBreakdownByDayData] = useState<UserActivity[]>([]);
