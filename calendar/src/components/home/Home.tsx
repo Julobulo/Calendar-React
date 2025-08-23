@@ -27,6 +27,7 @@ import { scrollToSignup } from "./ScrollButton";
 import { ActivityCard } from "./ActivityCard";
 import { VariableCard } from "./VariableCard";
 import { NoteCard } from "./NoteCard";
+import { DailyOverview } from "./DailyOverview";
 
 const Home = () => {
   const { userCount, loading: userCountLoading } = useUserCount();
@@ -55,42 +56,7 @@ const Home = () => {
         scrollToSignup={scrollToSignup}
       />
 
-
-      <div className="w-full">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">What a Day Looks Like</h2>
-        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col gap-4">
-          <div className="" onClick={handleClick}>
-            <LocationPicker
-              date={new Date()}
-              selectedLocation={selectedLocation}
-              onLocationChange={setSelectedLocation}
-              isSavingLocation={isSavingLocation}
-            />
-          </div>
-
-          <div className="w-full flex flex-col space-y-2">
-            {mockActivities[0].entries.map((entry, index) => (
-              <ActivityCard
-                entry={entry}
-                index={index}
-              />
-            ))}
-
-            <hr className="my-4" />
-
-            {mockActivities[0].variables.map((entry, index) => (
-              <VariableCard
-                entry={entry}
-                delay={mockActivities[0].entries.length * 0.1 + index * 0.1}
-              />
-            ))}
-
-            <hr className="my-4" />
-
-            <NoteCard note={mockActivities[0].note} />
-          </div>
-        </div>
-      </div>
+      <DailyOverview />
 
       {/* Gain Insight Into Your Habits */}
       <section>
