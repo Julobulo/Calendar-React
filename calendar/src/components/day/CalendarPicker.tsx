@@ -11,6 +11,7 @@ interface CalendarPickerProps {
     calendarWidth: number | null;
     selectedForm: "activity" | "note" | "variable";
     setSelectedForm: (form: "activity" | "note" | "variable") => void;
+    handleClose: () => void;
 }
 
 export const CalendarPicker: React.FC<CalendarPickerProps> = ({
@@ -21,7 +22,8 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
     calendarRef,
     calendarWidth,
     selectedForm,
-    setSelectedForm
+    setSelectedForm,
+    handleClose
 }) => {
     return (
         <div>
@@ -45,6 +47,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
                 <option value="variable">Variable</option>
                 <option value="note">Note</option>
             </select>
+            <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
         </div>
     );
 };

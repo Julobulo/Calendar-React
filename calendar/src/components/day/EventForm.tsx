@@ -13,7 +13,6 @@ interface EventFormProps {
     actionLoading: boolean;
     handleEventFinish: () => Promise<void>;
     handleDelete: () => Promise<void>;
-    handleClose: () => void;
 }
 
 export const EventForm: React.FC<EventFormProps> = ({
@@ -25,7 +24,6 @@ export const EventForm: React.FC<EventFormProps> = ({
     actionLoading,
     handleEventFinish,
     handleDelete,
-    handleClose
 }) => {
 
     const formWidth = calendarWidth ? `${calendarWidth}px` : "auto";
@@ -156,8 +154,6 @@ export const EventForm: React.FC<EventFormProps> = ({
                     </div>
                 )}
             </div>
-
-            <button onClick={handleClose} className="absolute top-2 right-2 text-gray-600 block md:hidden">✕</button>
         </div>
     );
 };

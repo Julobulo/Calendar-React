@@ -110,6 +110,7 @@ const Day = () => {
                         calendarWidth={calendarWidth}
                         selectedForm={selectedForm}
                         setSelectedForm={setSelectedForm}
+                        handleClose={handleClose}
                     />
                     <EventForm
                         calendarWidth={calendarWidth}
@@ -120,7 +121,6 @@ const Day = () => {
                         actionLoading={actionLoading}
                         handleEventFinish={handleEventFinish}
                         handleDelete={handleDelete}
-                        handleClose={handleClose}
                     />
                 </div>
             )}
