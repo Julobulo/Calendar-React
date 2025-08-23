@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
-import { UserActivity } from "../utils/helpers";
+import { UserActivity } from "../utils/types";
 
 export function useActivities(year: number, month: number) {
   const [activities, setActivities] = useState<UserActivity[]>([]);

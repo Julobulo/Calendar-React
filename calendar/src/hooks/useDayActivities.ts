@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { toast } from "react-toastify";
-import { UserActivity } from "../utils/helpers";
+import { ActivityEntry, UserActivity } from "../utils/types";
 
 export function useDayActivities(year: number, month: number, day: number, reload: boolean) {
   const [activities, setActivities] = useState<UserActivity>();
@@ -25,7 +25,7 @@ export function useDayActivities(year: number, month: number, day: number, reloa
 
         const data: UserActivity[] = await response.json();
 
-        const sortedEntries = data[0]?.entries.sort((a, b) => {
+        const sortedEntries = data[0]?.entries.sort((a: ActivityEntry, b: ActivityEntry) => {
           if (a.start && b.start) return a.start.localeCompare(b.start);
           if (a.start) return -1;
           if (b.start) return 1;
