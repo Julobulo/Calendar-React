@@ -1,115 +1,95 @@
 import { format } from "date-fns";
+import { getDiffBetweenTimes } from "../../../utils/helpers";
 
 export const mockActivities = [
   {
-    // _id: new ObjectId(),
-    // userId: new ObjectId("66277f2f9652e665889cb0e5"),
-
     _id: "mockid1",
     userId: "mockuserid",
     date: new Date("2025-04-14"),
     entries: [
-      { activity: "Studying", duration: 130, description: "2h10min started my chemistry presentation for friday" },
-      { activity: "YouTube", duration: 60, description: "1h Watched productivity videos" },
-      { activity: "Workout", duration: 90, description: "Push day: hit chest and triceps for 1h30min" },
-      { activity: "Reading", duration: 30, description: "30min Fiction before bed" },
-      { activity: "Programming", duration: 125, description: "Worked for 2h5min on my website's UI with my friend @Alexis" },
+      { activity: "Studying", start: "08:00", end: "10:10", description: "2h10min started my chemistry presentation for friday" },
+      { activity: "YouTube", start: "10:15", end: "11:15", description: "1h Watched productivity videos" },
+      { activity: "Workout", start: "11:30", end: "13:00", description: "Push day: hit chest and triceps for 1h30min" },
+      { activity: "Reading", start: "13:15", end: "13:45", description: "30min Fiction before bed" },
+      { activity: "Programming", start: "14:00", end: "16:05", description: "Worked for 2h5min on my website's UI with my friend @Alexis" },
     ],
     note: "Had a productive day, talked to @Alice and @Bob in the afternoon.",
     variables: [{ variable: "Weight (kg)", value: "70.9" }],
     location: { name: "New York", lat: 40.712776, lng: -74.005974 },
   },
   {
-    // _id: new ObjectId(),
-    // userId: new ObjectId("66277f2f9652e665889cb0e5"),
-
     _id: "mockid1",
     userId: "mockuserid",
     date: new Date("2025-04-15"),
     entries: [
-      { activity: "Studying", duration: 120, description: "2h Focused on math exercises" },
-      { activity: "YouTube", duration: 45, description: "Watched science explainers for 45min" },
-      { activity: "Workout", duration: 40, description: "Cardio for 20min and abs for another 20min" },
+      { activity: "Studying", start: "08:00", end: "10:00", description: "2h Focused on math exercises" },
+      { activity: "YouTube", start: "10:15", end: "11:00", description: "Watched science explainers for 45min" },
+      { activity: "Workout", start: "11:15", end: "11:55", description: "Cardio for 20min and abs for another 20min" },
     ],
     note: "Stayed mostly at the desk today, good study flow.",
     variables: [{ variable: "Weight (kg)", value: "70.3" }],
     location: { name: "New York", lat: 40.712776, lng: -74.005974 },
   },
   {
-    // _id: new ObjectId(),
-    // userId: new ObjectId("66277f2f9652e665889cb0e5"),
-
     _id: "mockid1",
     userId: "mockuserid",
     date: new Date("2025-04-16"),
     entries: [
-      { activity: "Studying", duration: 100, description: "1h40min physics revision" },
-      { activity: "Chores", duration: 30, description: "Cleaned room for 10min and laundry for 20min" },
-      { activity: "Reading", duration: 40, description: "40min, finished a short novel" },
+      { activity: "Studying", start: "08:00", end: "09:40", description: "1h40min physics revision" },
+      { activity: "Chores", start: "09:45", end: "10:15", description: "Cleaned room for 10min and laundry for 20min" },
+      { activity: "Reading", start: "10:30", end: "11:10", description: "40min, finished a short novel" },
     ],
     note: "Getting ready to leave for grandma's tomorrow.",
     variables: [{ variable: "Weight (kg)", value: "70.1" }],
     location: { name: "New York", lat: 40.712776, lng: -74.005974 },
   },
   {
-    // _id: new ObjectId(),
-    // userId: new ObjectId("66277f2f9652e665889cb0e5"),
-
     _id: "mockid1",
     userId: "mockuserid",
     date: new Date("2025-04-17"),
     entries: [
-      { activity: "Studying", duration: 60, description: "1h Reviewed flashcards on the train" },
-      { activity: "YouTube", duration: 20, description: "20min Watched news highlights" },
-      { activity: "Travel", duration: 240, description: "4h Train ride from New York to Boston" },
+      { activity: "Studying", start: "07:30", end: "08:30", description: "1h Reviewed flashcards on the train" },
+      { activity: "YouTube", start: "08:35", end: "08:55", description: "20min Watched news highlights" },
+      { activity: "Travel", start: "09:00", end: "13:00", description: "4h Train ride from New York to Boston" },
     ],
     note: "Chill travel day. Grandma cooked dinner!",
     variables: [{ variable: "Weight (kg)", value: "69.8" }],
     location: { name: "Grandma's house in Boston", lat: 42.360081, lng: -71.058884 },
   },
   {
-    // _id: new ObjectId(),
-    // userId: new ObjectId("66277f2f9652e665889cb0e5"),
-
     _id: "mockid1",
     userId: "mockuserid",
     date: new Date("2025-04-18"),
     entries: [
-      { activity: "Studying", duration: 80, description: "1h20min Worked on chemistry problems" },
-      { activity: "Reading", duration: 50, description: "50min Reading in the garden" },
-      { activity: "Chores", duration: 60, description: "1h helped grandma with cleaning her house" },
+      { activity: "Studying", start: "08:00", end: "09:20", description: "1h20min Worked on chemistry problems" },
+      { activity: "Reading", start: "09:30", end: "10:20", description: "50min Reading in the garden" },
+      { activity: "Chores", start: "10:30", end: "11:30", description: "1h helped grandma with cleaning her house" },
     ],
     note: "Boston is peaceful. Studied outside in the sun.",
     variables: [{ variable: "Weight (kg)", value: "69.6" }],
     location: { name: "Grandma's house in Boston", lat: 42.360081, lng: -71.058884 },
   },
   {
-    // _id: new ObjectId(),
-    // userId: new ObjectId("66277f2f9652e665889cb0e5"),
-
     _id: "mockid1",
     userId: "mockuserid",
     date: new Date("2025-04-19"),
     entries: [
-      { activity: "YouTube", duration: 40, description: "Watched judo tutorials for 40min" },
-      { activity: "Workout", duration: 50, description: "Bodyweight full-body workout, 50min" },
-      { activity: "Reading", duration: 20, description: "Started a new book (20min)" },
+      { activity: "YouTube", start: "08:00", end: "08:40", description: "Watched judo tutorials for 40min" },
+      { activity: "Workout", start: "08:45", end: "09:35", description: "Bodyweight full-body workout, 50min" },
+      { activity: "Reading", start: "09:40", end: "10:00", description: "Started a new book (20min)" },
     ],
     note: "Keeping up with the routine even away from home.",
     variables: [{ variable: "Weight (kg)", value: "69.3" }],
     location: { name: "Grandma's house in Boston", lat: 42.360081, lng: -71.058884 },
   },
   {
-    // _id: new ObjectId(),
-    // userId: new ObjectId("66277f2f9652e665889cb0e5"),
-
     _id: "mockid1",
     userId: "mockuserid",
     date: new Date("2025-04-20"),
     entries: [
-      { activity: "YouTube", duration: 90, description: "Watched documentaries, 1h30min" },
-      { activity: "Studying", duration: 60, description: "1h light review of math" },
-      { activity: "Rest", duration: 0, description: "Relaxed all day" },
+      { activity: "YouTube", start: "08:00", end: "09:30", description: "Watched documentaries, 1h30min" },
+      { activity: "Studying", start: "09:40", end: "10:40", description: "1h light review of math" },
+      { activity: "Rest", start: "10:45", end: "10:45", description: "Relaxed all day" },
     ],
     note: "Took a break but still did a bit of study.",
     variables: [{ variable: "Weight (kg)", value: "69" }],
@@ -130,9 +110,9 @@ export const compareActivities = mockActivities.map(activity => {
 
   activity.entries.forEach(entry => {
     if (entry.activity.toLowerCase().includes("study")) {
-      studyTime += entry.duration;
+      studyTime += getDiffBetweenTimes(entry.start || "", entry.end || "");
     } else if (entry.activity.toLowerCase().includes("youtube")) {
-      youtubeTime += entry.duration;
+      youtubeTime += getDiffBetweenTimes(entry.start || "", entry.end || "");
     }
   });
 
@@ -145,8 +125,8 @@ export const compareActivities = mockActivities.map(activity => {
 
 
 export const activityDurationMap = mockActivities.reduce((acc, { entries }) => {
-  for (const { activity, duration } of entries) {
-    acc[activity] = (acc[activity] || 0) + duration;
+  for (const { activity, start, end } of entries) {
+    acc[activity] = (acc[activity] || 0) + getDiffBetweenTimes(start || "", end || "");
   }
   return acc;
 }, {} as Record<string, number>);
@@ -177,8 +157,8 @@ export const chartData = mockActivities.map((activity) => {
   const dayData: any = { day };
 
   for (const entry of activity.entries) {
-    if (entry.duration > 0) {
-      dayData[entry.activity] = entry.duration;
+    if (getDiffBetweenTimes(entry.start || "", entry.end || "") > 0) {
+      dayData[entry.activity] = getDiffBetweenTimes(entry.start || "", entry.end || "");
     }
   }
 
