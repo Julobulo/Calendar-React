@@ -31,7 +31,7 @@ export const EventList: React.FC<EventListProps> = ({ dayActivities, colors, set
                                 <h3 className="font-semibold text-lg">{entry.activity}</h3>
                                 <span className="text-sm opacity-90">({getHumanReadableDiffBetweenTimes(entry.start || "", entry.end || "")})</span>
                             </div>
-                            {entry.start && <span className="text-sm opacity-80">{entry.start}</span>}
+                            {entry.start && <span className="text-sm font-medium">{entry.start} → {entry.end}</span>}
                         </div>
                         <p
                             className="text-sm leading-snug mt-1"
