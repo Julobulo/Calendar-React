@@ -12,6 +12,7 @@ import 'react-tooltip/dist/react-tooltip.css';
 import Cookies from "js-cookie";
 import LocationTravelGraph from "../utils/LocationMap";
 import { UserActivity } from "../../utils/types";
+import { useLifetimeActivity } from "../../hooks/statistics/useLifetimeActivity";
 
 interface DailyActivity {
   date: string;
@@ -26,8 +27,7 @@ interface Location {
 }
 
 const Statistics = () => {
-  const [lifetimeActivity, setLifetimeActivity] = useState<{ activity: string, totalTime: number }[]>([]);
-  const [firstActivityDate, setFirstActivityDate] = useState<string | null>(null);
+  const { data: lifetimeActivity, firstActivityDate, loading: lifetimeLoading } = useLifetimeActivity();
   const [colors, setColors] = useState<{
     activities: { [activity: string]: string };
     note: string;
@@ -39,29 +39,6 @@ const Statistics = () => {
   const [lineGraphData, setLineGraphData] = useState<{ date: Date, value: number | null }[]>([]);
   const [heatmapType, setHeatmapType] = useState<"all" | "activities" | "variables" | "notes">("all");
   const [heatmapLoading, setHeatmapLoading] = useState<boolean>(false);
-
-  const [lifetimeActivityLoading, setLifetimeActivityLoading] = useState<boolean>(false);
-
-  useEffect(() => {
-    const fetchLifetimeActivity = async () => {
-      setLifetimeActivityLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URI}/statistics/lifetime-activity`, {
-        method: "GET",
-        credentials: "include", // Include cookies in the request
-      });
-      if (!response.ok) {
-        toast.error(`Failed to fetch lifetime activity: ${(await response.json()).message}`);
-        setLifetimeActivityLoading(false);
-        return
-      }
-      const data = await response.json();
-      if (!data.activities || !Array.isArray(data.activities)) { toast.error(`Invalid data format for lifetime activity graphs`); setLifetimeActivityLoading(false); return }
-      setLifetimeActivity(data.activities);
-      setFirstActivityDate(data.firstActivityDate ? new Date(data.firstActivityDate).toLocaleDateString() : null);
-      setLifetimeActivityLoading(false);
-    };
-    if (Cookies.get('token')) fetchLifetimeActivity();
-  }, []);
 
   useEffect(() => {
     const fetchColors = async () => {
@@ -262,8 +239,8 @@ const Statistics = () => {
       </div>
 
       <div className="bg-white shadow rounded-2xl p-4 space-y-4 my-4">
-        <h2 className="text-xl font-bold">Total Time Spent on Activities {(!lifetimeActivityLoading && (lifetimeActivity?.length ?? 0) > 0) && `(since ${format(firstActivityDate || "", "MMMM dd, yyyy")})`}</h2>
-        {lifetimeActivityLoading ? (
+        <h2 className="text-xl font-bold">Total Time Spent on Activities {(!lifetimeLoading && (lifetimeActivity?.length ?? 0) > 0) && `(since ${format(firstActivityDate || "", "MMMM dd, yyyy")})`}</h2>
+        {lifetimeLoading ? (
           <div className="flex justify-center">
             <Spinner />
           </div>
