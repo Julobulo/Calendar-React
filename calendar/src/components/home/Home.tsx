@@ -1,16 +1,9 @@
 import { useUserCount } from "../../hooks/home/useCount";
 import { HeroSection } from "./HeroSection";
-import { ProductiveTimeChart } from "./charts/ProductiveTimeChart";
 import { scrollToSignup } from "./ScrollButton";
 import { DailyOverview } from "./DailyOverview";
-import { GoalsCard } from "./charts/GoalsCard";
-import { StudyingVSYoutube } from "./charts/StudyingVSYoutube";
 import { FeaturesSection } from "./FeaturesSection";
-import { TimeBreakdownByDay } from "./charts/TimeBreakdownByDay";
-import { Streaks } from "./charts/Streaks";
-import { TimeSpentPerActivity } from "./charts/TimeSpentPerActivity";
-import { AverageTimesPerWeek } from "./charts/AverageTimesPerWeek";
-import { ProgressOverTime } from "./charts/ProgressOverTime";
+import { ChartsSection } from "./ChartsSection";
 
 const Home = () => {
   const { userCount, loading: userCountLoading } = useUserCount();
@@ -38,28 +31,7 @@ const Home = () => {
 
       <DailyOverview />
 
-      {/* Gain Insight Into Your Habits */}
-      <section>
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Gain Insight Into Your Habits</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ProductiveTimeChart />
-
-          <GoalsCard />
-
-          <StudyingVSYoutube />
-
-          <TimeBreakdownByDay />
-
-          <Streaks />
-          
-          <TimeSpentPerActivity />
-
-          <AverageTimesPerWeek />
-
-          <ProgressOverTime />
-
-        </div>
-      </section >
+      <ChartsSection />
 
       <FeaturesSection />
 
