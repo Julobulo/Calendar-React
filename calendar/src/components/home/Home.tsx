@@ -23,6 +23,7 @@ import { allActivityNames, chartData, compareActivities, highestAvgPerWeek, mock
 import { scrollToSignup } from "./ScrollButton";
 import { DailyOverview } from "./DailyOverview";
 import { GoalsCard } from "./charts/GoalsCard";
+import { StudyingVSYoutube } from "./charts/StudyingVSYoutube";
 
 const Home = () => {
   const { userCount, loading: userCountLoading } = useUserCount();
@@ -58,21 +59,7 @@ const Home = () => {
 
           <GoalsCard />
 
-          <Card>
-            <CardContent>
-              <h2 className="text-xl font-bold">📚 Studying vs YouTube (Last 7 Days)</h2>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={compareActivities}>
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip formatter={(value: number, name: string) => [`${value}h`, name]} />
-                  <Legend />
-                  <Line type="monotone" dataKey="Study" stroke="#6366f1" />
-                  <Line type="monotone" dataKey="YouTube" stroke="#f43f5e" />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <StudyingVSYoutube />
 
           <Card>
             <CardContent>
