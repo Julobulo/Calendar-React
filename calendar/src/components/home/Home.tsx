@@ -14,25 +14,23 @@ import {
   Line,
   CartesianGrid,
 } from "recharts";
-import { getHumanTimeFromMinutes, highlightTimesAndNames, isLightOrDark } from "../../utils/helpers";
+import { getDiffBetweenTimes, getHumanTimeFromMinutes, highlightTimesAndNames, isLightOrDark } from "../../utils/helpers";
 import { useState } from "react";
 import { LocationPicker } from "../utils/LocationPicker";
 import { Card, CardContent } from "../utils/Card";
 import { TbTarget } from "react-icons/tb";
-import Cookies from "js-cookie";
-import { useNavigate } from "react-router-dom";
 import { useUserCount } from "../../hooks/home/useCount";
 import { HeroSection } from "./HeroSection";
 import { ProductiveTimeChart } from "./charts/ProductiveTimeChart";
 import { HomeColors } from "./constants/HomeColors";
 import { allActivityNames, chartData, compareActivities, highestAvgPerWeek, mockActivities, sortedActivitySummary, streaks, totalActivityTime } from "./constants/mockData";
 import { scrollToSignup } from "./ScrollButton";
+import { ActivityCard } from "./ActivityCard";
 
 const Home = () => {
   const { userCount, loading: userCountLoading } = useUserCount();
   const [selectedLocation, setSelectedLocation] = useState<{ name: string, lat: number, lng: number } | null>({ name: "New York", lat: 40.712776, lng: -74.005974 });
   const isSavingLocation = false;
-  const navigate = useNavigate();
 
   const handleClick = () => { };
   return (
@@ -56,7 +54,7 @@ const Home = () => {
         userCountLoading={userCountLoading}
         scrollToSignup={scrollToSignup}
       />
-      <section className="text-center space-y-8 relative">
+      {/* <section className="text-center space-y-8 relative">
         <div className="absolute inset-0 bg-gradient-to-r  opacity-30 pointer-events-none rounded-xl" />
 
         <h1 className="text-4xl md:text-5xl font-bold text-gray-800">
@@ -103,7 +101,7 @@ const Home = () => {
         >
           🚀 Start Taking Back Your Time
         </button>
-      </section>
+      </section> */}
 
 
       <div className="w-full">
@@ -120,25 +118,10 @@ const Home = () => {
 
           <div className="w-full flex flex-col space-y-2">
             {mockActivities[0].entries.map((entry, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <div style={{ backgroundColor: HomeColors.activities[entry.activity] || "#ffffff" }} className="rounded-2xl shadow-md">
-                  <Card className="bg-transparent">
-                    <CardContent className={`p-4 text-left text-[14px] ${isLightOrDark(HomeColors.activities[entry.activity]) ? "text-black" : "text-white"}`}>
-                      <div className="flex items-center space-x-2">
-                        <h3 className="font-semibold text-lg">{entry.activity}</h3>
-                        <span>-</span>
-                        <p>{getHumanTimeFromMinutes(entry.duration)}</p>
-                      </div>
-                      <p dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(entry.description) }}></p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </motion.div>
+              <ActivityCard
+                entry={entry}
+                index={index}
+              />
             ))}
 
             <hr className="my-4" />
@@ -249,7 +232,7 @@ const Home = () => {
                     ticks={(() => {
                       const maxDailyMinutes = Math.max(
                         ...mockActivities.map((activity) =>
-                          activity.entries.reduce((sum, entry) => sum + entry.duration, 0)
+                          activity.entries.reduce((sum, entry) => sum + getDiffBetweenTimes(entry.start || "00:00", entry.end || "00:00"), 0)
                         )
                       );
 
