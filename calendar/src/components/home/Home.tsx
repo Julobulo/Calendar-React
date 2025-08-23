@@ -18,13 +18,14 @@ import { useUserCount } from "../../hooks/home/useCount";
 import { HeroSection } from "./HeroSection";
 import { ProductiveTimeChart } from "./charts/ProductiveTimeChart";
 import { HomeColors } from "./constants/HomeColors";
-import { highestAvgPerWeek, mockActivities, sortedActivitySummary, streaks, totalActivityTime } from "./constants/mockData";
+import { highestAvgPerWeek, mockActivities, sortedActivitySummary, totalActivityTime } from "./constants/mockData";
 import { scrollToSignup } from "./ScrollButton";
 import { DailyOverview } from "./DailyOverview";
 import { GoalsCard } from "./charts/GoalsCard";
 import { StudyingVSYoutube } from "./charts/StudyingVSYoutube";
 import { FeaturesSection } from "./FeaturesSection";
 import { TimeBreakdownByDay } from "./charts/TimeBreakdownByDay";
+import { Streaks } from "./charts/Streaks";
 
 const Home = () => {
   const { userCount, loading: userCountLoading } = useUserCount();
@@ -64,23 +65,7 @@ const Home = () => {
 
           <TimeBreakdownByDay />
 
-          <Card>
-            <CardContent>
-              <h2 className="text-xl font-bold mb-4">🔥 Your Streaks</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {streaks.map((s, i) => (
-                  <div
-                    key={i}
-                    className="rounded-xl bg-background border border-border p-3 shadow-sm flex flex-col justify-between"
-                  >
-                    <p className="text-sm font-medium text-muted-foreground mb-1">{s.activity}</p>
-                    <p className="text-lg font-semibold">{s.current} day{(s.current !== 1) && "s"}</p>
-                    <p className="text-xs text-muted-foreground">Longest: {s.longest} day{(s.longest !== 1) && "s"}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <Streaks />
 
           <Card>
             <CardContent>
