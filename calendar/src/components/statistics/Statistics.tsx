@@ -13,6 +13,7 @@ import { UserActivity } from "../../utils/types";
 import { useLifetimeActivity } from "../../hooks/statistics/useLifetimeActivity";
 import { useEntryCountData } from "../../hooks/statistics/useEntryCountData";
 import ActivityHeatmap from "./ActivityHeatmap";
+import { useColors } from "../../hooks/useColors";
 
 interface Location {
   name: string;
@@ -22,38 +23,11 @@ interface Location {
 }
 
 const Statistics = () => {
+  const { colors } = useColors();
   const { data: lifetimeActivity, firstActivityDate, loading: lifetimeLoading } = useLifetimeActivity();
   const { entryCountData, heatmapLoading, heatmapType, setHeatmapType, selectedYear, setSelectedYear, maxCount } = useEntryCountData();
-  const [colors, setColors] = useState<{
-    activities: { [activity: string]: string };
-    note: string;
-    variables: { [variable: string]: string };
-  }>({ activities: {}, note: "", variables: {} });
-  const [lineGraphData, setLineGraphData] = useState<{ date: Date, value: number | null }[]>([]);
 
-  useEffect(() => {
-    const fetchColors = async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/colors`, {
-        method: "GET",
-        credentials: "include", // Include cookies in the request
-      });
-      if (!response.ok) {
-        toast.error(`Failed to fetch colors: ${(await response.json()).message}`);
-        return
-      }
-      const data = await response.json();
-      if (!data || typeof data !== "object") { toast.error(`no data or bad data type for colors`); return }
-      setColors(data);
-      const firstActivity = Object.keys(data.activities)[0];
-      const firstVariable = Object.keys(data.variables)[0];
-      if (firstActivity) {
-        setLineGraphSelected({ type: "activity", name: `activity-total` });
-      } else if (firstVariable) {
-        setLineGraphSelected({ type: "variable", name: `variable-${firstVariable}` });
-      }
-    };
-    if (Cookies.get('token')) fetchColors();
-  }, []);
+  const [lineGraphData, setLineGraphData] = useState<{ date: Date, value: number | null }[]>([]);
 
   const [lineGraphSelected, setLineGraphSelected] = useState<{ type: "activity" | "variable", name: string }>({
     type: "activity",

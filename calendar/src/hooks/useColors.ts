@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-
-interface Colors {
-  activities: { [activity: string]: string };
-}
+import { Colors } from "../utils/types";
 
 export function useColors() {
-  const [colors, setColors] = useState<Colors>({ activities: {} });
+  const [colors, setColors] = useState<Colors>({ activities: {}, note: "", variables: {} });
 
   useEffect(() => {
     const fetchColors = async () => {
