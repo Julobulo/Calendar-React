@@ -1,22 +1,6 @@
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  LineChart,
-  Line,
-  CartesianGrid,
-} from "recharts";
-import { getHumanTimeFromMinutes } from "../../utils/helpers";
-import { Card, CardContent } from "../utils/Card";
 import { useUserCount } from "../../hooks/home/useCount";
 import { HeroSection } from "./HeroSection";
 import { ProductiveTimeChart } from "./charts/ProductiveTimeChart";
-import { HomeColors } from "./constants/HomeColors";
-import { highestAvgPerWeek, mockActivities } from "./constants/mockData";
 import { scrollToSignup } from "./ScrollButton";
 import { DailyOverview } from "./DailyOverview";
 import { GoalsCard } from "./charts/GoalsCard";
@@ -26,6 +10,7 @@ import { TimeBreakdownByDay } from "./charts/TimeBreakdownByDay";
 import { Streaks } from "./charts/Streaks";
 import { TimeSpentPerActivity } from "./charts/TimeSpentPerActivity";
 import { AverageTimesPerWeek } from "./charts/AverageTimesPerWeek";
+import { ProgressOverTime } from "./charts/ProgressOverTime";
 
 const Home = () => {
   const { userCount, loading: userCountLoading } = useUserCount();
@@ -71,38 +56,7 @@ const Home = () => {
 
           <AverageTimesPerWeek />
 
-          <Card>
-            <CardContent>
-              <h2 className="text-xl font-bold mb-4">
-                📈 <span className="font-semibold">Weight</span> Progress Over Time
-              </h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart
-                  data={mockActivities
-                    .filter((entry) =>
-                      entry.variables.some((v) => v.variable === "Weight (kg)")
-                    )
-                    .map((entry) => ({
-                      date: entry.date.toISOString().split("T")[0],
-                      weight: parseFloat(
-                        entry.variables.find((v) => v.variable === "Weight (kg)")?.value!
-                      ),
-                    }))
-                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis unit="kg" />
-                  <Tooltip formatter={(value) => `${value} kg`} />
-                  <Line
-                    type="monotone"
-                    dataKey="weight"
-                    stroke={HomeColors.variables["Weight (kg)"]}  // Use your color variable here
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <ProgressOverTime />
 
         </div>
       </section >
