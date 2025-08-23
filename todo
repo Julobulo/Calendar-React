@@ -1,10 +1,10 @@
-Add optional trendline for the lineGraph
 Remake the frontend so that the activities are displayed nicely
 Add search feature
 Encrypt the activities content
 Adapt landing page to the new design
 
 DONE
+Add optional trendline for the lineGraph - 23/08/2025 - 11:15pm
 highlight suggestions - 22/08/2025 - 10pm
 Make activity duration determined by start and end time - 22/08/2025 - 12pm
 Use a middleware to check requests instead of always using the same lines - 21/08/2025 - 6:50pm
