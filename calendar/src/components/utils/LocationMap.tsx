@@ -134,9 +134,9 @@ const MapAnimation = ({ locations }: Props) => {
 
         return Array.from(locationMap.values());
     }
-const daysBetween = (start: Date, end: Date) => {
-  return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-};
+    const daysBetween = (start: Date, end: Date) => {
+        return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    };
     useEffect(() => {
         if (!locations.length) return;
         const stays: Stay[] = generateStays(locations);
@@ -211,55 +211,58 @@ const daysBetween = (start: Date, end: Date) => {
     if (!locations.length || !stays.length) return null;
 
     return (
-        <div className="relative" style={{ height: '400px' }}>
-            <div className="absolute top-0 left-0 w-full z-[1000] bg-white/80" onClick={(e) => handleTimelineClick(e)}>
-                <div className="text-center text-sm font-semibold pt-1">
-                    {currentDate} - {
-                        (() => {
-                            console.log(`click: current date: ${currentDate}`)
-                            if (currentDate) {
-                                const targetDate = new Date(currentDate);
-                                targetDate.setHours(0, 0, 0, 0);
+        <div className="bg-white shadow rounded-2xl p-4 space-y-4 my-4">
+            <h2 className="text-xl font-bold">Location travel graph</h2>
+            <div className="relative" style={{ height: '400px' }}>
+                <div className="absolute top-0 left-0 w-full z-[1000] bg-white/80" onClick={(e) => handleTimelineClick(e)}>
+                    <div className="text-center text-sm font-semibold pt-1">
+                        {currentDate} - {
+                            (() => {
+                                console.log(`click: current date: ${currentDate}`)
+                                if (currentDate) {
+                                    const targetDate = new Date(currentDate);
+                                    targetDate.setHours(0, 0, 0, 0);
 
-                                const stay = stays.find(s => {
-                                    const start = new Date(s.start);
-                                    const end = new Date(s.end);
-                                    start.setHours(0, 0, 0, 0);
-                                    end.setHours(0, 0, 0, 0);
-                                    return targetDate >= start && targetDate <= end;
-                                });
+                                    const stay = stays.find(s => {
+                                        const start = new Date(s.start);
+                                        const end = new Date(s.end);
+                                        start.setHours(0, 0, 0, 0);
+                                        end.setHours(0, 0, 0, 0);
+                                        return targetDate >= start && targetDate <= end;
+                                    });
 
-                                return stay ? stay.location : "No location name";
-                            }
-                        })()
-                    }
+                                    return stay ? stay.location : "No location name";
+                                }
+                            })()
+                        }
+                    </div>
+                    <div
+                        className="absolute top-0 bottom-0 w-[1px] bg-red-600 transition-all duration-500"
+                        style={{ left: `${barOffset}%` }}
+                    ></div>
+                    <Timeline
+                        stays={stays}
+                        onDateSelect={(date) => console.log('Selected date:', date)}
+                    />
                 </div>
-                <div
-                    className="absolute top-0 bottom-0 w-[1px] bg-red-600 transition-all duration-500"
-                    style={{ left: `${barOffset}%` }}
-                ></div>
-                <Timeline
-                    stays={stays}
-                    onDateSelect={(date) => console.log('Selected date:', date)}
-                />
+                <MapContainer
+                    center={[locations[0].lat, locations[0].lng]}
+                    zoom={3}
+                    scrollWheelZoom={true}
+                    style={{ height: '100%', width: '100%' }}
+                >
+                    <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    {uniqueLocations && uniqueLocations.map((loc, i) => (
+                        <Marker key={i} position={[loc.lat, loc.lng]}>
+                            <Tooltip>{`${loc.name}: logged ${loc.count} time${loc.count > 1 ? 's' : ''}`}</Tooltip>
+                        </Marker>
+                    ))}
+                    {planePosition && <Marker position={planePosition} icon={userIcon} />}
+                </MapContainer>
             </div>
-            <MapContainer
-                center={[locations[0].lat, locations[0].lng]}
-                zoom={3}
-                scrollWheelZoom={true}
-                style={{ height: '100%', width: '100%' }}
-            >
-                <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                {uniqueLocations && uniqueLocations.map((loc, i) => (
-                    <Marker key={i} position={[loc.lat, loc.lng]}>
-                        <Tooltip>{`${loc.name}: logged ${loc.count} time${loc.count > 1 ? 's' : ''}`}</Tooltip>
-                    </Marker>
-                ))}
-                {planePosition && <Marker position={planePosition} icon={userIcon} />}
-            </MapContainer>
         </div>
     );
 };

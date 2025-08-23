@@ -53,10 +53,7 @@ const Statistics = () => {
 
   return (
     <div className="p-0 md:p-10">
-      <div className="bg-white shadow rounded-2xl p-4 space-y-4 my-4">
-        <h2 className="text-xl font-bold">Location travel graph</h2>
-        <LocationTravelGraph locations={locations} />
-      </div>
+      <LocationTravelGraph locations={locations} />
 
       <div className="bg-white shadow rounded-2xl p-4 space-y-4 my-4">
         <h2 className="text-xl font-bold">Total Time Spent on Activities {(!lifetimeLoading && (lifetimeActivity?.length ?? 0) > 0) && `(since ${format(firstActivityDate || "", "MMMM dd, yyyy")})`}</h2>
