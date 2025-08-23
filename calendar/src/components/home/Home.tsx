@@ -25,30 +25,7 @@ import { useNavigate } from "react-router-dom";
 import { useUserCount } from "../../hooks/home/useCount";
 import { HeroSection } from "./HeroSection";
 import { ProductiveTimeChart } from "./charts/ProductiveTimeChart";
-
-const colors: {
-  activities: { [activity: string]: string };
-  note: string;
-  variables: { [variable: string]: string };
-} = {
-  activities: {
-    Programming: "#6366f1",
-    Workout: "#f97316",     // orange-500
-    Reading: "#10b981",     // emerald-500
-    YouTube: "#f43f5e",     // rose-500
-    Travel: "#6366f1",       // indigo-500
-    Chores: "#eab308",     // yellow-500
-    Meditation: "#8b5cf6",  // violet-500
-    Gaming: "#3b82f6",      // blue-500
-    Walking: "#22c55e",     // green-500
-    Rest: "#ec4899",       // pink-500
-    Studying: "#484ddb",
-  },
-  variables: {
-    "Weight (kg)": "#f87171",
-  },
-  note: "#D9EAFB",
-};
+import { HomeColors } from "./constants/HomeColors";
 
 const mockActivities = [
   {
@@ -346,9 +323,9 @@ const Home = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <div style={{ backgroundColor: colors.activities[entry.activity] || "#ffffff" }} className="rounded-2xl shadow-md">
+                <div style={{ backgroundColor: HomeColors.activities[entry.activity] || "#ffffff" }} className="rounded-2xl shadow-md">
                   <Card className="bg-transparent">
-                    <CardContent className={`p-4 text-left text-[14px] ${isLightOrDark(colors.activities[entry.activity]) ? "text-black" : "text-white"}`}>
+                    <CardContent className={`p-4 text-left text-[14px] ${isLightOrDark(HomeColors.activities[entry.activity]) ? "text-black" : "text-white"}`}>
                       <div className="flex items-center space-x-2">
                         <h3 className="font-semibold text-lg">{entry.activity}</h3>
                         <span>-</span>
@@ -370,9 +347,9 @@ const Home = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: mockActivities[0].entries.length * 0.1 + index * 0.1 }}
               >
-                <div style={{ backgroundColor: colors.variables[entry.variable] || "#ffffff" }} className="rounded-2xl shadow-md">
+                <div style={{ backgroundColor: HomeColors.variables[entry.variable] || "#ffffff" }} className="rounded-2xl shadow-md">
                   <Card className="bg-transparent">
-                    <CardContent className={`p-4 text-left text-[14px] ${isLightOrDark(colors.variables[entry.variable]) ? "text-black" : "text-white"}`}>
+                    <CardContent className={`p-4 text-left text-[14px] ${isLightOrDark(HomeColors.variables[entry.variable]) ? "text-black" : "text-white"}`}>
                       <div className="flex items-center space-x-2">
                         <h3 className="font-semibold text-lg">{entry.variable}</h3>
                         <span>-</span>
@@ -395,9 +372,9 @@ const Home = () => {
                   mockActivities[0].variables.length * 0.1,
               }}
             >
-              <div style={{ backgroundColor: colors.note }} className="rounded-2xl shadow-md">
+              <div style={{ backgroundColor: HomeColors.note }} className="rounded-2xl shadow-md">
                 <Card className="bg-transparent">
-                  <CardContent className={`${isLightOrDark(colors.note) ? "text-black" : "text-white"} text-[14px] p-4`}>
+                  <CardContent className={`${isLightOrDark(HomeColors.note) ? "text-black" : "text-white"} text-[14px] p-4`}>
                     <span dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(mockActivities[0].note) }}></span>
                   </CardContent>
                 </Card>
@@ -485,7 +462,7 @@ const Home = () => {
                       key={name}
                       dataKey={name}
                       stackId="a"
-                      fill={colors.activities[name]}
+                      fill={HomeColors.activities[name]}
                     />
                   ))}
                 </BarChart>
@@ -527,7 +504,7 @@ const Home = () => {
                     {sortedActivitySummary.map((entry, index) => (
                       <Cell
                         key={`cell-${index}-${entry.name}`}
-                        fill={colors.activities[entry.name] || "#ccc"}
+                        fill={HomeColors.activities[entry.name] || "#ccc"}
                       />
                     ))}
                   </Pie>
@@ -573,7 +550,7 @@ const Home = () => {
                     {highestAvgPerWeek.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={colors.activities[entry.activity] || "#4f46e5"}
+                        fill={HomeColors.activities[entry.activity] || "#4f46e5"}
                       />
                     ))}
                   </Bar>
@@ -608,7 +585,7 @@ const Home = () => {
                   <Line
                     type="monotone"
                     dataKey="weight"
-                    stroke={colors.variables["Weight (kg)"]}  // Use your color variable here
+                    stroke={HomeColors.variables["Weight (kg)"]}  // Use your color variable here
                   />
                 </LineChart>
               </ResponsiveContainer>
