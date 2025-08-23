@@ -9,7 +9,6 @@ export function useLineGraphData() {
     name: "activity-total",
   });
   const [lineGraphLoading, setLineGraphLoading] = useState(false);
-  const [showAverageLineGraph, setShowAverageLineGraph] = useState(false);
 
   useEffect(() => {
     const fetchLineGraphData = async () => {
@@ -87,7 +86,7 @@ export function useLineGraphData() {
     };
 
     if (Cookies.get('token')) fetchLineGraphData();
-  }, [lineGraphSelected, showAverageLineGraph]);
+  }, [lineGraphSelected]);
 
-  return { lineGraphData, lineGraphSelected, setLineGraphSelected, lineGraphLoading, showAverageLineGraph, setShowAverageLineGraph };
+  return { lineGraphData, lineGraphSelected, setLineGraphSelected, lineGraphLoading };
 }

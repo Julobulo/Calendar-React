@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, CartesianGrid, Line, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import Spinner from "../utils/Spinner";
 import { formatTime, getDiffBetweenTimes, getHumanTimeFromMinutes } from "../../utils/helpers";
 import { format } from "date-fns";
@@ -15,6 +15,7 @@ import { useEntryCountData } from "../../hooks/statistics/useEntryCountData";
 import ActivityHeatmap from "./ActivityHeatmap";
 import { useColors } from "../../hooks/useColors";
 import { useLineGraphData } from "../../hooks/statistics/useLineGraphData";
+import { LineGraphOverTime } from "./LineGraphOverTime";
 
 interface Location {
   name: string;
@@ -27,7 +28,7 @@ const Statistics = () => {
   const { colors } = useColors();
   const { data: lifetimeActivity, firstActivityDate, loading: lifetimeLoading } = useLifetimeActivity();
   const { entryCountData, heatmapLoading, heatmapType, setHeatmapType, selectedYear, setSelectedYear, maxCount } = useEntryCountData();
-  const { lineGraphData, lineGraphSelected, setLineGraphSelected, lineGraphLoading, showAverageLineGraph, setShowAverageLineGraph } = useLineGraphData();
+  const { lineGraphData, lineGraphSelected, setLineGraphSelected, lineGraphLoading } = useLineGraphData();
 
   const [timeBreakdownByDayLoading, setTimeBreakdownByDayLoading] = useState(false);
   const [timeBreakdownByDayData, setTimeBreakdownByDayData] = useState<UserActivity[]>([]);
@@ -196,109 +197,13 @@ const Statistics = () => {
         maxCount={maxCount}
       />
 
-      <div className="bg-white shadow rounded-2xl p-4 space-y-4">
-        <div className="w-full mb-3 flex justify-between items-center">
-          <h2 className="text-xl font-bold">Activity / Variable Over Time</h2>
-          <select
-            className="p-2 border rounded-md"
-            value={lineGraphSelected?.name}
-            onChange={(e) => {
-              const value = e.target.value;
-              // Set the type dynamically based on the selected option (activity/variable)
-              const newSelection: { type: "activity" | "variable", name: string } = {
-                type: value.startsWith('activity') ? 'activity' : 'variable',
-                name: value,
-              };
-              setLineGraphSelected(newSelection);
-            }}
-          >
-            <option value="Select...">Select Activity/Variable</option>
-            <optgroup label="Activities">
-              <option value="activity-total">Total (All Activities)</option>
-              {Object.keys(colors.activities).map((activity, index) => (
-                <option key={index} value={`activity-${activity}`}>
-                  {activity}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup label="Variables">
-              {Object.keys(colors.variables).map((variable, index) => (
-                <option key={index} value={`variable-${variable}`}>
-                  {variable}
-                </option>
-              ))}
-            </optgroup>
-          </select>
-        </div>
-
-        {lineGraphLoading ? (
-          <div className="flex justify-center">
-            <Spinner />
-          </div>
-        ) : (
-          (lineGraphData?.length ?? 0) > 0 ? (
-            <>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={lineGraphData.map(item => ({
-                  ...item,
-                  date: format(new Date(item.date), "yyyy-MM-dd")
-                }))}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip content={({ payload }) => {
-                    if (payload && payload.length) {
-                      if (lineGraphSelected?.type === "activity") {
-                        const { value, date, average } = payload[0].payload;
-                        return (
-                          <div className="bg-white p-2 border rounded shadow-lg">
-                            <p>{lineGraphSelected?.type} - {lineGraphSelected?.name.split("-")[1]}</p>
-                            <p>{formatTime(value)}</p>
-                            <p>{format(date, "MMMM dd, yyyy")}</p>
-                            {showAverageLineGraph && (<><p>Avg/day: {formatTime(average)}</p>
-                              <p>Avg/week: {formatTime(average * 7)}</p></>)}
-                          </div>
-                        );
-                      } else if (lineGraphSelected?.type === "variable") {
-                        const { value, date, average } = payload[0].payload;
-                        return (
-                          <div className="bg-white p-2 border rounded shadow-lg">
-                            <p>{lineGraphSelected?.type} - {lineGraphSelected?.name.split("-")[1]}</p>
-                            <p>{value}</p>
-                            <p>{date}</p>
-                            {showAverageLineGraph && (<><p>Avg/day: {average}</p>
-                              <p>Avg/week: {average * 7}</p></>)}
-                          </div>
-                        );
-                      }
-                    }
-                    return null;
-                  }} />
-                  <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={2} dot={{ r: 3 }} />
-                  {showAverageLineGraph && <Line type="monotone" dataKey="average" stroke="#ff0000"
-                  // strokeDasharray="5 5"
-                  />}
-                </LineChart>
-              </ResponsiveContainer>
-              <div className="flex items-center gap-2 mb-4">
-                {/* Show average per day/week select button */}
-                <input
-                  id="toggle-average"
-                  type="checkbox"
-                  checked={showAverageLineGraph}
-                  onChange={() => setShowAverageLineGraph(prev => !prev)}
-                  className="accent-blue-500 w-4 h-4"
-                />
-                <label htmlFor="toggle-average" className="text-sm text-gray-700">
-                  Show average per day and week
-                </label>
-              </div>
-            </>
-          ) : (<div className="text-center text-xl font-semibold text-gray-500">
-            No data for this {lineGraphSelected?.type || "activity"} recorded yet. Start tracking data for this {lineGraphSelected?.type || "activity"} to see data here!
-          </div>)
-        )}
-      </div>
+      <LineGraphOverTime
+        lineGraphData={lineGraphData}
+        lineGraphSelected={lineGraphSelected}
+        setLineGraphSelected={setLineGraphSelected}
+        loading={lineGraphLoading}
+        colors={colors}
+      />
 
       <div className="bg-white shadow rounded-2xl p-4 space-y-4 my-4">
         <h2 className="text-xl font-bold">🧱 Time Breakdown by Day</h2>
