@@ -1,0 +1,42 @@
+import Cookies from "js-cookie";
+import { useNavigate } from "react-router-dom";
+
+interface HeroProps {
+  userCount: number | null;
+  userCountLoading: boolean;
+  scrollToSignup: () => void;
+}
+
+export const HeroSection = ({ userCount, userCountLoading, scrollToSignup }: HeroProps) => {
+  const navigate = useNavigate();
+
+  return (
+    <section className="text-center space-y-8 relative">
+      <h1 className="text-4xl md:text-5xl font-bold text-gray-800">
+        Struggling to Know Where Your Time Goes?
+      </h1>
+
+      <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+        You finish your day tired, yet wonder: 
+        <span className="italic">“What did I actually get done?”</span>
+      </p>
+
+      <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+        Our platform helps you
+        {userCountLoading === false && userCount && (
+          <> and <span className="font-semibold">{userCount.toLocaleString()}</span> others</>
+        )} track your daily activities.
+      </p>
+
+      <button
+        className="inline-block px-8 py-4 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg shadow-lg transition"
+        onClick={() => {
+          if (Cookies.get("token")) navigate("/calendar/day");
+          else scrollToSignup();
+        }}
+      >
+        🚀 Start Taking Back Your Time
+      </button>
+    </section>
+  );
+};

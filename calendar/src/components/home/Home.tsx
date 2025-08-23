@@ -18,12 +18,13 @@ import { getHumanTimeFromMinutes, highlightTimesAndNames, isLightOrDark } from "
 import { useState } from "react";
 import { LocationPicker } from "../utils/LocationPicker";
 import { Card, CardContent } from "../utils/Card";
-import { FaRegClock } from "react-icons/fa";
 import { TbTarget } from "react-icons/tb";
 import { format } from "date-fns";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { useUserCount } from "../../hooks/home/useCount";
+import { HeroSection } from "./HeroSection";
+import { ProductiveTimeChart } from "./charts/ProductiveTimeChart";
 
 const colors: {
   activities: { [activity: string]: string };
@@ -270,6 +271,11 @@ const Home = () => {
   `}
       </style>
       {/* Hero Section */}
+      <HeroSection
+        userCount={userCount}
+        userCountLoading={userCountLoading}
+        scrollToSignup={scrollToSignup}
+      />
       <section className="text-center space-y-8 relative">
         <div className="absolute inset-0 bg-gradient-to-r  opacity-30 pointer-events-none rounded-xl" />
 
@@ -279,7 +285,7 @@ const Home = () => {
 
         <p className="text-lg text-gray-700 max-w-2xl mx-auto">
           You finish your day tired, yet wonder: <span className="italic">“What did I actually get done?”</span>
-          <br/>You're not alone—millions of people face the same problem of lost hours, scattered focus, and no clear progress.
+          <br />You're not alone—millions of people face the same problem of lost hours, scattered focus, and no clear progress.
         </p>
 
         <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">
@@ -405,32 +411,7 @@ const Home = () => {
       <section>
         <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Gain Insight Into Your Habits</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardContent>
-              <div className="flex items-center mb-3">
-                <FaRegClock className="text-3xl mr-2" />
-                <h3 className="text-xl font-bold">Unproductive vs Productive Time Spent This Week</h3>
-              </div>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={[
-                  { day: "Mon", Productive: 3, Unproductive: 2 },
-                  { day: "Tue", Productive: 4, Unproductive: 1.5 },
-                  { day: "Wed", Productive: 5, Unproductive: 2 },
-                  { day: "Thu", Productive: 2.5, Unproductive: 3 },
-                  { day: "Fri", Productive: 3, Unproductive: 2.5 },
-                  { day: "Sat", Productive: 1.5, Unproductive: 4 },
-                  { day: "Sun", Productive: 2, Unproductive: 3.5 }
-                ]}>
-                  <XAxis dataKey="day" />
-                  <YAxis />
-                  <Tooltip formatter={(v: number) => `${v}h`} />
-                  <Legend />
-                  <Bar dataKey="Productive" stackId="a" fill="#10b981" />
-                  <Bar dataKey="Unproductive" stackId="a" fill="#f43f5e" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <ProductiveTimeChart />
 
           <Card>
             <CardContent>
