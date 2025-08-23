@@ -552,7 +552,7 @@ ActivityRoute.delete('/delete', accessGuard, async (c) => {
     const id = c.var.user.id;
 
     // Parse request body
-    const { year, month, day, type, activity, variable } = await c.req.json();
+    const { year, month, day, type, activity, _id, variable } = await c.req.json();
     if (year === undefined || month === undefined || day === undefined || !type) return c.json({ message: "Missing required fields" }, 400);
 
     const date = new Date(Date.UTC(parseInt(year), parseInt(month), parseInt(day)));
@@ -565,7 +565,7 @@ ActivityRoute.delete('/delete', accessGuard, async (c) => {
     if (type === "activity") {
         if (!activity) return c.json({ message: "Missing activity fields" }, 400);
         // Filter out the activity to be deleted
-        const updatedEntries = existingEntry.entries.filter(entry => entry.activity !== activity);
+        const updatedEntries = existingEntry.entries.filter(entry => entry._id.toString() !== _id);
         if (updatedEntries.length === existingEntry.entries.length) {
             c.status(400);
             return c.json({ message: "activity not found for this date" });

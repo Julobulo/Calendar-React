@@ -89,7 +89,7 @@ export function useEventForm(year: number, month: number, day: number, reload: b
     if (!Cookies.get("token")) return;
 
     setActionLoading(true);
-    let body: any = { year, month, day, type: selectedForm };
+    let body: any = { year, month, day, type: selectedForm, _id: eventPopUp._id };
     if (selectedForm === "activity") body.activity = eventPopUp.activity;
     if (selectedForm === "variable") body.variable = eventPopUp.variable;
 
