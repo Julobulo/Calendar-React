@@ -71,13 +71,14 @@ export function useLineGraphData() {
         const count = filledData.filter(entry => entry.value !== null).length;
         const average = count > 0 ? total / count : 0;
 
-        // 2. Add average to each data point
-        const withAverage = filledData.map(entry => ({
+        // 2. Add average + trendline
+        const withAverageAndTrendline = filledData.map(entry => ({
           ...entry,
           average,
+          trendlineValue: entry.value === 0 ? null : entry.value, // only draw if > 0
         }));
 
-        setLineGraphData(withAverage);
+        setLineGraphData(withAverageAndTrendline);
       } catch (err) {
         console.error(err);
         toast.error(err?.toString());
