@@ -8,23 +8,23 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
   LineChart,
   Line,
   CartesianGrid,
 } from "recharts";
-import { getDiffBetweenTimes, getHumanTimeFromMinutes } from "../../utils/helpers";
+import { getHumanTimeFromMinutes } from "../../utils/helpers";
 import { Card, CardContent } from "../utils/Card";
 import { useUserCount } from "../../hooks/home/useCount";
 import { HeroSection } from "./HeroSection";
 import { ProductiveTimeChart } from "./charts/ProductiveTimeChart";
 import { HomeColors } from "./constants/HomeColors";
-import { allActivityNames, chartData, highestAvgPerWeek, mockActivities, sortedActivitySummary, streaks, totalActivityTime } from "./constants/mockData";
+import { highestAvgPerWeek, mockActivities, sortedActivitySummary, streaks, totalActivityTime } from "./constants/mockData";
 import { scrollToSignup } from "./ScrollButton";
 import { DailyOverview } from "./DailyOverview";
 import { GoalsCard } from "./charts/GoalsCard";
 import { StudyingVSYoutube } from "./charts/StudyingVSYoutube";
 import { FeaturesSection } from "./FeaturesSection";
+import { TimeBreakdownByDay } from "./charts/TimeBreakdownByDay";
 
 const Home = () => {
   const { userCount, loading: userCountLoading } = useUserCount();
@@ -62,40 +62,7 @@ const Home = () => {
 
           <StudyingVSYoutube />
 
-          <Card>
-            <CardContent>
-              <h2 className="text-xl font-bold">🧱 Time Breakdown by Day</h2>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={chartData}>
-                  <XAxis dataKey="day" />
-                  {/* <YAxis /> */}
-                  <YAxis
-                    ticks={(() => {
-                      const maxDailyMinutes = Math.max(
-                        ...mockActivities.map((activity) =>
-                          activity.entries.reduce((sum, entry) => sum + getDiffBetweenTimes(entry.start || "00:00", entry.end || "00:00"), 0)
-                        )
-                      );
-
-                      const maxHours = Math.ceil(maxDailyMinutes / 60);
-                      return Array.from({ length: maxHours + 1 }, (_, i) => i * 60);
-                    })()}
-                    tickFormatter={(value: number) => `${(value / 60).toFixed(0)}h`}
-                  />
-                  <Tooltip formatter={(duration: number, activity: string) => [getHumanTimeFromMinutes(duration), activity]} />
-                  <Legend />
-                  {allActivityNames.map((name) => (
-                    <Bar
-                      key={name}
-                      dataKey={name}
-                      stackId="a"
-                      fill={HomeColors.activities[name]}
-                    />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <TimeBreakdownByDay />
 
           <Card>
             <CardContent>
