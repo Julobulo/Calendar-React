@@ -34,3 +34,8 @@ export interface Colors {
   note: string;
   variables: { [variable: string]: string };
 }
+
+export interface DailyActivity {
+  date: string;
+  count: { activityCount: number, variableCount: number, note: 0 | 1 };
+}
