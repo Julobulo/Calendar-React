@@ -23,9 +23,9 @@ export function useTimeBreakdownByDay() {
           const dayData: any = { day };
 
           for (const entry of activityDocument?.entries || []) {
-            if (getDiffBetweenTimes(entry.start || "", entry.end || "") > 0) {
-              dayData[entry.activity] = getDiffBetweenTimes(entry.start || "", entry.end || "");
-              // if (entry.activity === "Studying") console.log(`entry.activity: ${entry.activity}, entry.duration: ${entry.duration}, dayData[entry.activity]: ${dayData[entry.activity]}`)
+            const duration = getDiffBetweenTimes(entry.start || "", entry.end || "");
+            if (duration > 0) {
+              dayData[entry.activity] = (dayData[entry.activity] || 0) + duration; // accumulate time if activity already exists
             }
           }
 
