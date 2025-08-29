@@ -76,4 +76,19 @@ SettingsRoute.post('/delete-all-data', accessGuard, async (c) => {
     return c.json({ message: "all data deleted successfully" });
 })
 
+SettingsRoute.put('/colors', accessGuard, async (c) => {
+    const db = await getDb(c, 'calendar');
+    const userCollection = db.collection<User>("users");
+    const id = c.var.user.id;
+
+    const body = await c.req.json();
+
+    await userCollection.updateOne(
+        { _id: new ObjectId(id.toString()) },
+        { $set: { colors: body } }
+    );
+
+    return c.json({ message: "colors updated successfully" });
+})
+
 export default SettingsRoute
