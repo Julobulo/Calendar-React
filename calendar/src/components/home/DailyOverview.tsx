@@ -22,6 +22,7 @@ export const DailyOverview = () => {
           selectedLocation={selectedLocation}
           onLocationChange={setSelectedLocation}
           isSavingLocation={isSavingLocation}
+          deleteLocation={async () => setSelectedLocation(null)}
         />
 
         <div className="w-full flex flex-col space-y-2">
