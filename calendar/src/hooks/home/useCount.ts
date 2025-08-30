@@ -2,17 +2,19 @@ import { useEffect, useState } from "react";
 
 export function useUserCount() {
   const [userCount, setUserCount] = useState<number | null>(null);
+  const [activityCount, setActivityCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function fetchUserCount() {
       try {
         setLoading(true);
-        const res = await fetch(`${import.meta.env.VITE_API_URI}/statistics/userCount`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URI}/statistics/dbCount`, {
           credentials: "include",
         });
         const data = await res.json();
-        setUserCount(data.count);
+        setUserCount(data.userCount);
+        setActivityCount(data.activityCount);
       } finally {
         setLoading(false);
       }
@@ -20,5 +22,5 @@ export function useUserCount() {
     fetchUserCount();
   }, []);
 
-  return { userCount, loading };
+  return { userCount, activityCount, loading };
 }

@@ -22,78 +22,78 @@ const StatisticsRoute = new Hono<{ Bindings: Bindings, Variables: Variables }>()
 let App: Realm.App;
 
 StatisticsRoute.get("/lifetime-activity", accessGuard, async (c) => {
-  const db = await getDb(c, "calendar");
-  const activityCollection = db.collection<UserActivity>("activity");
-  const userId = new ObjectId(c.var.user.id);
+    const db = await getDb(c, "calendar");
+    const activityCollection = db.collection<UserActivity>("activity");
+    const userId = new ObjectId(c.var.user.id);
 
-  // Earliest recorded activity date (only if there was at least one entry)
-  const firstActivity = await activityCollection.aggregate([
-    { $match: { userId } },
-    { $unwind: "$entries" },
-    { $sort: { date: 1 } },
-    { $limit: 1 },
-    { $project: { _id: 0, firstActivityDate: "$date" } },
-  ]);
+    // Earliest recorded activity date (only if there was at least one entry)
+    const firstActivity = await activityCollection.aggregate([
+        { $match: { userId } },
+        { $unwind: "$entries" },
+        { $sort: { date: 1 } },
+        { $limit: 1 },
+        { $project: { _id: 0, firstActivityDate: "$date" } },
+    ]);
 
-  // Sum total minutes per activity across all days
-  const activities = await activityCollection.aggregate([
-    { $match: { userId } },
-    { $unwind: "$entries" },
-    {
-      $addFields: {
-        entryMinutes: {
-          $cond: [
-            { $and: [{ $ne: ["$entries.start", null] }, { $ne: ["$entries.end", null] }] },
-            {
-              $let: {
-                vars: {
-                  sh: { $toInt: { $substrBytes: ["$entries.start", 0, 2] } },
-                  sm: { $toInt: { $substrBytes: ["$entries.start", 3, 2] } },
-                  eh: { $toInt: { $substrBytes: ["$entries.end", 0, 2] } },
-                  em: { $toInt: { $substrBytes: ["$entries.end", 3, 2] } },
-                },
-                in: {
-                  $let: {
-                    vars: {
-                      smin: { $add: [{ $multiply: ["$$sh", 60] }, "$$sm"] },
-                      emin: { $add: [{ $multiply: ["$$eh", 60] }, "$$em"] },
-                    },
-                    in: {
-                      // If end < start (crossing midnight), wrap by +1440
-                      $let: {
-                        vars: { diff: { $subtract: ["$$emin", "$$smin"] } },
-                        in: {
-                          $cond: [{ $lt: ["$$diff", 0] }, { $add: ["$$diff", 1440] }, "$$diff"],
+    // Sum total minutes per activity across all days
+    const activities = await activityCollection.aggregate([
+        { $match: { userId } },
+        { $unwind: "$entries" },
+        {
+            $addFields: {
+                entryMinutes: {
+                    $cond: [
+                        { $and: [{ $ne: ["$entries.start", null] }, { $ne: ["$entries.end", null] }] },
+                        {
+                            $let: {
+                                vars: {
+                                    sh: { $toInt: { $substrBytes: ["$entries.start", 0, 2] } },
+                                    sm: { $toInt: { $substrBytes: ["$entries.start", 3, 2] } },
+                                    eh: { $toInt: { $substrBytes: ["$entries.end", 0, 2] } },
+                                    em: { $toInt: { $substrBytes: ["$entries.end", 3, 2] } },
+                                },
+                                in: {
+                                    $let: {
+                                        vars: {
+                                            smin: { $add: [{ $multiply: ["$$sh", 60] }, "$$sm"] },
+                                            emin: { $add: [{ $multiply: ["$$eh", 60] }, "$$em"] },
+                                        },
+                                        in: {
+                                            // If end < start (crossing midnight), wrap by +1440
+                                            $let: {
+                                                vars: { diff: { $subtract: ["$$emin", "$$smin"] } },
+                                                in: {
+                                                    $cond: [{ $lt: ["$$diff", 0] }, { $add: ["$$diff", 1440] }, "$$diff"],
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
                         },
-                      },
-                    },
-                  },
+                        0,
+                    ],
                 },
-              },
             },
-            0,
-          ],
         },
-      },
-    },
-    {
-      $group: {
-        _id: "$entries.activity",
-        totalTime: { $sum: "$entryMinutes" },
-      },
-    },
-    { $sort: { totalTime: -1 } },
-  ]);
+        {
+            $group: {
+                _id: "$entries.activity",
+                totalTime: { $sum: "$entryMinutes" },
+            },
+        },
+        { $sort: { totalTime: -1 } },
+    ]);
 
-  const result = {
-    activities: activities.map(({ _id, totalTime }: { _id: string; totalTime: number }) => ({
-      activity: _id,
-      totalTime, // minutes
-    })),
-    firstActivityDate: firstActivity.length ? firstActivity[0].firstActivityDate : null,
-  };
+    const result = {
+        activities: activities.map(({ _id, totalTime }: { _id: string; totalTime: number }) => ({
+            activity: _id,
+            totalTime, // minutes
+        })),
+        firstActivityDate: firstActivity.length ? firstActivity[0].firstActivityDate : null,
+    };
 
-  return c.json(result);
+    return c.json(result);
 });
 
 
@@ -333,11 +333,30 @@ StatisticsRoute.get('/getAllLocations', accessGuard, async (c) => {
     return c.json(locations);
 });
 
-StatisticsRoute.get('/userCount', async (c) => {
+StatisticsRoute.get('/dbCount', async (c) => {
     const db = await getDb(c, "calendar");
     const userCollection = db.collection<User>("users");
     const userCount = await userCollection.count();
-    return c.json({ count: userCount });
+
+    // Count total number of activities across all documents
+    const activityCollection = db.collection<UserActivity>("activity");
+
+    const aggResult = await activityCollection.aggregate([
+        {
+            $project: {
+                entriesCount: { $size: { $ifNull: ["$entries", []] } }
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                totalActivities: { $sum: "$entriesCount" }
+            }
+        }
+    ]);
+
+    const activityCount = aggResult.length > 0 ? aggResult[0].totalActivities : 0;
+    return c.json({ userCount, activityCount });
 })
 
 export default StatisticsRoute

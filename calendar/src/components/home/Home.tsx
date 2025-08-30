@@ -6,7 +6,7 @@ import { FeaturesSection } from "./FeaturesSection";
 import { ChartsSection } from "./ChartsSection";
 
 const Home = () => {
-  const { userCount, loading: userCountLoading } = useUserCount();
+  const { userCount, activityCount, loading: userCountLoading } = useUserCount();
 
   return (
     <div className="flex flex-col gap-10 items-center justify-center p-10 pt-5 max-w-4xl mx-auto">
@@ -25,6 +25,7 @@ const Home = () => {
       </style>
       <HeroSection
         userCount={userCount}
+        activityCount={activityCount}
         userCountLoading={userCountLoading}
         scrollToSignup={scrollToSignup}
       />
