@@ -1,8 +1,8 @@
 import Spinner from "../utils/Spinner";
 import { Colors } from "../../utils/types";
 import { useState } from "react";
-import { LineGraphZoomed } from "./lineGraphZoomed";
-import { LineGraphOriginal } from "./lineGraphOriginal";
+import { LineGraphOriginal } from "./LineGraphOriginal";
+import { LineGraphZoomed } from "./LineGraphZoomed";
 
 interface Props {
   lineGraphData: any[];
