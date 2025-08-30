@@ -18,6 +18,7 @@ interface LocationPickerProps {
     selectedLocation: Location | null;
     onLocationChange: (location: Location | null) => void;
     isSavingLocation: boolean;
+    deleteLocation: (year: number, month: number, day: number) => Promise<void>;
 }
 
 const ClickHandler: React.FC<{ onClick: (lat: number, lng: number) => void }> = ({ onClick }) => {
@@ -51,6 +52,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     selectedLocation,
     onLocationChange,
     isSavingLocation,
+    deleteLocation,
 }) => {
     const [inputValue, setInputValue] = useState("");
     const [savedLocations, setSavedLocations] = useState<Location[]>([]);
@@ -157,7 +159,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                     {selectedLocation && <button
                         onClick={async (e) => {
                             e.stopPropagation(); // prevent opening the menu
-                            onLocationChange(null); // clear location
+                            await deleteLocation(date.getFullYear(), date.getMonth(), date.getDate()); // delete the location
                         }}
                         className="ml-1 text-gray-400 hover:text-red-500 hover:no-underline"
                         title="Clear location"

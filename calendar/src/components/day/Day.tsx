@@ -22,7 +22,7 @@ const Day = () => {
 
     const { selectedDate, currentMonth, goToDate, setCurrentMonth } = useCalendarState();
     const { activities: dayActivities, loading } = useDayActivities(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), reload);
-    const { selectedLocation, setSelectedLocation, isSavingLocation } = useDayLocation(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+    const { selectedLocation, setSelectedLocation, isSavingLocation, deleteLocation } = useDayLocation(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
     const { colors, names } = useActivityMetadata(reload);
     const { eventPopUp, setEventPopUp, selectedForm, setSelectedForm, actionLoading, handleEventFinish, handleDelete } = useEventForm(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), reload, setReload);
     const suggestionsHook = useSuggestions({
@@ -68,6 +68,7 @@ const Day = () => {
                         selectedLocation={selectedLocation}
                         onLocationChange={setSelectedLocation}
                         isSavingLocation={isSavingLocation}
+                        deleteLocation={deleteLocation}
                     />
                     {loading && (
                         <div className="flex justify-center">

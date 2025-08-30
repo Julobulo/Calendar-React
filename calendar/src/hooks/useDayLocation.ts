@@ -47,7 +47,7 @@ export function useDayLocation(year: number, month: number, day: number) {
     if (Cookies.get("token")) fetchLocation();
   }, [year, month, day]);
 
-  // Save or delete location when it changes
+  // Save location when it changes
   useEffect(() => {
     const setLocation = async () => {
       if (isInitialLocationLoad.current) {
@@ -55,16 +55,9 @@ export function useDayLocation(year: number, month: number, day: number) {
         return; // skip first run
       }
 
+      // toast.info(`Saving location for ${year}-${month}-${day}...: ${selectedLocation?.name}`);
       if (!selectedLocation) {
-        const res = await fetch(`${import.meta.env.VITE_API_URI}/location/dayLocation/delete`, {
-          method: "DELETE",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ year, month, day }),
-        });
-        if (!res.ok) {
-          toast.error("Failed to delete location for this day.");
-        }
+        // toast.error("No location selected");
         return;
       }
 
@@ -105,7 +98,24 @@ export function useDayLocation(year: number, month: number, day: number) {
     };
 
     if (Cookies.get("token")) setLocation();
-  }, [selectedLocation, year, month, day]);
+  }, [selectedLocation]);
 
-  return { selectedLocation, setSelectedLocation, isSavingLocation };
+  const deleteLocation = async (year: number, month: number, day: number) => {
+    if (!Cookies.get("token")) return;
+    setIsSavingLocation(true);
+
+    const res = await fetch(`${import.meta.env.VITE_API_URI}/location/dayLocation/delete`, {
+      method: "DELETE",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ year, month, day }),
+    });
+    if (!res.ok) {
+      toast.error("Failed to delete location for this day.");
+    }
+    setSelectedLocation(null);
+    setIsSavingLocation(false);
+  }
+
+  return { selectedLocation, setSelectedLocation, isSavingLocation, deleteLocation };
 }
