@@ -33,7 +33,7 @@ export function useDayLocation(year: number, month: number, day: number) {
         }
 
         const data = await res.json();
-        isInitialLocationLoad.current = true; // always skip first run after fetching from API
+        if (data.location) { isInitialLocationLoad.current = true }; // always skip first run after fetching from API
         setSelectedLocation(data.location ?? null);
 
       } catch (err) {
@@ -52,6 +52,7 @@ export function useDayLocation(year: number, month: number, day: number) {
     const setLocation = async () => {
       if (isInitialLocationLoad.current) {
         isInitialLocationLoad.current = false;
+        // toast.info(`skip first run`)
         return; // skip first run
       }
 
