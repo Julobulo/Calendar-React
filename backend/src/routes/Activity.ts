@@ -419,14 +419,14 @@ ActivityRoute.post('/new', accessGuard, async (c) => {
         switch (body.type) {
             case "activity":
                 updateQuery = await handleActivity(body, existingEntry);
-                handleColors(currentUser, usedColors, userCollection, id, activity, '');
+                await handleColors(currentUser, usedColors, userCollection, id, activity, '');
                 break;
             case "variable":
                 if (existingEntry?.variables?.some(v => v.variable === variable)) {
                     badRequest("Variable already defined for this date");
                 }
                 ({ updateQuery } = await handleVariable(body, existingEntry));
-                handleColors(currentUser, usedColors, userCollection, id, '', variable);
+                await handleColors(currentUser, usedColors, userCollection, id, '', variable);
                 break;
             case "note":
                 updateQuery = await handleNote(body, existingEntry);
