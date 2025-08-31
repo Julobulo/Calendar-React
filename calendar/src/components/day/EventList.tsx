@@ -60,7 +60,7 @@ export const EventList: React.FC<EventListProps> = ({ dayActivities, colors, set
                 </div>
             ))}
 
-            {(dayActivities.note && (dayActivities.entries?.length ?? 0) > 0 || (dayActivities.variables?.length ?? 0) > 0) && <hr className="my-2" />}
+            {(dayActivities.note && ((dayActivities.entries?.length ?? 0) > 0 || (dayActivities.variables?.length ?? 0) > 0)) && <hr className="my-2" />}
 
             {/* Note */}
             {dayActivities.note && (
