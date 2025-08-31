@@ -11,7 +11,7 @@ const ImportButton = ({ isImporting, onImport, importError }: ImportButtonProps)
     <div className="mt-4">
       <label
         htmlFor="file-upload"
-        className="bg-blue-500 text-white p-2 rounded cursor-pointer hover:bg-blue-600 transition"
+        className="bg-blue-500 text-white p-2 rounded cursor-pointer hover:bg-blue-600 transition block w-28 text-center"
       >
         {!isImporting ? "Import Data" : <Spinner />}
       </label>
