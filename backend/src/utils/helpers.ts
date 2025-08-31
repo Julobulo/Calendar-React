@@ -1,4 +1,4 @@
-import { UserActivity } from "../models/UserActivityModel";
+import { ActivityEntry, UserActivity } from "../models/UserActivityModel";
 
 // function that returns a token
 export async function getToken(id: string, secret: string): Promise<string> {
@@ -121,22 +121,23 @@ export const defaultNoteColor = "#D9EAFB";
 import * as Realm from "realm-web";
 import { Context } from "hono";
 import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-generator";
+import { ObjectId } from "bson";
 
 let app: Realm.App | null = null;
 let cachedUser: Realm.User | null = null;
 
 export async function getDb(c: Context, dbName: string) {
-  if (!app) {
-    app = new Realm.App({ id: c.env.ATLAS_APPID });
-  }
+    if (!app) {
+        app = new Realm.App({ id: c.env.ATLAS_APPID });
+    }
 
-  if (!cachedUser || !cachedUser.isLoggedIn) {
-    const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
-    cachedUser = await app.logIn(credentials);
-  }
+    if (!cachedUser || !cachedUser.isLoggedIn) {
+        const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
+        cachedUser = await app.logIn(credentials);
+    }
 
-  const client = cachedUser.mongoClient("mongodb-atlas");
-  return client.db(dbName);
+    const client = cachedUser.mongoClient("mongodb-atlas");
+    return client.db(dbName);
 }
 
 // Generate a funny username
@@ -147,4 +148,53 @@ export const generateUsername = () => {
         length: 2, // One adjective + one noun
         style: "capital", // Capitalize each word (optional)
     });
+};
+
+export const fixOldActivityDocument = (oldActivityDoc: any): UserActivity => {
+    return {
+        _id: oldActivityDoc._id || new ObjectId(),
+        userId: oldActivityDoc.userId,
+        date: new Date(oldActivityDoc.date),
+        entries: (oldActivityDoc.entries || []).map((entry: any) => {
+            const fixedEntry: ActivityEntry = {
+                _id: entry._id || new ObjectId(),
+                activity: entry.activity,
+                description: entry.description || "",
+                location: entry.location,
+            };
+
+            // Case 1: entry has duration only
+            if (entry.duration && !entry.time) {
+                fixedEntry.start = "00:00";
+                // Add duration to midnight
+                const minutes = entry.duration;
+                const hours = Math.floor(minutes / 60).toString().padStart(2, "0");
+                const mins = (minutes % 60).toString().padStart(2, "0");
+                fixedEntry.end = `${hours}:${mins}`;
+            }
+
+            // Case 2: entry has time + duration
+            else if (entry.duration && entry.time) {
+                fixedEntry.start = entry.time;
+
+                const [h, m] = entry.time.split(":").map(Number);
+                const totalMinutes = h * 60 + m + entry.duration;
+                const endH = Math.floor(totalMinutes / 60).toString().padStart(2, "0");
+                const endM = (totalMinutes % 60).toString().padStart(2, "0");
+
+                fixedEntry.end = `${endH}:${endM}`;
+            }
+
+            // Case 3: entry already has start/end (leave untouched)
+            else if (entry.start && entry.end) {
+                fixedEntry.start = entry.start;
+                fixedEntry.end = entry.end;
+            }
+            console.log(`entry before: ${entry}`)
+            return fixedEntry;
+        }),
+        note: oldActivityDoc.note,
+        variables: oldActivityDoc.variables,
+        location: oldActivityDoc.location,
+    };
 };

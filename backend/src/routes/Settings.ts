@@ -3,7 +3,7 @@ import * as Realm from "realm-web";
 import { ObjectId } from "bson";
 import { ActivityEntry, NewUserActivity, UserActivity } from "../models/UserActivityModel";
 import { User } from "../models/UserModel";
-import { checkToken, getDb } from "../utils/helpers";
+import { checkToken, fixOldActivityDocument, getDb } from "../utils/helpers";
 import { accessGuard } from "../middleware/auth";
 import { AuthPayload, Variables } from "../utils/types";
 
@@ -37,36 +37,56 @@ SettingsRoute.get('/export', accessGuard, async (c) => {
 SettingsRoute.post('/import', accessGuard, async (c) => {
     const db = await getDb(c, 'calendar');
     const activityCollection = db.collection<UserActivity>("activity");
-    const id = c.var.user.id;
+    const id = new ObjectId(c.var.user.id.toString());
 
     const body = await c.req.json();
 
-    // Prepare all entries
     const entries = body.map((entry: any) => ({
-        userId: new ObjectId(id.toString()),
+        userId: id,
         date: new Date(entry.date),
         entries: entry.entries || [],
         note: entry.note || "",
         variables: entry.variables || [],
+        location: entry.location || null,
     }));
 
     const results = [];
     for (const entry of entries) {
         const existingActivity = await activityCollection.findOne({
-            userId: new ObjectId(id.toString()),
+            userId: id,
             date: entry.date,
         });
-        console.log(`${entry.date} existing activity: ${JSON.stringify(existingActivity)}`);
 
         if (!existingActivity) {
-            console.log(`activity doesn't exist, inserting document`);
-            // Insert if the day does not exist
-            const insertResult = await activityCollection.insertOne(entry);
+            console.log(`${entry.date} doesn't exist in db, inserting document`);
+            const insertResult = await activityCollection.insertOne(fixOldActivityDocument(entry));
             results.push(insertResult);
+        } else {
+            // only update fields if they're present in the import and missing in db
+            const updateFields: Partial<UserActivity> = {};
+
+            if (entry.note && !existingActivity.note) {
+                updateFields.note = entry.note;
+            }
+            if (entry.variables?.length && (!existingActivity.variables || existingActivity.variables.length === 0)) {
+                updateFields.variables = entry.variables;
+            }
+            if (entry.location && !existingActivity.location) {
+                updateFields.location = entry.location;
+            }
+
+            if (Object.keys(updateFields).length > 0) {
+                console.log(`Merging fields for ${entry.date}`)
+                await activityCollection.updateOne(
+                    { _id: existingActivity._id },
+                    { $set: updateFields }
+                );
+            } else { console.log(`Entry already exists for day ${entry.date}`) }
         }
     }
-    return c.json({ message: `${results.length} day${results.length > 1 ? 's' : ''} imported successfully` });
-})
+
+    return c.json({ message: `${results.length} new day${results.length > 1 ? 's' : ''} imported successfully` });
+});
 
 SettingsRoute.post('/delete-all-data', accessGuard, async (c) => {
     const db = await getDb(c, 'calendar');
