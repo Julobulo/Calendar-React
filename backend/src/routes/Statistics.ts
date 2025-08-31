@@ -43,14 +43,53 @@ StatisticsRoute.get("/lifetime-activity", accessGuard, async (c) => {
             $addFields: {
                 entryMinutes: {
                     $cond: [
-                        { $and: [{ $ne: ["$entries.start", null] }, { $ne: ["$entries.end", null] }] },
+                        {
+                            $and: [
+                                { $ne: ["$entries.start", null] },
+                                { $ne: ["$entries.end", null] },
+                                { $ne: ["$entries.start", ""] },
+                                { $ne: ["$entries.end", ""] }
+                            ]
+                        },
                         {
                             $let: {
                                 vars: {
-                                    sh: { $toInt: { $substrBytes: ["$entries.start", 0, 2] } },
-                                    sm: { $toInt: { $substrBytes: ["$entries.start", 3, 2] } },
-                                    eh: { $toInt: { $substrBytes: ["$entries.end", 0, 2] } },
-                                    em: { $toInt: { $substrBytes: ["$entries.end", 3, 2] } },
+                                    sh: {
+                                        $toInt: {
+                                            $cond: [
+                                                { $regexMatch: { input: "$entries.start", regex: /^[0-9]{2}:/ } },
+                                                { $substrBytes: ["$entries.start", 0, 2] },
+                                                "0"
+                                            ]
+                                        }
+                                    },
+                                    sm: {
+                                        $toInt: {
+                                            $cond: [
+                                                { $regexMatch: { input: "$entries.start", regex: /^[0-9]{2}:[0-9]{2}$/ } },
+                                                { $substrBytes: ["$entries.start", 3, 2] },
+                                                "0"
+                                            ]
+                                        }
+                                    },
+                                    eh: {
+                                        $toInt: {
+                                            $cond: [
+                                                { $regexMatch: { input: "$entries.end", regex: /^[0-9]{2}:/ } },
+                                                { $substrBytes: ["$entries.end", 0, 2] },
+                                                "0"
+                                            ]
+                                        }
+                                    },
+                                    em: {
+                                        $toInt: {
+                                            $cond: [
+                                                { $regexMatch: { input: "$entries.end", regex: /^[0-9]{2}:[0-9]{2}$/ } },
+                                                { $substrBytes: ["$entries.end", 3, 2] },
+                                                "0"
+                                            ]
+                                        }
+                                    }
                                 },
                                 in: {
                                     $let: {
@@ -59,22 +98,25 @@ StatisticsRoute.get("/lifetime-activity", accessGuard, async (c) => {
                                             emin: { $add: [{ $multiply: ["$$eh", 60] }, "$$em"] },
                                         },
                                         in: {
-                                            // If end < start (crossing midnight), wrap by +1440
                                             $let: {
                                                 vars: { diff: { $subtract: ["$$emin", "$$smin"] } },
                                                 in: {
-                                                    $cond: [{ $lt: ["$$diff", 0] }, { $add: ["$$diff", 1440] }, "$$diff"],
-                                                },
-                                            },
-                                        },
-                                    },
-                                },
-                            },
+                                                    $cond: [
+                                                        { $lt: ["$$diff", 0] },
+                                                        { $add: ["$$diff", 1440] },
+                                                        "$$diff"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         },
-                        0,
-                    ],
-                },
-            },
+                        0
+                    ]
+                }
+            }
         },
         {
             $group: {
