@@ -24,7 +24,7 @@ export function useDayActivities(year: number, month: number, day: number, reloa
         }
 
         const data: UserActivity[] = await response.json();
-        if (!data[0]?.entries?.length) { setActivities(undefined); return}
+        if (!data[0]?.entries?.length) { setActivities(data[0]); return}
 
         const sortedEntries = data[0]?.entries.sort((a: ActivityEntry, b: ActivityEntry) => {
           if (a.start && b.start) return a.start.localeCompare(b.start);
