@@ -32,13 +32,20 @@ const Day = () => {
     const handleClick = () => {
         if (window.innerWidth < 768) {
             setMobileShowForm(true);
-            setEventPopUp({ state: "add", _id: new ObjectId, activity: "", description: "", start: "", end: new Date().toISOString().slice(11, 16), note: "", variable: "", value: "" });
+            const d = new Date();
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mm = String(d.getMinutes()).padStart(2, '0');
+            setEventPopUp({ state: "add", _id: new ObjectId, activity: "", description: "", start: "", end: `${hh}:${mm}`, note: "", variable: "", value: "" });
             suggestionsHook.setSuggestions([]);
             suggestionsHook.setSelectedSuggestionIndex(-1);
             suggestionsHook.setSuggestionsType("");
         }
         else {
-            setEventPopUp({ state: "add", _id: new ObjectId, activity: "", description: "", start: "", end: new Date().toISOString().slice(11, 16), note: "", variable: "", value: "" });
+            const d = new Date();
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mm = String(d.getMinutes()).padStart(2, '0');
+            console.log(`${hh}:${mm}`);
+            setEventPopUp({ state: "add", _id: new ObjectId, activity: "", description: "", start: "", end: `${hh}:${mm}`, note: "", variable: "", value: "" });
             suggestionsHook.setSuggestions([]);
             suggestionsHook.setSelectedSuggestionIndex(-1);
             suggestionsHook.setSuggestionsType("");
