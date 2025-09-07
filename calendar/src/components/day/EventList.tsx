@@ -10,8 +10,52 @@ interface EventListProps {
 }
 
 export const EventList: React.FC<EventListProps> = ({ dayActivities, colors, setSelectedForm, setEventPopUp, setMobileShowForm }) => {
+    // // Normalize entries: compute total minutes for scaling
+    // const dayMinutes = 24 * 60;
+
+    // const entriesWithDurations = dayActivities.entries?.map((entry: any) => {
+    //     if (!entry.start || !entry.end) return null;
+    //     const [sh, sm] = entry.start.split(":").map(Number);
+    //     const [eh, em] = entry.end.split(":").map(Number);
+    //     const startMins = sh * 60 + sm;
+    //     const endMins = eh * 60 + em;
+    //     console.log(`data for debugging: ${JSON.stringify({ ...entry, startMins, minutes: endMins - startMins })}`)
+    //     return { ...entry, startMins, minutes: endMins - startMins };
+    // }).filter(Boolean);
+
     return (
         <div className="mt-2 flex flex-col space-y-2">
+            {/* <div className="mt-2 flex flex-row h-screen"> */}
+            {/* LEFT TIMELINE SIDEBAR */}
+            {/* <div className="relative w-8 h-full">
+                {entriesWithDurations?.map((entry: any, index: number) => (
+                    <div
+                        key={index}
+                        className="absolute left-1 w-[10px] cursor-pointer"
+                        style={{
+                            top: `${(entry.startMins / dayMinutes) * 100}%`,
+                            height: `${(entry.minutes / dayMinutes) * 100}%`,
+                            backgroundColor: colors.activities[entry.activity] || "#999",
+                        }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedForm("activity");
+                            setEventPopUp({
+                                state: "edit",
+                                ...entry,
+                                note: "",
+                                variable: "",
+                                value: ""
+                            });
+                            setMobileShowForm(true);
+                        }}
+                        title={`${entry.activity} (${entry.start} → ${entry.end})`}
+                    />
+                ))}
+            </div> */}
+
+            {/* RIGHT SIDE: activities + variables + note */}
+            {/* <div className="flex-1 flex flex-col space-y-2 overflow-y-auto"> */}
             {/* Activities */}
             {dayActivities.entries?.map((entry: any, index: number) => (
                 <div
@@ -77,6 +121,7 @@ export const EventList: React.FC<EventListProps> = ({ dayActivities, colors, set
                     <span className="text-[14px]" dangerouslySetInnerHTML={{ __html: highlightTimesAndNames(dayActivities.note) }}></span>
                 </div>
             )}
+            {/* </div> */}
         </div>
     );
 };
