@@ -44,7 +44,6 @@ const Day = () => {
             const d = new Date();
             const hh = String(d.getHours()).padStart(2, '0');
             const mm = String(d.getMinutes()).padStart(2, '0');
-            console.log(`${hh}:${mm}`);
             setEventPopUp({ state: "add", _id: new ObjectId, activity: "", description: "", start: "", end: `${hh}:${mm}`, note: "", variable: "", value: "" });
             suggestionsHook.setSuggestions([]);
             suggestionsHook.setSelectedSuggestionIndex(-1);
