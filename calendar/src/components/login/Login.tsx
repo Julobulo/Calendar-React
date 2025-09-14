@@ -1,3 +1,4 @@
+import { GoogleLoginButton } from "./GoogleLoginButton";
 
 const Login = () => {
     const handleGoogleLogin = () => {
@@ -12,6 +13,7 @@ const Login = () => {
     return (
         <div className="flex flex-col items-center justify-center">
             <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">Login</h2>
+            <GoogleLoginButton />
             <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
                 {/* <button
                     onClick={handleGuestLogin}
