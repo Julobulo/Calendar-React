@@ -3,7 +3,8 @@ import { GoogleLoginButton } from "./GoogleLoginButton";
 const Login = () => {
     const handleGoogleLogin = () => {
         // window.location.href = `http://localhost:8787/oauth/google`;
-        window.location.href = "https://api.calendar.jules.tools/oauth/google";
+        // window.location.href = "https://api.calendar.jules.tools/oauth/google";
+        window.location.href = `${import.meta.env.VITE_API_URL}/oauth/google`;
     };
     // const handleGuestLogin = () => {
     //     // window.location.href = `http://localhost:8787/oauth/google`;
