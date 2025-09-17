@@ -40,7 +40,7 @@ const Home = () => {
         <p className="text-gray-500 text-sm mb-4">Try it yourself — head to your calendar and start logging today.</p>
         <a
           id="signup"
-          href="https://api.calendar.jules.tools/oauth/google"
+          href={`${import.meta.env.VITE_API_URL}/oauth/google`}
           className="inline-block px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition"
         >
           → Sign up
