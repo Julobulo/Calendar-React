@@ -2,7 +2,9 @@
   "dependencies": {
     "@cloudflare/wrangler": "^1.21.0",
     "bson": "^6.10.0",
+    "date-fns": "^4.1.0",
     "hono": "^4.6.12",
+    "jose": "^6.1.0",
     "realm-web": "^2.0.1",
     "unique-names-generator": "^4.7.1"
   },
