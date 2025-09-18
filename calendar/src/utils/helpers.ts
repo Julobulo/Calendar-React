@@ -1,4 +1,4 @@
-import { intervalToDuration } from "date-fns";
+// import { intervalToDuration } from "date-fns";
 
 export const isLightOrDark = (hex: string): boolean => {
     if (!hex) return true;
@@ -106,6 +106,42 @@ export const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export const generateRandomColor = () => {
     return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`
+}
+
+type Duration = {
+  years?: number;
+  months?: number;
+  days?: number;
+  hours?: number;
+  minutes?: number;
+  seconds?: number;
+};
+
+export function intervalToDuration({
+  start,
+  end,
+}: {
+  start: number | Date;
+  end: number | Date;
+}): Duration {
+  const startMs = start instanceof Date ? start.getTime() : start;
+  const endMs = end instanceof Date ? end.getTime() : end;
+
+  let diff = Math.max(0, endMs - startMs); // prevent negative
+
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  return {
+    years: 0, // keep simple, not breaking down into months/years
+    months: 0,
+    days: days % 365,
+    hours: hours % 24,
+    minutes: minutes % 60,
+    seconds: seconds % 60,
+  };
 }
 
 // Function to format total time (in minutes) into a more comprehensive format like: "1 year 2 months 3 days 4 hours 5 minutes"
