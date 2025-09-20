@@ -2,6 +2,11 @@ Remake the frontend so that the activities are displayed nicely
 Add search feature
 Encrypt the activities content
 Adapt landing page to the new design
+Bars for time breakdown too small 
+Issues:
+Fix line graph data not including today
+Some variables not shown
+Graph shifted back by one day
 
 DONE
 Fix /import to import my old activities - 31/08/2025 - 3:50pm
