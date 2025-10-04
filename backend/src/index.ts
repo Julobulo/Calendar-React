@@ -1,12 +1,12 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import OAuthRoute from "../src/routes/Oauth";
 import ActivityRoute from "../src/routes/Activity";
 import StatisticsRoute from "../src/routes/Statistics";
 import SettingsRoute from "../src/routes/Settings";
 import LocationRoute from "../src/routes/Location";
 import { Env } from "./utils/types";
 import { restheartFind } from "./utils/restheartHelpers";
+import { auth } from "./routes/auth";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -32,7 +32,7 @@ app.get("/", async (c, next) => {
   });
 });
 
-app.route('/oauth', OAuthRoute);
+app.route('/auth', auth);
 app.route('/activity', ActivityRoute);
 app.route('/statistics', StatisticsRoute);
 app.route('/settings', SettingsRoute);
