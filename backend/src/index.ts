@@ -4,11 +4,12 @@ import ActivityRoute from "../src/routes/Activity";
 import StatisticsRoute from "../src/routes/Statistics";
 import SettingsRoute from "../src/routes/Settings";
 import LocationRoute from "../src/routes/Location";
-import { Env } from "./utils/types";
+import { Env, Variables } from "./utils/types";
 import { restheartFind } from "./utils/restheartHelpers";
 import { auth } from "./routes/auth";
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: Env, Variables: Variables }>();
+
 
 // setup cors policy
 app.use(
@@ -34,7 +35,7 @@ app.get("/", async (c, next) => {
 
 app.route('/auth', auth);
 app.route('/activity', ActivityRoute);
-app.route('/statistics', StatisticsRoute);
+// app.route('/statistics', StatisticsRoute);
 app.route('/settings', SettingsRoute);
 app.route('/location', LocationRoute);
 
