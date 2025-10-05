@@ -6,29 +6,35 @@ import { Env } from "./utils/types";
 import { restheartInsert } from "./utils/restheartHelpers";
 
 export async function hashRefreshToken(token: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(token);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  // convert to hex
-  return Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+    const encoder = new TextEncoder();
+    const data = encoder.encode(token);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    // convert to hex
+    return Array.from(new Uint8Array(hashBuffer))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
 }
 
 export function generateRefreshTokenValue(length = 64): string {
-  const array = new Uint8Array(length);
-  crypto.getRandomValues(array);
-  return btoa(String.fromCharCode(...array)) // convert to base64url
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    return btoa(String.fromCharCode(...array)) // convert to base64url
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
 }
 
 export async function signAccessToken(user: User, env: Env) {
     const ACCESS_TTL = parseInt(env.ACCESS_TOKEN_TTL || "3600", 10);
     const ACCESS_SECRET = new TextEncoder().encode(env.JWT_ACCESS_SECRET!);
+    const id =
+        typeof user._id === "string"
+            ? user._id
+            : user._id?.$oid ?? user._id.toString();
     const payload: JWTPayload = {
-        sub: user._id.toString()
+        sub: id,
+        email: user.email,
+        strategy: user.authentication?.strategy
     };
     return await new SignJWT(payload)
         .setProtectedHeader({ alg: "HS256" })

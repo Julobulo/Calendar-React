@@ -9,16 +9,12 @@ export async function accessGuard(c: Context, next: Next) {
   try {
     const ACCESS_SECRET = new TextEncoder().encode(c.env.JWT_ACCESS_SECRET!);
     const { payload } = await jwtVerify(token, ACCESS_SECRET);
-    c.set("user", payload);
-    // c.set("user", {
-    //   id: payload.id,
-    //   email: payload.email,
-    // });
-    console.log(`user payload: ${payload}, or other payload: ${JSON.stringify({
-      id: payload.id,
+    c.set("user", {
+      id: payload.sub,
       email: payload.email,
-      role: payload.role ?? "user",
-    })}`)
+      name: payload.name,
+      strategy: payload.strategy
+    });
     return next();
   } catch {
     return c.json({ error: "Unauthorized" }, 401);
