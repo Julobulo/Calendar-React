@@ -10,7 +10,7 @@ export function GoogleLoginButton() {
       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
       callback: async (response: any) => {
         // response.credential is the Google ID token
-        await fetch(`${import.meta.env.VITE_API_URL}/auth/google`, {
+        await fetch(`${import.meta.env.VITE_API_URI}/auth/google`, {
           method: "POST",
           credentials: "include", // important (cookies)
           headers: { "Content-Type": "application/json" },

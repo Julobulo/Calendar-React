@@ -20,7 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchUser = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URI}/auth/me`, {
         credentials: "include",
       });
       const data = await res.json();
