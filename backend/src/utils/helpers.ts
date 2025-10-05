@@ -117,28 +117,9 @@ export const defaultVariables = {
 
 export const defaultNoteColor = "#D9EAFB";
 
-
-import * as Realm from "realm-web";
-import { Context } from "hono";
 import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-generator";
 import { ObjectId } from "bson";
-
-let app: Realm.App | null = null;
-let cachedUser: Realm.User | null = null;
-
-export async function getDb(c: Context, dbName: string) {
-    if (!app) {
-        app = new Realm.App({ id: c.env.ATLAS_APPID });
-    }
-
-    if (!cachedUser || !cachedUser.isLoggedIn) {
-        const credentials = Realm.Credentials.apiKey(c.env.ATLAS_APIKEY);
-        cachedUser = await app.logIn(credentials);
-    }
-
-    const client = cachedUser.mongoClient("mongodb-atlas");
-    return client.db(dbName);
-}
+import { AppError } from "./types";
 
 // Generate a funny username
 export const generateUsername = () => {
@@ -198,3 +179,184 @@ export const fixOldActivityDocument = (oldActivityDoc: any): UserActivity => {
         location: oldActivityDoc.location,
     };
 };
+
+function parseTimeToMinutes(time: string): number {
+    const [h, m] = time.split(":").map(Number);
+    return h * 60 + m;
+}
+
+function minutesToTime(totalMinutes: number): string {
+    const hours = Math.floor(totalMinutes / 60) % 24;
+    const minutes = totalMinutes % 60;
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+}
+
+export function badRequest(message: string): never {
+    throw { status: 400, message } as AppError;
+}
+
+export function computeStartFromEnd(end: string, description: string): string {
+    const duration = getTimeFromLongString(description);
+    const endMinutes = parseTimeToMinutes(end);
+    const startMinutes = (endMinutes - duration + 24 * 60) % (24 * 60); // wrap around backwards
+    const start = minutesToTime(startMinutes);
+    if (start === end) {
+        badRequest("Start time cannot equal end time");
+    }
+    return start;
+}
+
+function computeEndFromStart(start: string, description: string): string {
+    const duration = getTimeFromLongString(description);
+    const startMinutes = parseTimeToMinutes(start);
+    const endMinutes = startMinutes + duration;
+    const end = minutesToTime(endMinutes);
+    if (end === start) {
+        badRequest("End time cannot equal start time");
+    }
+    return end;
+}
+
+export async function handleActivity(
+    body: any,
+    existingEntry: UserActivity | null,
+    editingId?: string, // pass this for edit mode
+): Promise<any> {
+    const activity = (body.activity || "").trim();
+    const description = (body.description || "").trim();
+    if (!activity || !description) badRequest("Missing activity fields");
+    if (activity.length > 100) badRequest("Activity name too long");
+    if (description.length > 500) badRequest("Description too long");
+
+    const startProvided = (body.start || "").trim();
+    const endProvided = (body.end || "").trim();
+
+    let start = startProvided;
+    let end = endProvided;
+
+    if (startProvided && endProvided) {
+        if (startProvided === endProvided) {
+            badRequest("Start and end time cannot be the same");
+        }
+    } else if (startProvided && !endProvided) {
+        end = computeEndFromStart(startProvided, description);
+    } else if (!startProvided && endProvided) {
+        start = computeStartFromEnd(endProvided, description);
+    } else {
+        throw badRequest("Either start or end time must be defined");
+    }
+
+    const location = body.location;
+
+    if (editingId) {
+        // Make sure the activity exists
+        const existing = existingEntry?.entries?.find(e => e._id.toString() === editingId);
+        if (!existing) badRequest("Activity with this ID does not exist");
+
+        // Build the $set update and arrayFilters
+        const updateQuery = {
+            $set: {
+                "entries.$[elem].activity": activity,
+                "entries.$[elem].description": description,
+                "entries.$[elem].start": start,
+                "entries.$[elem].end": end,
+                "entries.$[elem].location": location,
+            }
+        };
+        const arrayFilters = [{ "elem._id": new ObjectId(editingId) }];
+
+        return { updateQuery, arrayFilters };
+    }
+
+
+    // CREATE MODE
+    const newEntry: ActivityEntry = {
+        _id: new ObjectId(),
+        activity,
+        description,
+        start,
+        end,
+        location,
+    };
+
+    if (existingEntry) {
+        if ((existingEntry?.entries?.length || 0) >= 100) {
+            badRequest("Too many activities for this day");
+        }
+        if (existingEntry?.entries?.some(e => e.activity === activity && e.start === start)) {
+            badRequest("Activity with the same start time already exists");
+        }
+        return { $push: { entries: newEntry } };
+    } else {
+        return {
+            $setOnInsert: {
+                entries: [newEntry],
+                variables: [],
+            },
+        };
+    }
+}
+
+export async function handleVariable(
+    body: any,
+    existingEntry: UserActivity | null,
+) {
+    const variable = (body.variable || "").trim();
+    const value = (body.value || "").trim();
+    if (!variable || !value) badRequest("Missing variable fields");
+    if (variable.length > 100) badRequest("Variable name too long");
+
+    let updateQuery;
+
+    if (existingEntry?.variables?.some(v => v.variable === variable)) {
+        // EDIT MODE: update existing variable value
+        updateQuery = {
+            $set: { "variables.$[elem].value": value }
+        };
+        const arrayFilters = [{ "elem.variable": variable }];
+        return { updateQuery, arrayFilters };
+    } else {
+        // CREATE MODE: push new variable
+        const newVariable = { variable, value };
+        if (existingEntry) {
+            updateQuery = { $push: { variables: newVariable } };
+            return { updateQuery };
+        } else {
+            updateQuery = {
+                $setOnInsert: {
+                    entries: [],
+                    variables: [newVariable]
+                }
+            };
+
+            return { updateQuery };
+        }
+    }
+}
+
+export async function handleNote(
+    body: any,
+    existingEntry: UserActivity | null,
+    editing?: "edit"
+) {
+    const note = (body.note || "").trim();
+    if (!note) badRequest("Missing note field");
+    if (note.length > 1000) badRequest("Note too long");
+
+    let updateQuery;
+
+    if (existingEntry) {
+        if (existingEntry?.note && editing !== "edit") badRequest("Note already exists")
+        updateQuery = { $set: { note } };
+        return updateQuery;
+    } else {
+        updateQuery = {
+            $setOnInsert: {
+                entries: [],
+                variables: [],
+                note
+            }
+        };
+        return updateQuery;
+    }
+}

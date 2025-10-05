@@ -207,39 +207,6 @@ export async function handleColors(currentUser: User | null, usedColors: Set<str
     }
 }
 
-function parseTimeToMinutes(time: string): number {
-    const [h, m] = time.split(":").map(Number);
-    return h * 60 + m;
-}
-
-function minutesToTime(totalMinutes: number): string {
-    const hours = Math.floor(totalMinutes / 60) % 24;
-    const minutes = totalMinutes % 60;
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
-}
-
-function computeEndFromStart(start: string, description: string): string {
-    const duration = getTimeFromLongString(description);
-    const startMinutes = parseTimeToMinutes(start);
-    const endMinutes = startMinutes + duration;
-    const end = minutesToTime(endMinutes);
-    if (end === start) {
-        badRequest("End time cannot equal start time");
-    }
-    return end;
-}
-
-function computeStartFromEnd(end: string, description: string): string {
-    const duration = getTimeFromLongString(description);
-    const endMinutes = parseTimeToMinutes(end);
-    const startMinutes = (endMinutes - duration + 24 * 60) % (24 * 60); // wrap around backwards
-    const start = minutesToTime(startMinutes);
-    if (start === end) {
-        badRequest("Start time cannot equal end time");
-    }
-    return start;
-}
-
 function badRequest(message: string): never {
     throw { status: 400, message } as AppError;
 }
