@@ -3,8 +3,6 @@ import Calendar from "./components/calendar/Calendar";
 import Statistics from "./components/statistics/Statistics";
 import Sidebar from "./components/Sidebar";
 import Home from "./components/home/Home";
-import Login from "./components/login/Login";
-import Cookies from "js-cookie";
 import { Analytics } from "@vercel/analytics/react"
 import Day from "./components/day/Day";
 import { ToastContainer, Bounce } from "react-toastify";
@@ -36,7 +34,6 @@ const App = () => {
             element={
               <div className="bg-gray-100 p-10">
                 <Home />
-                {!Cookies.get("token") && <Login />}
               </div>
             }
           />
