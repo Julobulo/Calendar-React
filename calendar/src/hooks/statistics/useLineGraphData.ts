@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import Cookies from "js-cookie";
+import { useAuth } from "../../AuthProvider";
 
 export function useLineGraphData() {
+  const { user, userLoading } = useAuth();
   const [lineGraphData, setLineGraphData] = useState<any[]>([]);
   const [lineGraphSelected, setLineGraphSelected] = useState<{ type: "activity" | "variable", name: string }>({
     type: "activity",
@@ -86,7 +87,7 @@ export function useLineGraphData() {
       setLineGraphLoading(false);
     };
 
-    if (Cookies.get('token')) fetchLineGraphData();
+    if (!userLoading && user) fetchLineGraphData();
   }, [lineGraphSelected]);
 
   return { lineGraphData, lineGraphSelected, setLineGraphSelected, lineGraphLoading };

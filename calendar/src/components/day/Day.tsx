@@ -3,7 +3,6 @@ import "react-day-picker/dist/style.css";
 import Spinner from "../utils/Spinner";
 import { FaRegCalendarTimes } from "react-icons/fa";
 import { LocationPicker } from "../utils/LocationPicker";
-import Cookies from "js-cookie";
 import { useDayActivities } from "../../hooks/useDayActivities";
 import { useDayLocation } from "../../hooks/useDayLocation";
 import { useActivityMetadata } from "../../hooks/useActivityMetadata";
@@ -14,8 +13,11 @@ import { useSuggestions } from "../../hooks/useSuggestions";
 import { EventList } from "./EventList";
 import { EventForm } from "./EventForm";
 import { CalendarPicker } from "./CalendarPicker";
+import Login from "../login/Login";
+import { useAuth } from "../../AuthProvider";
 
 const Day = () => {
+    const { user, userLoading } = useAuth();
     const [reload, setReload] = useState(false);
 
     const [mobileShowForm, setMobileShowForm] = useState<boolean>(false);
@@ -92,13 +94,8 @@ const Day = () => {
                     )}
                     {!loading && !dayActivities && (
                         <div className="flex items-center gap-2 text-gray-500 text-sm p-2">
-                            {Cookies.get('token') ? <span><FaRegCalendarTimes className="text-lg" /> No activities recorded for today.</span> : <span><a
-                                id="signup"
-                                href="https://api.calendar.jules.tools/oauth/google"
-                                className="inline-block px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition"
-                            >
-                                → Log in
-                            </a> to record activities</span>}
+                            {(!userLoading && !user) && <Login />}
+                            {(!userLoading && user) && <span><FaRegCalendarTimes className="text-lg" /> No activities recorded for today.</span>}
                         </div>
                     )
                     }

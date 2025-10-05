@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import Cookies from "js-cookie";
+import { useAuth } from "../../AuthProvider";
 
 export function useLifetimeActivity() {
+  const { user, userLoading } = useAuth();
   const [data, setData] = useState<{ activity: string; totalTime: number }[]>([]);
   const [firstActivityDate, setFirstActivityDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -30,7 +31,7 @@ export function useLifetimeActivity() {
       setLoading(false);
     };
 
-    if (Cookies.get("token")) fetchLifetimeActivity();
+    if (!userLoading && user) fetchLifetimeActivity();
   }, []);
 
   return { data, firstActivityDate, loading };

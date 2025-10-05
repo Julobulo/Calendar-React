@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import Cookies from "js-cookie";
 import { UserActivity } from "../utils/types";
+import { useAuth } from "../AuthProvider";
 
 export function useActivities(year: number, month: number) {
+  const { user, userLoading } = useAuth();
   const [activities, setActivities] = useState<UserActivity[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +28,7 @@ export function useActivities(year: number, month: number) {
       }
     };
 
-    if (Cookies.get("token")) fetchActivities();
+    if (!userLoading && user) fetchActivities();
   }, [year, month]);
 
   return { activities, loading };

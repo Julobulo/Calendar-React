@@ -1,10 +1,11 @@
 // src/hooks/useActivityMetadata.ts
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import Cookies from "js-cookie";
 import { Colors } from "../utils/types";
+import { useAuth } from "../AuthProvider";
 
 export function useActivityMetadata(reload: boolean) {
+  const { user, userLoading } = useAuth();
   const [colors, setColors] = useState<Colors>({ activities: {}, note: "", variables: {} });
   const [names, setNames] = useState<string[]>([]);
 
@@ -22,7 +23,7 @@ export function useActivityMetadata(reload: boolean) {
       setColors(data);
     };
 
-    if (Cookies.get("token")) fetchColors();
+    if (!userLoading && user) fetchColors();
   }, [reload]);
 
   useEffect(() => {
@@ -39,7 +40,7 @@ export function useActivityMetadata(reload: boolean) {
       setNames(data);
     };
 
-    if (Cookies.get("token")) fetchNames();
+    if (!userLoading && user) fetchNames();
   }, [reload]);
 
   return { colors, names };

@@ -1,14 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import Cookies from "js-cookie";
 import { toast } from "react-toastify";
-
-interface Location {
-  name: string;
-  lat: number;
-  lng: number;
-}
+import { useAuth } from "../AuthProvider";
 
 export function useDayLocation(year: number, month: number, day: number) {
+  const { user, userLoading } = useAuth();
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [isSavingLocation, setIsSavingLocation] = useState(false);
   const isInitialLocationLoad = useRef(true);
@@ -44,7 +39,7 @@ export function useDayLocation(year: number, month: number, day: number) {
       }
     };
 
-    if (Cookies.get("token")) fetchLocation();
+    if (!userLoading && user) fetchLocation();
   }, [year, month, day]);
 
   // Save location when it changes
@@ -98,11 +93,11 @@ export function useDayLocation(year: number, month: number, day: number) {
       }
     };
 
-    if (Cookies.get("token")) setLocation();
+    if (!userLoading && user) setLocation();
   }, [selectedLocation]);
 
   const deleteLocation = async (year: number, month: number, day: number) => {
-    if (!Cookies.get("token")) return;
+    if (!userLoading && !user) return;
     setIsSavingLocation(true);
 
     const res = await fetch(`${import.meta.env.VITE_API_URI}/location/dayLocation/delete`, {

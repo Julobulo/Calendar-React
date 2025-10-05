@@ -1,8 +1,8 @@
 // src/hooks/useEventForm.ts
 import { useState } from "react";
 import { toast } from "react-toastify";
-import Cookies from "js-cookie";
 import { ObjectId } from "bson";
+import { useAuth } from "../AuthProvider";
 
 type EventState = "add" | "edit";
 type FormType = "activity" | "note" | "variable";
@@ -20,6 +20,7 @@ interface EventPopUp {
 }
 
 export function useEventForm(year: number, month: number, day: number, reload: boolean, setReload: React.Dispatch<React.SetStateAction<boolean>>) {
+  const { user, userLoading } = useAuth();
   const [eventPopUp, setEventPopUp] = useState<EventPopUp>({
     state: "add",
     _id: new ObjectId,
@@ -36,7 +37,7 @@ export function useEventForm(year: number, month: number, day: number, reload: b
   const [selectedForm, setSelectedForm] = useState<FormType>("activity");
 
   const handleEventFinish = async () => {
-    if (!Cookies.get("token")) return;
+    if (!userLoading && !user) return;
 
     setActionLoading(true);
 
@@ -86,7 +87,7 @@ export function useEventForm(year: number, month: number, day: number, reload: b
   };
 
   const handleDelete = async () => {
-    if (!Cookies.get("token")) return;
+    if (!userLoading && !user) return;
 
     setActionLoading(true);
     let body: any = { year, month, day, type: selectedForm, _id: eventPopUp._id };

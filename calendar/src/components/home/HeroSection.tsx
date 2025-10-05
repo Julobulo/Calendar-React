@@ -1,5 +1,5 @@
-import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../AuthProvider";
 
 interface HeroProps {
   userCount: number | null;
@@ -10,6 +10,7 @@ interface HeroProps {
 
 export const HeroSection = ({ userCount, activityCount, userCountLoading, scrollToSignup }: HeroProps) => {
   const navigate = useNavigate();
+  const { user, userLoading } = useAuth();
 
   return (
     <section className="text-center space-y-8 relative">
@@ -34,7 +35,7 @@ export const HeroSection = ({ userCount, activityCount, userCountLoading, scroll
       <button
         className="inline-block px-8 py-4 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg shadow-lg transition"
         onClick={() => {
-          if (Cookies.get("token")) navigate("/calendar/day");
+          if (!userLoading && user) navigate("/calendar/day");
           else scrollToSignup();
         }}
       >

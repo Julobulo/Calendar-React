@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import Cookies from "js-cookie";
 import { toast } from "react-toastify";
 import { ActivityEntry, UserActivity } from "../utils/types";
+import { useAuth } from "../AuthProvider";
 
 export function useDayActivities(year: number, month: number, day: number, reload: boolean) {
+  const { user, userLoading } = useAuth();
   const [activities, setActivities] = useState<UserActivity>();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!Cookies.get("token")) return;
+    if (!userLoading && !user) return;
 
     const fetchActivities = async () => {
       setLoading(true);
