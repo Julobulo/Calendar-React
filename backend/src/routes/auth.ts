@@ -21,7 +21,8 @@ auth.post("/google", async (c) => {
     if (!payload.sub) {
         return c.json({ error: "Invalid Google token" }, 401);
     }
-    const existingResp = await restheartFind("calendarUsers", { email: payload.email }) as any;
+
+    const existingResp = await restheartFind("calendarUsers", { email: payload.email }) as Array<User>;
     const existing = existingResp[0];
 
     let user = existing;
@@ -40,7 +41,7 @@ auth.post("/google", async (c) => {
         };
         const createdUserResp = await restheartInsert("calendarUsers", newUser) as any;
         user = createdUserResp._embedded?.documents?.[0];
-    }
+    } else { console.log(`user exists`) }
 
 
     // Issue tokens
