@@ -3,6 +3,7 @@ import { StatusCode } from "hono/utils/http-status";
 export interface AuthPayload {
   id: string;
   exp: number;
+  email?: string;
 };
 
 export type Variables = {
