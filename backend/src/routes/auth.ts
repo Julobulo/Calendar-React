@@ -3,11 +3,10 @@ import { getCookie } from "hono/cookie";
 import { verifyGoogleIdToken } from "../google";
 import { signAccessToken, issueRefreshToken, hashRefreshToken } from "../auth";
 import { setAccessCookie, setRefreshCookie, clearAuthCookies } from "../cookies";
-import { ObjectId } from "bson";
 import { AuthPayload, Env, Variables } from "../utils/types";
 import { accessGuard } from "../middleware/auth";
-import { defaultActivities, defaultNoteColor, defaultVariables, generateUsername } from "../utils/helpers";
-import { restheartFind, restheartInsert, restheartUpdate } from "../utils/restheartHelpers";
+import { asObjectId, defaultActivities, defaultNoteColor, defaultVariables, generateUsername } from "../utils/helpers";
+import { restheartFind, restheartFindOne, restheartInsert, restheartUpdate } from "../utils/restheartHelpers";
 import { User } from "../models/UserModel";
 import { RefreshToken } from "../models/refreshTokenModel";
 
@@ -67,18 +66,16 @@ auth.post("/refresh", async (c) => {
 
     if (doc.expiresAt < new Date()) {
         // Expired, revoke
-        // TODO use the restheart function
         await restheartUpdate("refresh_tokens", doc._id, { $set: { revokedAt: new Date() } })
         return c.json({ error: "Expired refresh token" }, 401);
     }
 
     // Load user
-    const dbUsers = await restheartFind("calendarUsers", { _id: new ObjectId(doc.userId) }) as Array<User>;
-    const user = dbUsers[0];
+    const user = await restheartFindOne("calendarUsers", { _id: { $oid: asObjectId(doc.userId) } }) as User;
     if (!user) return c.json({ error: "User missing" }, 401);
 
     // ROTATE refresh token
-    await restheartUpdate("refresh_tokens", doc._id, { $set: { revokedAt: new Date() } })
+    await restheartUpdate("refresh_tokens", { _id: { $oid: asObjectId(doc._id) } }, { $set: { revokedAt: new Date() } })
     const newRefresh = await issueRefreshToken(user, c, c.req.header("user-agent"), c.req.header("x-forwarded-for") || c.req.header("cf-connecting-ip"));
 
     // New access token

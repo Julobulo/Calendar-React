@@ -410,3 +410,10 @@ export async function handleNote(
 export const generateRandomColor = () => {
     return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`
 }
+
+export function asObjectId(id: any): ObjectId {
+    if (!id) throw new Error("Missing id");
+    if (typeof id === "object" && "$oid" in id) return new ObjectId(id.$oid);
+    if (typeof id === "string") return new ObjectId(id);
+    throw new Error(`Invalid id type: ${typeof id}`);
+}
