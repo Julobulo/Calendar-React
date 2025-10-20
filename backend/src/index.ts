@@ -7,6 +7,7 @@ import LocationRoute from "../src/routes/Location";
 import { Env, Variables } from "./utils/types";
 import { restheartFind } from "./utils/restheartHelpers";
 import { auth } from "./routes/auth";
+import mongoProxyRequest from "./utils/mongoProxyClient";
 
 const app = new Hono<{ Bindings: Env, Variables: Variables }>();
 
@@ -24,7 +25,13 @@ app.use(
 
 app.get("/", async (c, next) => {
   const start = Date.now();
-  await restheartFind("calendarUsers")
+  await mongoProxyRequest(c, "findOne", {
+    db: "calendar",
+    coll: "users",
+    filter: { email: "jules.caoeiros@gmail.com" },
+    sort: { t: -1 },
+    limit: 50,
+  });
 
   const end = Date.now();
 

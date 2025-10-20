@@ -74,6 +74,7 @@ export function useEventForm(year: number, month: number, day: number, reload: b
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
+    console.log(`debugging: sent a request to try to create an activity`)
 
     const data = await response.json();
     if (!response.ok) {
