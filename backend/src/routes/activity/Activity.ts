@@ -6,40 +6,38 @@ import { asObjectId, badRequest, generateRandomColor, handleActivity, handleNote
 import { AppError, Env, Variables } from "../../utils/types";
 import { accessGuard } from "../../middleware/auth";
 import ActivityInfoRoute from "./ActivityInfo";
-// import { restheartFind, restheartFindOne, restheartInsert, restheartInsertOne, restheartUpdateOne } from "../utils/restheartHelpers";
+import NewActivityRoute from "./NewActivity";
+import { mongoProxyRequest } from "../../utils/mongoProxyClient";
 
 const ActivityRoute = new Hono<{ Bindings: Env, Variables: Variables }>();
 
 ActivityRoute.route('/info', ActivityInfoRoute);
+ActivityRoute.route('/new', NewActivityRoute);
 
-// ActivityRoute.get('/', accessGuard, async (c) => {
-//     // const db = await getDb(c, 'calendar');
-//     // const activityCollection = db.collection<UserActivity>("activity");
-//     const { year, month, day } = c.req.queries();
+ActivityRoute.get('/', accessGuard, async (c) => {
+    const { year, month, day } = c.req.queries();
 
-//     const id = c.var.user.id
+    const id = c.var.user.id
 
-//     let startDate, endDate;
-//     if (!day) {
-//         startDate = new Date(Number(year), Number(month) - 1, 20);
-//         endDate = new Date(Number(year), Number(month) + 1, 10);
-//     }
-//     else {
-//         startDate = new Date(Number(year), Number(month), Number(day));
-//         endDate = new Date(Number(year), Number(month), Number(day), 23, 59, 59, 999);
-//     }
+    let startDate, endDate;
+    if (!day) {
+        startDate = new Date(Number(year), Number(month) - 1, 20);
+        endDate = new Date(Number(year), Number(month) + 1, 10);
+    }
+    else {
+        startDate = new Date(Number(year), Number(month), Number(day));
+        endDate = new Date(Number(year), Number(month), Number(day), 23, 59, 59, 999);
+    }
 
-//     const activities = await restheartFind("calendarActivities", {
-//         userId: { $oid: asObjectId(id.toString()) },
-//         date: {
-//             $gte: { $date: startDate },
-//             $lte: { $date: endDate }
-//         }
+    const response = await mongoProxyRequest<UserActivity[]>(c, "find", {
+        db: "calendar",
+        coll: "activity",
+        filter: { userId: id, date: { $gte: startDate, $lte: endDate } },
+    });
+    const activities = response.result;
 
-//     }) as Array<UserActivity>;
-
-//     return c.json(activities);
-// });
+    return c.json(activities);
+});
 
 
 
@@ -117,193 +115,7 @@ ActivityRoute.route('/info', ActivityInfoRoute);
 // });
 
 
-// export async function handleColors(currentUser: User | null, usedColors: Set<string>, userId: string, activity: string, variable: string) {
-//     // Assign color if not exists
-//     if (activity && !currentUser?.colors?.activities?.[activity]) {
-//         let newColor;
-//         do {
-//             newColor = generateRandomColor();
-//         } while (usedColors.has(newColor));
 
-//         // Ensure structure exists
-//         await restheartUpdateOne("calendarUsers", userId,
-//             {
-//                 $setOnInsert: {
-//                     "colors.activities": {},
-//                     "colors.variables": {},
-//                     "colors.note": ""
-//                 }
-//             },
-//             { upsert: true })
-//         // await userCollection.updateOne(
-//         //     { _id: new ObjectId(userId) },
-//         //     {
-//         //         $setOnInsert: {
-//         //             "colors.activities": {},
-//         //             "colors.variables": {},
-//         //             "colors.note": ""
-//         //         }
-//         //     },
-//         //     { upsert: true }
-//         // );
-
-//         // Set the activity color
-//         await restheartUpdateOne("calendarUsers", userId,
-//             { $set: { [`colors.activities.${activity}`]: newColor } })
-//         // await userCollection.updateOne(
-//         //     { _id: new ObjectId(userId) },
-//         //     { $set: { [`colors.activities.${activity}`]: newColor } }
-//         // );
-//     }
-
-//     if (variable && !currentUser?.colors?.variables?.[variable]) {
-//         let newColor;
-//         do {
-//             newColor = generateRandomColor();
-//         } while (usedColors.has(newColor));
-
-//         // Ensure structure exists (safe no-op if user already exists)
-//         await restheartUpdateOne("calendarUsers", userId,
-//             {
-//                 $setOnInsert: {
-//                     "colors.activities": {},
-//                     "colors.variables": {},
-//                     "colors.note": ""
-//                 }
-//             },
-//             { upsert: true })
-//         // await userCollection.updateOne(
-//         //     { _id: new ObjectId(userId.toString()) },
-//         //     {
-//         //         $setOnInsert: {
-//         //             "colors.activities": {},
-//         //             "colors.variables": {},
-//         //             "colors.note": ""
-//         //         }
-//         //     },
-//         //     { upsert: true }
-//         // );
-
-//         await restheartUpdateOne("calendarUsers", userId,
-//             { $set: { [`colors.variables.${variable}`]: newColor } })
-//         // Now safely update the nested variable color
-//         // await userCollection.updateOne(
-//         //     { _id: new ObjectId(userId.toString()) },
-//         //     {
-//         //         $set: {
-//         //             [`colors.variables.${variable}`]: newColor
-//         //         }
-//         //     }
-//         // );
-//     }
-// }
-
-// ActivityRoute.post('/new', accessGuard, async (c) => {
-//     const id = c.var.user.id;
-//     const body = await c.req.json();
-
-//     let { type, activity, description, note, variable } = body;
-
-//     if (body.year === undefined || body.month === undefined || body.day === undefined || !type) return c.json({ message: "Missing required fields" }, 400);
-//     const date = new Date(Date.UTC(+body.year, +body.month, +body.day));
-
-
-//     const existingEntry = await restheartFindOne("calendarActivities", { userId: { $oid: asObjectId(id.toString()) }, date: { $date: date.getTime() } });
-//     console.log(`existingEntry: ${JSON.stringify(existingEntry)}`)
-
-//     // color logic
-//     const currentUser = await restheartFindOne("calendarUsers", { _id: { $oid: asObjectId(id.toString()) } })
-//     const usedColors = new Set([
-//         ...(Object.values(currentUser?.colors?.activities || {})),
-//         ...(currentUser?.colors?.note ? [currentUser.colors.note] : []),
-//         ...(Object.values(currentUser?.colors?.variables || {}))
-//     ]);
-
-
-//     let updateQuery;
-//     try {
-
-//         switch (body.type) {
-//             case "activity":
-//                 updateQuery = await handleActivity(body, existingEntry);
-//                 await handleColors(currentUser, usedColors, id, activity, '');
-//                 break;
-//             case "variable":
-//                 if (existingEntry?.variables?.some((v: any) => v.variable === variable)) {
-//                     badRequest("Variable already defined for this date");
-//                 }
-//                 ({ updateQuery } = await handleVariable(body, existingEntry));
-//                 await handleColors(currentUser, usedColors, id, '', variable);
-//                 break;
-//             case "note":
-//                 updateQuery = await handleNote(body, existingEntry);
-//                 break;
-//             default:
-//                 return c.json({ message: "Invalid type" }, 400);
-//         }
-//     }
-//     catch (err) {
-//         if (typeof err === "object" && err !== null && "status" in err && "message" in err) {
-//             const appErr = err as AppError;
-//             return c.json({ message: appErr.message }, appErr.status);
-//         }
-//         // fallback for unexpected errors
-//         return c.json({ message: "Internal server error" }, 500);
-//     }
-
-//     // Extract user names from the description (those after "@")
-//     // const mentionedNames = Array.from(new Set(`${description} ${note}`.match(/@(\w+)/g)?.map((name: string) => name.slice(1)) || [])); // Removing "@" symbol
-//     // if (mentionedNames.length > 0) {
-//     //     const currentUser = await restheartFindOne("calendarUsers", { _id: { $oid: asObjectId(id.toString()) } })
-//     //     // const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
-//     //     const updatedNames = [...new Set([...(currentUser?.names || []), ...mentionedNames])]; // Add new names without duplicates
-
-//     //     // Update user's names array with the new names
-//     //     if (updatedNames.length > (currentUser?.names?.length ?? 0)) {
-//     //         await restheartUpdateOne("calendarUsers", { _id: { $oid: asObjectId(id.toString()) } },
-//     //             { $set: { names: updatedNames } })
-//     //         // await userCollection.updateOne(
-//     //         //     { _id: new ObjectId(id.toString()) },
-//     //         //     { $set: { names: updatedNames } }
-//     //         // );
-//     //     }
-//     // }
-
-//     console.log("updateQuery:", JSON.stringify(updateQuery, null, 2));
-//     console.log("Filter date:", date.toISOString());
-//     console.log("Existing doc date:", existingEntry?.date);
-//     // await restheartUpdateOne("calendarActivities",
-//     //     {
-//     //         userId: { $oid: asObjectId(id.toString()) },
-//     //         date: { $date: date.getTime() }
-//     //     },
-//     //     updateQuery,
-//     //     { upsert: true })
-//     const filter = {
-//         userId: { $oid: asObjectId(id.toString()) },
-//         date: { $date: date.getTime() },
-//     };
-
-//     if (!existingEntry) {
-//         const newDoc = {
-//             userId: { $oid: asObjectId(id.toString()) },
-//             date: { $date: date.getTime() },
-//             entries: updateQuery?.$push?.entries ? [updateQuery.$push.entries] : [],
-//             variables: [],
-//         };
-//         console.log("Inserting new doc:", JSON.stringify(newDoc, null, 2));
-//         await restheartInsertOne("calendarActivities", newDoc);
-//     }
-//     else {
-//         // Try to update
-//         const updateResult = await restheartUpdateOne("calendarActivities", filter, updateQuery);
-//         console.log(`updateResult: ${JSON.stringify(updateResult)}`)
-//     }
-
-//     console.log(`${type} added successfully`)
-//     // await activityCollection.updateOne({ userId: new ObjectId(id.toString()), date }, updateQuery, { upsert: true });
-//     return c.json({ message: `${type} added successfully` }, 200);
-// })
 
 // ActivityRoute.patch('/edit', accessGuard, async (c) => {
 //     const db = await getDb(c, 'calendar');
