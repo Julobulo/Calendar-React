@@ -9,12 +9,14 @@ import ActivityInfoRoute from "./ActivityInfo";
 import NewActivityRoute from "./NewActivity";
 import { mongoProxyRequest } from "../../utils/mongoProxyClient";
 import EditActivityRoute from "./EditActivity";
+import DeleteActivityRoute from "./DeleteActivity";
 
 const ActivityRoute = new Hono<{ Bindings: Env, Variables: Variables }>();
 
 ActivityRoute.route('/info', ActivityInfoRoute);
 ActivityRoute.route('/new', NewActivityRoute);
 ActivityRoute.route('/edit', EditActivityRoute)
+ActivityRoute.route('/delete', DeleteActivityRoute)
 
 ActivityRoute.get('/', accessGuard, async (c) => {
     const { year, month, day } = c.req.queries();
@@ -116,91 +118,6 @@ ActivityRoute.get('/', accessGuard, async (c) => {
 //     return c.json({ message: 'Colors updated successfully', colors: updatedColors });
 // });
 
-
-
-
-
-
-// ActivityRoute.delete('/delete', accessGuard, async (c) => {
-//     const db = await getDb(c, 'calendar');
-//     const userCollection = db.collection<User>("users");
-//     const activityCollection = db.collection<UserActivity>("activity");
-//     const id = c.var.user.id;
-
-//     // Parse request body
-//     const { year, month, day, type, activity, _id, variable } = await c.req.json();
-//     if (year === undefined || month === undefined || day === undefined || !type) return c.json({ message: "Missing required fields" }, 400);
-
-//     const date = new Date(Date.UTC(parseInt(year), parseInt(month), parseInt(day)));
-//     const existingEntry = await activityCollection.findOne({ userId: new ObjectId(id.toString()), date });
-//     if (!existingEntry) {
-//         c.status(400);
-//         return c.json({ message: "no entry for this day" });
-//     }
-
-//     if (type === "activity") {
-//         if (!activity) return c.json({ message: "Missing activity fields" }, 400);
-//         // Filter out the activity to be deleted
-//         const updatedEntries = existingEntry.entries.filter(entry => entry._id.toString() !== _id);
-//         if (updatedEntries.length === existingEntry.entries.length) {
-//             c.status(400);
-//             return c.json({ message: "activity not found for this date" });
-//         }
-//         if (isActivityDocumentEmpty({ ...existingEntry, entries: updatedEntries })) {
-//             // If no more activities, note, or variables remain, delete the document
-//             await activityCollection.deleteOne({ _id: existingEntry._id });
-//             return c.json({ message: "activity deleted, no more activities or note or variables for this day" });
-//         } else {
-//             // Otherwise, update the document with the filtered entries
-//             await activityCollection.updateOne(
-//                 { _id: existingEntry._id },
-//                 { $set: { entries: updatedEntries } }
-//             );
-//             return c.json({ message: "activity deleted successfully" });
-//         }
-//     }
-//     else if (type === "note") {
-//         if (!existingEntry?.note) return c.json({ message: "Note doesn't exist for this date" }, 400);
-//         if (isActivityDocumentEmpty({ ...existingEntry, note: undefined })) {
-//             // If no more activities, note, or variables remain, delete the document
-//             await activityCollection.deleteOne({ _id: existingEntry._id });
-//             return c.json({ message: "note deleted, no more activities or note or variables for this day" });
-//         } else {
-//             // Otherwise, update the document by unsetting the note
-//             await activityCollection.updateOne(
-//                 { _id: existingEntry._id },
-//                 { $unset: { note: "" } }
-//             );
-//             return c.json({ message: "note deleted successfully" });
-//         }
-//     }
-//     else if (type === "variable") {
-//         if (!variable) return c.json({ message: "Missing variable fields" }, 400);
-//         if (existingEntry.variables && !existingEntry.variables.some(e => e.variable === variable)) {
-//             return c.json({ message: "Variable not defined for this date" }, 400);
-//         }
-//         const updatedEntries = (existingEntry.variables || []).filter(entry => entry.variable !== variable);
-//         if (existingEntry.variables && updatedEntries.length === existingEntry.variables.length) {
-//             c.status(400);
-//             return c.json({ message: "Variable not defined for this date" });
-//         }
-//         if (isActivityDocumentEmpty({ ...existingEntry, variables: updatedEntries })) {
-//             // If no more activities, note, or variables remain, delete the document
-//             await activityCollection.deleteOne({ _id: existingEntry._id });
-//             return c.json({ message: "variable deleted, no more activities or note or variables for this day" });
-//         } else {
-//             // Otherwise, update the document with the filtered variables
-//             await activityCollection.updateOne(
-//                 { _id: existingEntry._id },
-//                 { $set: { variables: updatedEntries } }
-//             );
-//             return c.json({ message: "variable deleted successfully" });
-//         }
-//     }
-//     else {
-//         return c.json({ message: "Invalid type" }, 400);
-//     }
-// })
 
 // UserActivities.find({
 //     user: userId,                                // Filter by user
