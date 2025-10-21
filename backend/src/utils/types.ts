@@ -32,10 +32,6 @@ export type Env = {
   REFRESH_TOKEN_TTL: string;
   COOKIE_DOMAIN: string;
   NODE_ENV: string;
-  MONGODB_APP_ID: string;
-  MONGODB_API_KEY: string;
-  MONGODB_CLUSTER: string;
-  MONGODB_DATABASE: string;
   SECRET_API_KEY: string;
   MONGOPROXY_API_KEY: string;
   MONGOPROXY_URL: string;
