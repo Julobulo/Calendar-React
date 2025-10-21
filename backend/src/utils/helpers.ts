@@ -120,6 +120,7 @@ export const defaultNoteColor = "#D9EAFB";
 import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-generator";
 import { ObjectId } from "bson";
 import { AppError } from "./types";
+import { User } from "../models/UserModel";
 
 // Generate a funny username
 export const generateUsername = () => {
@@ -416,4 +417,53 @@ export function asObjectId(id: any): ObjectId {
     if (typeof id === "object" && "$oid" in id) return new ObjectId(id.$oid);
     if (typeof id === "string") return new ObjectId(id);
     throw new Error(`Invalid id type: ${typeof id}`);
+}
+
+
+export function handleColors(
+    currentUser: User | null,
+    usedColors: Set<string>,
+    activity?: string,
+    variable?: string
+) {
+    const updates: Record<string, string> = {};
+
+    const pickColor = () => {
+        let color: string;
+        do {
+            color = generateRandomColor();
+        } while (usedColors.has(color));
+        usedColors.add(color);
+        return color;
+    };
+
+    if (activity && currentUser?.colors?.activities?.[activity] === undefined) {
+        updates[`colors.activities.${activity}`] = pickColor();
+    }
+
+    if (variable && currentUser?.colors?.variables?.[variable] === undefined) {
+        updates[`colors.variables.${variable}`] = pickColor();
+    }
+
+    return updates; // Return all changes in one object
+}
+
+export function handleNames(currentUser: User | null, description?: string, note?: string) {
+    if (!description && !note) return null;
+
+    const text = `${description ?? ""} ${note ?? ""}`;
+    const mentionedNames = Array.from(
+        new Set(
+            (text.match(/@(\w+)/g) || []).map((name) => name.slice(1))
+        )
+    );
+
+    if (mentionedNames.length === 0) return null;
+
+    const existingNames = new Set(currentUser?.names || []);
+    const newNames = mentionedNames.filter((n) => !existingNames.has(n));
+
+    if (newNames.length === 0) return null;
+
+    return { $addToSet: { names: { $each: newNames } } };
 }

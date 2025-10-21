@@ -3,92 +3,11 @@ import { AppError, Env, Variables } from "../../utils/types";
 import { accessGuard } from "../../middleware/auth";
 import { mongoProxyRequest } from "../../utils/mongoProxyClient";
 import { User } from "../../models/UserModel";
-import { badRequest, generateRandomColor, handleActivity, handleNote, handleVariable } from "../../utils/helpers";
+import { badRequest, generateRandomColor, handleActivity, handleColors, handleNames, handleNote, handleVariable } from "../../utils/helpers";
 import { UserActivity } from "../../models/UserActivityModel";
 
 
 const NewActivityRoute = new Hono<{ Bindings: Env, Variables: Variables }>();
-
-// export async function handleColors(currentUser: User | null, usedColors: Set<string>, userId: string, activity: string, variable: string) {
-//     // Assign color if not exists
-//     if (activity && !currentUser?.colors?.activities?.[activity]) {
-//         let newColor;
-//         do {
-//             newColor = generateRandomColor();
-//         } while (usedColors.has(newColor));
-
-//         // Ensure structure exists
-//         await restheartUpdateOne("calendarUsers", userId,
-//             {
-//                 $setOnInsert: {
-//                     "colors.activities": {},
-//                     "colors.variables": {},
-//                     "colors.note": ""
-//                 }
-//             },
-//             { upsert: true })
-//         // await userCollection.updateOne(
-//         //     { _id: new ObjectId(userId) },
-//         //     {
-//         //         $setOnInsert: {
-//         //             "colors.activities": {},
-//         //             "colors.variables": {},
-//         //             "colors.note": ""
-//         //         }
-//         //     },
-//         //     { upsert: true }
-//         // );
-
-//         // Set the activity color
-//         await restheartUpdateOne("calendarUsers", userId,
-//             { $set: { [`colors.activities.${activity}`]: newColor } })
-//         // await userCollection.updateOne(
-//         //     { _id: new ObjectId(userId) },
-//         //     { $set: { [`colors.activities.${activity}`]: newColor } }
-//         // );
-//     }
-
-//     if (variable && !currentUser?.colors?.variables?.[variable]) {
-//         let newColor;
-//         do {
-//             newColor = generateRandomColor();
-//         } while (usedColors.has(newColor));
-
-//         // Ensure structure exists (safe no-op if user already exists)
-//         await restheartUpdateOne("calendarUsers", userId,
-//             {
-//                 $setOnInsert: {
-//                     "colors.activities": {},
-//                     "colors.variables": {},
-//                     "colors.note": ""
-//                 }
-//             },
-//             { upsert: true })
-//         // await userCollection.updateOne(
-//         //     { _id: new ObjectId(userId.toString()) },
-//         //     {
-//         //         $setOnInsert: {
-//         //             "colors.activities": {},
-//         //             "colors.variables": {},
-//         //             "colors.note": ""
-//         //         }
-//         //     },
-//         //     { upsert: true }
-//         // );
-
-//         await restheartUpdateOne("calendarUsers", userId,
-//             { $set: { [`colors.variables.${variable}`]: newColor } })
-//         // Now safely update the nested variable color
-//         // await userCollection.updateOne(
-//         //     { _id: new ObjectId(userId.toString()) },
-//         //     {
-//         //         $set: {
-//         //             [`colors.variables.${variable}`]: newColor
-//         //         }
-//         //     }
-//         // );
-//     }
-// }
 
 NewActivityRoute.post('/', accessGuard, async (c) => {
     const id = c.var.user.id;
@@ -120,6 +39,29 @@ NewActivityRoute.post('/', accessGuard, async (c) => {
         ...(Object.values(currentUser?.colors?.variables || {}))
     ]);
 
+    const colorUpdates = handleColors(currentUser, usedColors, activity, variable);
+
+    if (Object.keys(colorUpdates).length > 0) {
+        await mongoProxyRequest(c, "updateOne", {
+            db: "calendar",
+            coll: "users",
+            filter: { _id: id },
+            update: { $set: colorUpdates },
+        });
+        console.log(`added a color, ${JSON.stringify(colorUpdates)}`)
+    }
+
+    const nameUpdate = handleNames(currentUser, description, note);
+
+    if (nameUpdate) {
+        await mongoProxyRequest(c, "updateOne", {
+            db: "calendar",
+            coll: "users",
+            filter: { _id: id },
+            update: nameUpdate,
+        });
+    }
+
 
     let updateQuery;
     try {
@@ -127,14 +69,12 @@ NewActivityRoute.post('/', accessGuard, async (c) => {
         switch (body.type) {
             case "activity":
                 updateQuery = await handleActivity(body, existingEntry);
-                // await handleColors(currentUser, usedColors, id, activity, '');
                 break;
             case "variable":
                 if (existingEntry?.variables?.some((v: any) => v.variable === variable)) {
                     badRequest("Variable already defined for this date");
                 }
                 ({ updateQuery } = await handleVariable(body, existingEntry));
-                // await handleColors(currentUser, usedColors, id, '', variable);
                 break;
             case "note":
                 updateQuery = await handleNote(body, existingEntry);
@@ -151,25 +91,6 @@ NewActivityRoute.post('/', accessGuard, async (c) => {
         // fallback for unexpected errors
         return c.json({ message: "Internal server error" }, 500);
     }
-
-    // Extract user names from the description (those after "@")
-    // const mentionedNames = Array.from(new Set(`${description} ${note}`.match(/@(\w+)/g)?.map((name: string) => name.slice(1)) || [])); // Removing "@" symbol
-    // if (mentionedNames.length > 0) {
-    //     const currentUser = await restheartFindOne("calendarUsers", { _id: { $oid: asObjectId(id.toString()) } })
-    //     // const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
-    //     const updatedNames = [...new Set([...(currentUser?.names || []), ...mentionedNames])]; // Add new names without duplicates
-
-    //     // Update user's names array with the new names
-    //     if (updatedNames.length > (currentUser?.names?.length ?? 0)) {
-    //         await restheartUpdateOne("calendarUsers", { _id: { $oid: asObjectId(id.toString()) } },
-    //             { $set: { names: updatedNames } })
-    //         // await userCollection.updateOne(
-    //         //     { _id: new ObjectId(id.toString()) },
-    //         //     { $set: { names: updatedNames } }
-    //         // );
-    //     }
-    // }
-
 
     const filter = {
         userId: id,
