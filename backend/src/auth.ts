@@ -3,7 +3,7 @@ import type { JWTPayload } from "jose";
 import type { User } from "./models/UserModel";
 import { Context } from "hono";
 import { Env } from "./utils/types";
-import { restheartInsert } from "./utils/restheartHelpers";
+import { mongoProxyRequest } from "./utils/mongoProxyClient";
 
 export async function hashRefreshToken(token: string): Promise<string> {
     const encoder = new TextEncoder();
@@ -31,6 +31,7 @@ export async function signAccessToken(user: User, env: Env) {
         typeof user._id === "string"
             ? user._id
             : user._id?.$oid ?? user._id.toString();
+    console.log(`id: ${id}, user: ${JSON.stringify(user)}`)
     const payload: JWTPayload = {
         sub: id,
         email: user.email,
@@ -53,7 +54,7 @@ export async function verifyAccessToken(token: string, env: Env) {
 export async function issueRefreshToken(user: User, c: Context, userAgent?: string, ip?: string) { // Create + persist refresh hashed token, return raw for cookie
     const REFRESH_TTL = parseInt(c.env.REFRESH_TOKEN_TTL || "1209600", 10); // 14d
     const raw = generateRefreshTokenValue();
-    const tokenHash = hashRefreshToken(raw);
+    const tokenHash = await hashRefreshToken(raw);
     const now = new Date();
     const doc = {
         userId: user._id,
@@ -64,6 +65,10 @@ export async function issueRefreshToken(user: User, c: Context, userAgent?: stri
         createdAt: now,
     };
     console.log(`about to insert a refresh token`)
-    await restheartInsert("refresh_tokens", doc)
+    await mongoProxyRequest(c, "insertOne", {
+        db: "calendar",
+        coll: "refresh_tokens",
+        doc,
+    })
     return raw;
 }
