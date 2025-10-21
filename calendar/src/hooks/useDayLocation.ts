@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../AuthProvider";
+import { Location } from "../utils/types";
 
 export function useDayLocation(year: number, month: number, day: number) {
   const { user, userLoading } = useAuth();

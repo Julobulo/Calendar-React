@@ -9,7 +9,7 @@ export interface ActivityEntry {
     location?: Location;
 }
 
-interface Location {
+export interface Location {
     name: string;
     lat: number;
     lng: number;

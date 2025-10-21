@@ -6,12 +6,7 @@ import { matchSorter } from "match-sorter";
 import { toast } from "react-toastify";
 import Spinner from "./Spinner";
 import { useAuth } from "../../AuthProvider";
-
-interface Location {
-    name: string;
-    lat: number;
-    lng: number;
-}
+import { Location } from "../../utils/types";
 
 interface LocationPickerProps {
     date: Date;
