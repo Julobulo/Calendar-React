@@ -11,7 +11,7 @@ export function useActivityMetadata(reload: boolean) {
 
   useEffect(() => {
     const fetchColors = async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/colors`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/info/colors`, {
         method: "GET",
         credentials: "include",
       });
@@ -28,7 +28,7 @@ export function useActivityMetadata(reload: boolean) {
 
   useEffect(() => {
     const fetchNames = async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/names`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URI}/activity/info/names`, {
         method: "GET",
         credentials: "include",
       });

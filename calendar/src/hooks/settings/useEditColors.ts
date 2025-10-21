@@ -37,7 +37,7 @@ export function useEditColors() {
   useEffect(() => {
     const fetchColors = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URI}/activity/colors`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URI}/activity/info/colors`, {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Failed to fetch colors");
