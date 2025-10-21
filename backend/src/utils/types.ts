@@ -1,4 +1,5 @@
 import { StatusCode } from "hono/utils/http-status";
+import { Sort } from "mongodb";
 
 export interface AuthPayload {
   id: string;
@@ -36,3 +37,20 @@ export type Env = {
   MONGOPROXY_API_KEY: string;
   MONGOPROXY_URL: string;
 };
+
+export interface MongoProxyResponse<T> {
+  result: T;
+  error?: string;
+}
+
+export interface RpcBody {
+  db: string
+  coll: string
+  filter?: object
+  projection?: object
+  limit?: number
+  sort?: Sort
+  update?: object
+  upsert?: object
+  doc?: object
+}

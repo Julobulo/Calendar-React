@@ -5,6 +5,7 @@
     "date-fns": "^4.1.0",
     "hono": "^4.6.12",
     "jose": "^6.1.0",
+    "mongodb": "^6.20.0",
     "realm-web": "^2.0.1",
     "unique-names-generator": "^4.7.1"
   },
