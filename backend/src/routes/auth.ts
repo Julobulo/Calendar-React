@@ -81,9 +81,8 @@ auth.post("/refresh", async (c) => {
     const refreshToken = getCookie(c, "refresh_token");
     if (!refreshToken) return c.json({ error: "No refresh token" }, 401);
 
-    const tokenHash = hashRefreshToken(refreshToken);
+    const tokenHash = await hashRefreshToken(refreshToken);
 
-    // const dbRefreshTokens = await restheartFind("refresh_tokens", { tokenHash, revokedAt: { $exists: false } }) as Array<RefreshToken>;
     const dbRefreshTokens = await mongoProxyRequest<RefreshToken[]>(c, "find", {
         db: "calendar",
         coll: "refresh_tokens",
@@ -94,32 +93,29 @@ auth.post("/refresh", async (c) => {
 
     if (doc.expiresAt < new Date()) {
         // Expired, revoke
-        // await restheartUpdate("refresh_tokens", doc._id, { $set: { revokedAt: new Date() } });
         await mongoProxyRequest(c, "updateOne", {
             db: "calendar",
             coll: "refresh_tokens",
-            filter: { _id: { $oid: asObjectId(doc._id) } },
+            filter: { _id: doc._id },
             update: { $set: { revokedAt: new Date() } },
         });
         return c.json({ error: "Expired refresh token" }, 401);
     }
 
     // Load user
-    // const user = await restheartFindOne("calendarUsers", { _id: { $oid: asObjectId(doc.userId) } }) as User;
     const existingResp = await mongoProxyRequest<User>(c, "findOne", {
         db: "calendar",
         coll: "users",
-        filter: { _id: { $oid: asObjectId(doc.userId) } },
+        filter: { _id: doc.userId },
     });
     const user = existingResp.result;
     if (!user) return c.json({ error: "User missing" }, 401);
 
     // ROTATE refresh token
-    // await restheartUpdate("refresh_tokens", { _id: { $oid: asObjectId(doc._id) } }, { $set: { revokedAt: new Date() } });
     await mongoProxyRequest(c, "updateOne", {
         db: "calendar",
         coll: "refresh_tokens",
-        filter: { _id: { $oid: asObjectId(doc._id) } },
+        filter: { _id: doc._id },
         update: { $set: { revokedAt: new Date() } },
     });
     const newRefresh = await issueRefreshToken(user, c, c.req.header("user-agent"), c.req.header("x-forwarded-for") || c.req.header("cf-connecting-ip"));
@@ -136,8 +132,7 @@ auth.post("/refresh", async (c) => {
 auth.post("/logout", async (c) => {
     const refreshToken = getCookie(c, "refresh_token");
     if (refreshToken) {
-        const tokenHash = hashRefreshToken(refreshToken);
-        // await restheartUpdate("refresh_tokens", { tokenHash, revokedAt: { $exists: false } }, { $set: { revokedAt: new Date() } });
+        const tokenHash = await hashRefreshToken(refreshToken);
         await mongoProxyRequest(c, "updateOne", {
             db: "calendar",
             coll: "refresh_tokens",
