@@ -1,114 +1,89 @@
-import { Hono } from "hono";
-import * as Realm from "realm-web";
-import { ObjectId } from "bson";
-import { ActivityEntry, NewUserActivity, UserActivity } from "../models/UserActivityModel";
-import { User } from "../models/UserModel";
-import { checkToken, fixOldActivityDocument, getDb } from "../utils/helpers";
-import { accessGuard } from "../middleware/auth";
-import { AuthPayload, Variables } from "../utils/types";
+// import { Hono } from "hono";
+// import { ObjectId } from "bson";
+// import { UserActivity } from "../models/UserActivityModel";
+// import { fixOldActivityDocument } from "../utils/helpers";
+// import { accessGuard } from "../middleware/auth";
+// import { Env, Variables } from "../utils/types";
+// import { restheartDeleteMany, restheartFind, restheartFindOne, restheartInsert, restheartUpdateOne } from "../utils/restheartHelpers";
 
-// The Worker's environment bindings
-type Bindings = {
-    ATLAS_APPID: string;
-    ATLAS_APIKEY: string;
-    JWT_SECRET: string; // private key used to sign jwt tokens
-    GOOGLE_CLIENT_ID: string;
-    GOOGLE_CLIENT_SECRET: string;
-    REDIRECT_URI: string;
-};
+// const SettingsRoute = new Hono<{ Bindings: Env, Variables: Variables }>();
 
-const SettingsRoute = new Hono<{ Bindings: Bindings, Variables: Variables }>();
+// SettingsRoute.get('/export', accessGuard, async (c) => {
+//     const id = c.var.user.id;
+//     const data = await restheartFind("calendarActivities", {
+//         userId: { $oid: id.toString() }
+//     }) as Array<UserActivity>;
 
-let App: Realm.App;
+//     return c.json(data);
+// })
 
+// SettingsRoute.post('/import', accessGuard, async (c) => {
+//     const id = new ObjectId(c.var.user.id.toString());
 
-SettingsRoute.get('/export', accessGuard, async (c) => {
-    const db = await getDb(c, 'calendar');
-    const activityCollection = db.collection<UserActivity>("activity");
+//     const body = await c.req.json();
 
-    const id = c.var.user.id;
+//     const entries = body.map((entry: any) => ({
+//         userId: id,
+//         date: new Date(entry.date),
+//         entries: entry.entries || [],
+//         note: entry.note || "",
+//         variables: entry.variables || [],
+//         location: entry.location || null,
+//     }));
 
-    const data = await activityCollection
-        .find({ userId: new ObjectId(id.toString()) }, { sort: { date: 1 } });
+//     const results = [];
+//     for (const entry of entries) {
+//         const existingActivity = await restheartFindOne("calendarActivities", {
+//             userId: { $oid: id.toString() },
+//             date: entry.date,
+//         }) as UserActivity;
 
-    return c.json(data);
-})
+//         if (!existingActivity) {
+//             console.log(`${entry.date} doesn't exist in db, inserting document`);
+//             const insertResult = await restheartInsert('calendarActivities', fixOldActivityDocument(entry))
+//             results.push(insertResult);
+//         } else {
+//             // only update fields if they're present in the import and missing in db
+//             const updateFields: Partial<UserActivity> = {};
 
-SettingsRoute.post('/import', accessGuard, async (c) => {
-    const db = await getDb(c, 'calendar');
-    const activityCollection = db.collection<UserActivity>("activity");
-    const id = new ObjectId(c.var.user.id.toString());
+//             if (entry.note && !existingActivity.note) {
+//                 updateFields.note = entry.note;
+//             }
+//             if (entry.variables?.length && (!existingActivity.variables || existingActivity.variables.length === 0)) {
+//                 updateFields.variables = entry.variables;
+//             }
+//             if (entry.location && !existingActivity.location) {
+//                 updateFields.location = entry.location;
+//             }
 
-    const body = await c.req.json();
+//             if (Object.keys(updateFields).length > 0) {
+//                 console.log(`Merging fields for ${entry.date}`)
+//                 await restheartUpdateOne("calendarActivities", existingActivity._id,
+//                     { $set: updateFields })
+//             } else { console.log(`Entry already exists for day ${entry.date}`) }
+//         }
+//     }
+//     // PROBLEM WITH DATE NOT BEING SET CORRECTLY
+//     return c.json({ message: `${results.length} new day${results.length > 1 ? 's' : ''} imported successfully` });
+// });
 
-    const entries = body.map((entry: any) => ({
-        userId: id,
-        date: new Date(entry.date),
-        entries: entry.entries || [],
-        note: entry.note || "",
-        variables: entry.variables || [],
-        location: entry.location || null,
-    }));
+// SettingsRoute.post('/delete-all-data', accessGuard, async (c) => {
+//     await restheartDeleteMany("calendarActivities", { userId: { $oid: c.var.user.id.toString() } })
 
-    const results = [];
-    for (const entry of entries) {
-        const existingActivity = await activityCollection.findOne({
-            userId: id,
-            date: entry.date,
-        });
+//     return c.json({ message: "all data deleted successfully" });
+// })
 
-        if (!existingActivity) {
-            console.log(`${entry.date} doesn't exist in db, inserting document`);
-            const insertResult = await activityCollection.insertOne(fixOldActivityDocument(entry));
-            results.push(insertResult);
-        } else {
-            // only update fields if they're present in the import and missing in db
-            const updateFields: Partial<UserActivity> = {};
+// // SettingsRoute.put('/colors', accessGuard, async (c) => {
+// //     const id = c.var.user.id;
+// //     c.var.user.id
 
-            if (entry.note && !existingActivity.note) {
-                updateFields.note = entry.note;
-            }
-            if (entry.variables?.length && (!existingActivity.variables || existingActivity.variables.length === 0)) {
-                updateFields.variables = entry.variables;
-            }
-            if (entry.location && !existingActivity.location) {
-                updateFields.location = entry.location;
-            }
+// //     const body = await c.req.json();
+// //     console.log(`no problem reading the body: ${JSON.stringify(body)}`)
 
-            if (Object.keys(updateFields).length > 0) {
-                console.log(`Merging fields for ${entry.date}`)
-                await activityCollection.updateOne(
-                    { _id: existingActivity._id },
-                    { $set: updateFields }
-                );
-            } else { console.log(`Entry already exists for day ${entry.date}`) }
-        }
-    }
+// //     await restheartUpdateOne("calendarUsers", id.toString(),
+// //         { $set: { colors: body } })
+// //     console.log(`no problem with the restheart update`)
+// //     return c.json({ message: "colors updated successfully" });
+// // })
 
-    return c.json({ message: `${results.length} new day${results.length > 1 ? 's' : ''} imported successfully` });
-});
-
-SettingsRoute.post('/delete-all-data', accessGuard, async (c) => {
-    const db = await getDb(c, 'calendar');
-    const activityCollection = db.collection<UserActivity>("activity");
-    await activityCollection.deleteMany({ userId: new ObjectId(c.var.user.id.toString()) });
-
-    return c.json({ message: "all data deleted successfully" });
-})
-
-SettingsRoute.put('/colors', accessGuard, async (c) => {
-    const db = await getDb(c, 'calendar');
-    const userCollection = db.collection<User>("users");
-    const id = c.var.user.id;
-
-    const body = await c.req.json();
-
-    await userCollection.updateOne(
-        { _id: new ObjectId(id.toString()) },
-        { $set: { colors: body } }
-    );
-
-    return c.json({ message: "colors updated successfully" });
-})
-
-export default SettingsRoute
+// export default SettingsRoute
