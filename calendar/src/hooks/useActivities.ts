@@ -29,7 +29,7 @@ export function useActivities(year: number, month: number) {
     };
 
     if (!userLoading && user) fetchActivities();
-  }, [year, month]);
+  }, [year, month, user, userLoading]);
 
   return { activities, loading };
 }

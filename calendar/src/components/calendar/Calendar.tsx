@@ -11,7 +11,7 @@ const Calendar: React.FC = () => {
   const [reload] = useState(false);
   const { colors } = useActivityMetadata(reload);
   const { selectedDate, goToDate } = useCalendarState();
-  const { activities } = useActivities(selectedDate.getFullYear(), selectedDate.getMonth());
+  const { activities, loading } = useActivities(selectedDate.getFullYear(), selectedDate.getMonth());
   // temp values for popup
   const [tempYear, setTempYear] = useState<number>(selectedDate.getFullYear());
   const [tempMonth, setTempMonth] = useState<number>(selectedDate.getMonth());
@@ -33,6 +33,17 @@ const Calendar: React.FC = () => {
   const days = daysInMonth(year, month);
   const startDay = firstDayOfMonth(year, month);
   const previousMonthDays = lastMonthDays(year, month);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <span>Loading activities...</span>
+      </div>
+    );
+  }
+  else {
+    console.log(JSON.stringify(activities))
+  }
 
   return (
     <div className="grid grid-rows-[auto,1fr] h-full p-3">
