@@ -58,3 +58,14 @@ export interface RpcBody {
   doc?: object
   arrayFilters?: object
 }
+
+export type NewActivityBody = {
+    type: "activity" | "variable" | "note";
+    year: number;
+    month: number;
+    day: number;
+    activity?: string;
+    description?: string;
+    note?: string;
+    variable?: string;
+};
