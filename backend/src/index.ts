@@ -52,7 +52,7 @@ app.onError((err, c) => {
   }
 
   // fallback
-  return c.json({ error: "Internal Server Error" }, 500);
+  return c.json({ error: `Internal server error` }, 500);
 });
 
 app.route('/auth', auth);

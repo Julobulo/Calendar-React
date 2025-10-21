@@ -24,7 +24,7 @@ export function useActivityMetadata(reload: boolean) {
     };
 
     if (!userLoading && user) fetchColors();
-  }, [reload]);
+  }, [reload, userLoading, user]);
 
   useEffect(() => {
     const fetchNames = async () => {
@@ -41,7 +41,7 @@ export function useActivityMetadata(reload: boolean) {
     };
 
     if (!userLoading && user) fetchNames();
-  }, [reload]);
+  }, [reload, userLoading, user]);
 
   return { colors, names };
 }
