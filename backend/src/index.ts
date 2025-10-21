@@ -7,7 +7,7 @@ import LocationRoute from "../src/routes/Location";
 import { Env, Variables } from "./utils/types";
 import { restheartFind } from "./utils/restheartHelpers";
 import { auth } from "./routes/auth";
-import mongoProxyRequest from "./utils/mongoProxyClient";
+import { mongoProxyRequest } from "./utils/mongoProxyClient";
 
 const app = new Hono<{ Bindings: Env, Variables: Variables }>();
 
@@ -38,6 +38,21 @@ app.get("/", async (c, next) => {
   return c.json({
     message: `Hello World! It took ${end - start} milli seconds to handle your request!`,
   });
+});
+
+app.onError((err, c) => {
+  console.error("Global error:", err);
+
+  if (err.message.includes("Unauthorized")) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  if (err.message.includes("MongoProxy")) {
+    return c.json({ error: "Database error" }, 500);
+  }
+
+  // fallback
+  return c.json({ error: "Internal Server Error" }, 500);
 });
 
 app.route('/auth', auth);
