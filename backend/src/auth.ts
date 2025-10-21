@@ -32,15 +32,17 @@ export async function signAccessToken(user: User, env: Env) {
         // typeof user._id === "string"
         //     ? user._id
         //     : user._id?.$oid ?? user._id.toString();
+    // Where the payload is being set!
     const payload: JWTPayload = {
         sub: id.toString(),
         email: user.email,
-        strategy: user.authentication?.strategy
+        strategy: user.authentication?.strategy,
+        username: user.username
     };
     return await new SignJWT(payload)
         .setProtectedHeader({ alg: "HS256" })
-        .setIssuedAt()
-        .setExpirationTime(`${ACCESS_TTL}s`)
+        .setIssuedAt() // adds iat field
+        .setExpirationTime(`${ACCESS_TTL}s`) // adds exp field
         .sign(ACCESS_SECRET);
 }
 

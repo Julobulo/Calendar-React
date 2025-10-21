@@ -4,7 +4,10 @@ import { Sort } from "mongodb";
 export interface AuthPayload {
   id: string;
   exp: number;
-  email?: string;
+  iat: number;
+  email: string;
+  strategy: string;
+  username: string;
 };
 
 export type Variables = {

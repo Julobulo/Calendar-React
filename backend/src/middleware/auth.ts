@@ -9,10 +9,13 @@ export async function accessGuard(c: Context, next: Next) {
   try {
     const ACCESS_SECRET = new TextEncoder().encode(c.env.JWT_ACCESS_SECRET!);
     const { payload } = await jwtVerify(token, ACCESS_SECRET);
+    console.log(`user sent a request. user: ${JSON.stringify(payload)}`)
     c.set("user", {
       id: payload.sub,
+      exp: payload.exp,
+      iat: payload.iat,
       email: payload.email,
-      name: payload.name,
+      username: payload.username,
       strategy: payload.strategy
     });
     return next();
