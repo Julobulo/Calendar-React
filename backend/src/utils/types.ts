@@ -54,6 +54,7 @@ export interface RpcBody {
   limit?: number
   sort?: Sort
   update?: object
-  upsert?: object
+  upsert?: boolean
   doc?: object
+  arrayFilters?: object
 }

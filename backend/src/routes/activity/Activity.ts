@@ -8,11 +8,13 @@ import { accessGuard } from "../../middleware/auth";
 import ActivityInfoRoute from "./ActivityInfo";
 import NewActivityRoute from "./NewActivity";
 import { mongoProxyRequest } from "../../utils/mongoProxyClient";
+import EditActivityRoute from "./EditActivity";
 
 const ActivityRoute = new Hono<{ Bindings: Env, Variables: Variables }>();
 
 ActivityRoute.route('/info', ActivityInfoRoute);
 ActivityRoute.route('/new', NewActivityRoute);
+ActivityRoute.route('/edit', EditActivityRoute)
 
 ActivityRoute.get('/', accessGuard, async (c) => {
     const { year, month, day } = c.req.queries();
@@ -117,87 +119,7 @@ ActivityRoute.get('/', accessGuard, async (c) => {
 
 
 
-// ActivityRoute.patch('/edit', accessGuard, async (c) => {
-//     const db = await getDb(c, 'calendar');
-//     const userCollection = db.collection<User>("users");
-//     const activityCollection = db.collection<UserActivity>("activity");
-//     const id = c.var.user.id;
-//     const body = await c.req.json();
 
-//     let { type, activity, description, note, variable, _id } = body;
-//     activity = (activity || "").trim();
-//     description = (description || "").trim();
-//     note = (note || "").trim();
-//     variable = (variable || "").trim();
-
-//     if (body.year === undefined || body.month === undefined || body.day === undefined || !type) return c.json({ message: "Missing required fields" }, 400);
-//     const date = new Date(Date.UTC(+body.year, +body.month, +body.day));
-
-//     const existingEntry = await activityCollection.findOne({ userId: new ObjectId(id.toString()), date });
-//     if (!existingEntry) {
-//         c.status(400);
-//         return c.json({ message: "no entry for this day" });
-//     }
-
-//     let updateQuery;
-//     let res;
-//     try {
-
-//         switch (body.type) {
-//             case "activity":
-//                 res = await handleActivity(body, existingEntry, _id);
-//                 await activityCollection.updateOne(
-//                     { userId: new ObjectId(id.toString()), date },
-//                     res.updateQuery,
-//                     { arrayFilters: res.arrayFilters } // use the one from handleActivity
-//                 );
-//                 break;
-//             case "variable":
-//                 if (!existingEntry?.variables?.some(v => v.variable === variable)) {
-//                     return c.json({ message: "Variable not defined for this date" }, 400);
-//                 }
-//                 res = await handleVariable(body, existingEntry);
-//                 await activityCollection.updateOne(
-//                     { userId: new ObjectId(id.toString()), date },
-//                     res.updateQuery,
-//                     res.arrayFilters ? { arrayFilters: res.arrayFilters } : {}
-//                 );
-//                 // handleColors(currentUser, usedColors, userCollection, id, '', variable);
-//                 break;
-//             case "note":
-//                 updateQuery = await handleNote(body, existingEntry, "edit");
-//                 await activityCollection.updateOne({ userId: new ObjectId(id.toString()), date }, updateQuery, { upsert: true });
-//                 break;
-//             default:
-//                 return c.json({ message: "Invalid type" }, 400);
-//         }
-//     }
-//     catch (err) {
-//         if (typeof err === "object" && err !== null && "status" in err && "message" in err) {
-//             const appErr = err as AppError;
-//             return c.json({ message: appErr.message }, appErr.status);
-//         }
-//         // fallback for unexpected errors
-//         return c.json({ message: "Internal server error" }, 500);
-//     }
-
-//     // Extract user names from the description (those after "@")
-//     const mentionedNames = Array.from(new Set(`${description} ${note}`.match(/@(\w+)/g)?.map((name: string) => name.slice(1)) || [])); // Removing "@" symbol
-//     if (mentionedNames.length > 0) {
-//         const currentUser = await userCollection.findOne({ _id: new ObjectId(id.toString()) });
-//         const updatedNames = [...new Set([...(currentUser?.names || []), ...mentionedNames])]; // Add new names without duplicates
-
-//         // Update user's names array with the new names
-//         if (updatedNames.length > (currentUser?.names?.length ?? 0)) {
-//             await userCollection.updateOne(
-//                 { _id: new ObjectId(id.toString()) },
-//                 { $set: { names: updatedNames } }
-//             );
-//         }
-//     }
-
-//     return c.json({ message: "activity updated successfully" });
-// })
 
 // ActivityRoute.delete('/delete', accessGuard, async (c) => {
 //     const db = await getDb(c, 'calendar');
