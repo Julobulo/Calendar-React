@@ -6,9 +6,9 @@ import { setAccessCookie, setRefreshCookie, clearAuthCookies } from "../cookies"
 import { AuthPayload, Env, Variables } from "../utils/types";
 import { accessGuard } from "../middleware/auth";
 import { asObjectId, defaultActivities, defaultNoteColor, defaultVariables, generateUsername } from "../utils/helpers";
-import { restheartFind, restheartFindOne, restheartInsert, restheartUpdate } from "../utils/restheartHelpers";
 import { User } from "../models/UserModel";
 import { RefreshToken } from "../models/refreshTokenModel";
+import { mongoProxyRequest } from "../utils/mongoProxyClient";
 
 export const auth = new Hono<{ Bindings: Env, Variables: Variables }>();
 
@@ -21,8 +21,18 @@ auth.post("/google", async (c) => {
         return c.json({ error: "Invalid Google token" }, 401);
     }
 
-    const existingResp = await restheartFind("calendarUsers", { email: payload.email }) as Array<User>;
-    const existing = existingResp[0];
+    // const existingResp = await restheartFind("calendarUsers", { email: payload.email }) as Array<User>;
+    const existingResp = await mongoProxyRequest<User[]>(
+        c,
+        "find",
+        {
+            db: "calendar",
+            coll: "users",
+            filter: { email: payload.email },
+        }
+    );
+
+    const existing = (existingResp?.result)[0];
 
     let user = existing;
     if (!user) {
@@ -38,8 +48,21 @@ auth.post("/google", async (c) => {
             createdAt: now,
             updatedAt: now,
         };
-        const createdUserResp = await restheartInsert("calendarUsers", newUser) as any;
+        // const createdUserResp = await restheartInsert("calendarUsers", newUser) as any;
+        const createdUserResp = await mongoProxyRequest(c, "insertOne", {
+            db: "calendar",
+            coll: "users",
+            doc: newUser,
+        }) as any;
         user = createdUserResp._embedded?.documents?.[0];
+        console.log(`user created: ${JSON.stringify(user)}`)
+        const existingResp = await mongoProxyRequest<User>(c, "findOne", {
+            db: "calendar",
+            coll: "users",
+            filter: { email: payload.email },
+        });
+        user = existingResp?.result;
+        console.log(`user with email ${payload.email} created: ${JSON.stringify(user)}`)
     } else { console.log(`user exists`) }
 
 
@@ -60,22 +83,45 @@ auth.post("/refresh", async (c) => {
 
     const tokenHash = hashRefreshToken(refreshToken);
 
-    const dbRefreshTokens = await restheartFind("refresh_tokens", { tokenHash, revokedAt: { $exists: false } }) as Array<RefreshToken>;
-    const doc = dbRefreshTokens[0];
+    // const dbRefreshTokens = await restheartFind("refresh_tokens", { tokenHash, revokedAt: { $exists: false } }) as Array<RefreshToken>;
+    const dbRefreshTokens = await mongoProxyRequest<RefreshToken[]>(c, "find", {
+        db: "calendar",
+        coll: "refresh_tokens",
+        filter: { tokenHash, revokedAt: { $exists: false } },
+    });
+    const doc = dbRefreshTokens.result[0];
     if (!doc) return c.json({ error: "Invalid refresh token" }, 401);
 
     if (doc.expiresAt < new Date()) {
         // Expired, revoke
-        await restheartUpdate("refresh_tokens", doc._id, { $set: { revokedAt: new Date() } })
+        // await restheartUpdate("refresh_tokens", doc._id, { $set: { revokedAt: new Date() } });
+        await mongoProxyRequest(c, "updateOne", {
+            db: "calendar",
+            coll: "refresh_tokens",
+            filter: { _id: { $oid: asObjectId(doc._id) } },
+            update: { $set: { revokedAt: new Date() } },
+        });
         return c.json({ error: "Expired refresh token" }, 401);
     }
 
     // Load user
-    const user = await restheartFindOne("calendarUsers", { _id: { $oid: asObjectId(doc.userId) } }) as User;
+    // const user = await restheartFindOne("calendarUsers", { _id: { $oid: asObjectId(doc.userId) } }) as User;
+    const existingResp = await mongoProxyRequest<User>(c, "findOne", {
+        db: "calendar",
+        coll: "users",
+        filter: { _id: { $oid: asObjectId(doc.userId) } },
+    });
+    const user = existingResp.result;
     if (!user) return c.json({ error: "User missing" }, 401);
 
     // ROTATE refresh token
-    await restheartUpdate("refresh_tokens", { _id: { $oid: asObjectId(doc._id) } }, { $set: { revokedAt: new Date() } })
+    // await restheartUpdate("refresh_tokens", { _id: { $oid: asObjectId(doc._id) } }, { $set: { revokedAt: new Date() } });
+    await mongoProxyRequest(c, "updateOne", {
+        db: "calendar",
+        coll: "refresh_tokens",
+        filter: { _id: { $oid: asObjectId(doc._id) } },
+        update: { $set: { revokedAt: new Date() } },
+    });
     const newRefresh = await issueRefreshToken(user, c, c.req.header("user-agent"), c.req.header("x-forwarded-for") || c.req.header("cf-connecting-ip"));
 
     // New access token
@@ -91,7 +137,13 @@ auth.post("/logout", async (c) => {
     const refreshToken = getCookie(c, "refresh_token");
     if (refreshToken) {
         const tokenHash = hashRefreshToken(refreshToken);
-        await restheartUpdate("refresh_tokens", { tokenHash, revokedAt: { $exists: false } }, { $set: { revokedAt: new Date() } })
+        // await restheartUpdate("refresh_tokens", { tokenHash, revokedAt: { $exists: false } }, { $set: { revokedAt: new Date() } });
+        await mongoProxyRequest(c, "updateOne", {
+            db: "calendar",
+            coll: "refresh_tokens",
+            filter: { tokenHash, revokedAt: { $exists: false } },
+            update: { $set: { revokedAt: new Date() } },
+        });
     }
     clearAuthCookies(c);
     return c.json({ ok: true });

@@ -4,6 +4,7 @@ import type { User } from "./models/UserModel";
 import { Context } from "hono";
 import { Env } from "./utils/types";
 import { mongoProxyRequest } from "./utils/mongoProxyClient";
+import { asObjectId } from "./utils/helpers";
 
 export async function hashRefreshToken(token: string): Promise<string> {
     const encoder = new TextEncoder();
@@ -27,13 +28,12 @@ export function generateRefreshTokenValue(length = 64): string {
 export async function signAccessToken(user: User, env: Env) {
     const ACCESS_TTL = parseInt(env.ACCESS_TOKEN_TTL || "3600", 10);
     const ACCESS_SECRET = new TextEncoder().encode(env.JWT_ACCESS_SECRET!);
-    const id =
-        typeof user._id === "string"
-            ? user._id
-            : user._id?.$oid ?? user._id.toString();
-    console.log(`id: ${id}, user: ${JSON.stringify(user)}`)
+    const id = asObjectId(user._id);
+        // typeof user._id === "string"
+        //     ? user._id
+        //     : user._id?.$oid ?? user._id.toString();
     const payload: JWTPayload = {
-        sub: id,
+        sub: id.toString(),
         email: user.email,
         strategy: user.authentication?.strategy
     };
@@ -64,11 +64,11 @@ export async function issueRefreshToken(user: User, c: Context, userAgent?: stri
         expiresAt: new Date(now.getTime() + REFRESH_TTL * 1000),
         createdAt: now,
     };
-    console.log(`about to insert a refresh token`)
     await mongoProxyRequest(c, "insertOne", {
         db: "calendar",
         coll: "refresh_tokens",
         doc,
     })
+    console.log(`inserted a refresh token`)
     return raw;
 }
