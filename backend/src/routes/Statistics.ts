@@ -1,404 +1,312 @@
-// import { Hono } from "hono";
-// import * as Realm from "realm-web";
-// import { checkToken, getDb } from "../utils/helpers";
-// import { UserActivity } from "../models/UserActivityModel";
-// import { ObjectId } from "bson";
-// import { User } from "../models/UserModel";
-// import { Variables } from "../utils/types";
-// import { accessGuard } from "../middleware/auth";
+import { Hono } from "hono";
+import { accessGuard } from "../middleware/auth";
+import { mongoProxyRequest } from "../utils/mongoProxyClient";
+import { Env, Variables } from "../utils/types";
+import { UserActivity } from "../models/UserActivityModel";
+import { User } from "../models/UserModel";
 
-// // The Worker's environment bindings
-// type Bindings = {
-//     ATLAS_APPID: string;
-//     ATLAS_APIKEY: string;
-//     JWT_SECRET: string; // private key used to sign jwt tokens
-//     GOOGLE_CLIENT_ID: string;
-//     GOOGLE_CLIENT_SECRET: string;
-//     REDIRECT_URI: string;
-// };
-
-// const StatisticsRoute = new Hono<{ Bindings: Bindings, Variables: Variables }>();
-
-// let App: Realm.App;
-
-// StatisticsRoute.get("/lifetime-activity", accessGuard, async (c) => {
-//     const db = await getDb(c, "calendar");
-//     const activityCollection = db.collection<UserActivity>("activity");
-//     const userId = new ObjectId(c.var.user.id);
-
-//     // Earliest recorded activity date (only if there was at least one entry)
-//     const firstActivity = await activityCollection.aggregate([
-//         { $match: { userId } },
-//         { $unwind: "$entries" },
-//         { $sort: { date: 1 } },
-//         { $limit: 1 },
-//         { $project: { _id: 0, firstActivityDate: "$date" } },
-//     ]);
-
-//     // Sum total minutes per activity across all days
-//     const activities = await activityCollection.aggregate([
-//         { $match: { userId } },
-//         { $unwind: "$entries" },
-//         {
-//             $addFields: {
-//                 entryMinutes: {
-//                     $cond: [
-//                         {
-//                             $and: [
-//                                 { $ne: ["$entries.start", null] },
-//                                 { $ne: ["$entries.end", null] },
-//                                 { $ne: ["$entries.start", ""] },
-//                                 { $ne: ["$entries.end", ""] }
-//                             ]
-//                         },
-//                         {
-//                             $let: {
-//                                 vars: {
-//                                     sh: {
-//                                         $toInt: {
-//                                             $cond: [
-//                                                 { $regexMatch: { input: "$entries.start", regex: /^[0-9]{2}:/ } },
-//                                                 { $substrBytes: ["$entries.start", 0, 2] },
-//                                                 "0"
-//                                             ]
-//                                         }
-//                                     },
-//                                     sm: {
-//                                         $toInt: {
-//                                             $cond: [
-//                                                 { $regexMatch: { input: "$entries.start", regex: /^[0-9]{2}:[0-9]{2}$/ } },
-//                                                 { $substrBytes: ["$entries.start", 3, 2] },
-//                                                 "0"
-//                                             ]
-//                                         }
-//                                     },
-//                                     eh: {
-//                                         $toInt: {
-//                                             $cond: [
-//                                                 { $regexMatch: { input: "$entries.end", regex: /^[0-9]{2}:/ } },
-//                                                 { $substrBytes: ["$entries.end", 0, 2] },
-//                                                 "0"
-//                                             ]
-//                                         }
-//                                     },
-//                                     em: {
-//                                         $toInt: {
-//                                             $cond: [
-//                                                 { $regexMatch: { input: "$entries.end", regex: /^[0-9]{2}:[0-9]{2}$/ } },
-//                                                 { $substrBytes: ["$entries.end", 3, 2] },
-//                                                 "0"
-//                                             ]
-//                                         }
-//                                     }
-//                                 },
-//                                 in: {
-//                                     $let: {
-//                                         vars: {
-//                                             smin: { $add: [{ $multiply: ["$$sh", 60] }, "$$sm"] },
-//                                             emin: { $add: [{ $multiply: ["$$eh", 60] }, "$$em"] },
-//                                         },
-//                                         in: {
-//                                             $let: {
-//                                                 vars: { diff: { $subtract: ["$$emin", "$$smin"] } },
-//                                                 in: {
-//                                                     $cond: [
-//                                                         { $lt: ["$$diff", 0] },
-//                                                         { $add: ["$$diff", 1440] },
-//                                                         "$$diff"
-//                                                     ]
-//                                                 }
-//                                             }
-//                                         }
-//                                     }
-//                                 }
-//                             }
-//                         },
-//                         0
-//                     ]
-//                 }
-//             }
-//         },
-//         {
-//             $group: {
-//                 _id: "$entries.activity",
-//                 totalTime: { $sum: "$entryMinutes" },
-//             },
-//         },
-//         { $sort: { totalTime: -1 } },
-//     ]);
-
-//     const result = {
-//         activities: activities.map(({ _id, totalTime }: { _id: string; totalTime: number }) => ({
-//             activity: _id,
-//             totalTime, // minutes
-//         })),
-//         firstActivityDate: firstActivity.length ? firstActivity[0].firstActivityDate : null,
-//     };
-
-//     return c.json(result);
-// });
+const StatisticsRoute = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 
-// StatisticsRoute.get("/daily-activity-count", accessGuard, async (c) => {
-//     const db = await getDb(c, 'calendar');
-//     const activityCollection = db.collection<UserActivity>("activity");
-//     const id = c.var.user.id;
+// Type returned by the lifetime-activity aggregation
+type LifetimeActivityAgg = {
+    _id: string;         // activity name
+    totalTime: number;   // sum of minutes
+};
+// Type returned by the firstActivity aggregation
+type FirstActivityAgg = {
+    firstActivityDate: string; // ISO date string
+};
+StatisticsRoute.get("/lifetime-activity", accessGuard, async (c) => {
+    const userId = c.var.user.id;
 
-//     const entriesCounts = await activityCollection.aggregate([
-//         { $match: { userId: new ObjectId(id.toString()) } },
-//         {
-//             $project: {
-//                 date: 1,
-//                 activityCount: {
-//                     $cond: [
-//                         { $eq: [{ $type: "$entries" }, "array"] },
-//                         { $size: "$entries" },
-//                         0
-//                     ]
-//                 },
-//                 variableCount: {
-//                     $cond: [
-//                         { $eq: [{ $type: "$variables" }, "array"] },
-//                         { $size: "$variables" },
-//                         0
-//                     ]
-//                 },
-//                 noteExists: {
-//                     $cond: [
-//                         { $gt: [{ $strLenCP: { $ifNull: ["$note", ""] } }, 0] },
-//                         1,
-//                         0
-//                     ]
-//                 }
-//             }
-//         },
-//         {
-//             $group: {
-//                 _id: { date: { $toDate: "$date" } },
-//                 totalActivityCount: { $sum: "$activityCount" },
-//                 totalVariableCount: { $sum: "$variableCount" },
-//                 totalNote: { $sum: "$noteExists" }
-//             }
-//         },
-//         { $sort: { "_id.date": 1 } }
-//     ]);
+    const activities = await mongoProxyRequest<LifetimeActivityAgg[]>(c, "aggregate", {
+        db: "calendar",
+        coll: "activity",
+        pipeline: [
+            { $match: { userId } },
+            { $unwind: "$entries" },
+            {
+                $addFields: {
+                    entryMinutes: {
+                        $let: {
+                            vars: {
+                                s: { $split: ["$entries.start", ":"] },
+                                e: { $split: ["$entries.end", ":"] },
+                            },
+                            in: {
+                                $max: [
+                                    {
+                                        $subtract: [
+                                            {
+                                                $add: [
+                                                    { $multiply: [{ $toInt: { $arrayElemAt: ["$$e", 0] } }, 60] },
+                                                    { $toInt: { $arrayElemAt: ["$$e", 1] } },
+                                                ],
+                                            },
+                                            {
+                                                $add: [
+                                                    { $multiply: [{ $toInt: { $arrayElemAt: ["$$s", 0] } }, 60] },
+                                                    { $toInt: { $arrayElemAt: ["$$s", 1] } },
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                    0,
+                                ],
+                            },
+                        },
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: "$entries.activity",
+                    totalTime: { $sum: "$entryMinutes" },
+                },
+            },
+            { $sort: { totalTime: -1 } },
+        ],
+    });
 
-//     type DailyCount = {
-//         _id: { date: Date };
-//         totalActivityCount: number;
-//         totalVariableCount: number;
-//         totalNote: 0 | 1 | number;
-//     };
+    const firstActivity = await mongoProxyRequest<FirstActivityAgg[]>(c, "aggregate", {
+        db: "calendar",
+        coll: "activity",
+        pipeline: [
+            { $match: { userId } },
+            { $sort: { date: 1 } },
+            { $limit: 1 },
+            { $project: { _id: 0, firstActivityDate: "$date" } },
+        ],
+    });
 
-//     const formattedData = entriesCounts.map((item: DailyCount) => ({
-//         date: item._id.date.toISOString().split("T")[0],
-//         count: {
-//             activityCount: item.totalActivityCount,
-//             variableCount: item.totalVariableCount,
-//             note: item.totalNote > 0 ? 1 : 0
-//         }
-//     }));
+    return c.json({
+        activities: activities.result?.map(a => ({
+            activity: a._id,
+            totalTime: a.totalTime,
+        })) ?? [],
+        firstActivityDate: firstActivity.result?.[0]?.firstActivityDate ?? null,
+    });
+});
 
-//     return c.json(formattedData);
-// });
+// Type for daily activity count aggregation result
+type DailyActivityCountAgg = {
+    _id: string | Date; // the grouped date
+    totalActivityCount: number;
+    totalVariableCount: number;
+    totalNote: number;
+};
+StatisticsRoute.get("/daily-activity-count", accessGuard, async (c) => {
+    const userId = c.var.user.id;
 
-// StatisticsRoute.post("/line-graph", accessGuard, async (c) => {
-//     const db = await getDb(c, "calendar");
-//     const activityCollection = db.collection<UserActivity>("activity");
-//     const userId = new ObjectId(c.var.user.id.toString());
+    const res = await mongoProxyRequest<DailyActivityCountAgg[]>(c, "aggregate", {
+        db: "calendar",
+        coll: "activity",
+        pipeline: [
+            { $match: { userId } },
+            {
+                $project: {
+                    date: 1,
+                    activityCount: { $size: { $ifNull: ["$entries", []] } },
+                    variableCount: { $size: { $ifNull: ["$variables", []] } },
+                    noteExists: {
+                        $cond: [{ $gt: [{ $strLenCP: { $ifNull: ["$note", ""] } }, 0] }, 1, 0],
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: "$date",
+                    totalActivityCount: { $sum: "$activityCount" },
+                    totalVariableCount: { $sum: "$variableCount" },
+                    totalNote: { $sum: "$noteExists" },
+                },
+            },
+            { $sort: { _id: 1 } },
+        ],
+    });
 
-//     const body = await c.req.json();
-//     const type = String(body?.type || "").trim();      // "activity" | "variable"
-//     const name = String(body?.name || "").trim();      // e.g., "total", "Running", "Weight"
+    const formatted = res.result?.map(d => ({
+        date: new Date(d._id).toISOString().split("T")[0],
+        count: {
+            activityCount: d.totalActivityCount,
+            variableCount: d.totalVariableCount,
+            note: d.totalNote > 0 ? 1 : 0,
+        },
+    })) ?? [];
 
-//     if (!type || !name) {
-//         return c.json({ message: "type and name required" }, 400);
-//     }
-//     if (type !== "activity" && type !== "variable") {
-//         return c.json({ message: "invalid type" }, 400);
-//     }
+    return c.json(formatted);
+});
 
-//     const isTotal = type === "activity" && name.toLowerCase() === "total";
+// Type for line-graph aggregation result
+type LineGraphAggResult = {
+    date: Date;
+    value: number | null;
+};
+StatisticsRoute.post("/line-graph", accessGuard, async (c) => {
+    const userId = c.var.user.id;
+    const { type, name } = await c.req.json();
 
-//     // Common first stages
-//     const pipeline: any[] = [
-//         { $match: { userId } },
-//     ];
+    if (!type || !name) return c.json({ message: "type and name required" }, 400);
+    if (type !== "activity" && type !== "variable") return c.json({ message: "invalid type" }, 400);
 
-//     if (type === "activity") {
-//         // Unwind entries and (optionally) filter by activity name
-//         pipeline.push({ $unwind: "$entries" });
-//         if (!isTotal) {
-//             pipeline.push({ $match: { "entries.activity": name } });
-//         }
+    const pipeline: any[] = [{ $match: { userId } }];
 
-//         // Compute duration in minutes from "HH:mm" strings.
-//         // We only count entries where both start and end are non-empty strings.
-//         const bothTimesPresent = {
-//             $and: [
-//                 { $gt: [{ $strLenCP: { $ifNull: ["$entries.start", ""] } }, 0] },
-//                 { $gt: [{ $strLenCP: { $ifNull: ["$entries.end", ""] } }, 0] },
-//             ],
-//         };
+    if (type === "activity") {
+        const isTotal = name.toLowerCase() === "total";
+        pipeline.push({ $unwind: "$entries" });
+        if (!isTotal) pipeline.push({ $match: { "entries.activity": name } });
 
-//         const durationMinutesExpr = {
-//             $let: {
-//                 vars: {
-//                     s: { $split: ["$entries.start", ":"] }, // ["HH","mm"]
-//                     e: { $split: ["$entries.end", ":"] },
-//                 },
-//                 in: {
-//                     // max(end - start, 0) in minutes
-//                     $max: [
-//                         {
-//                             $subtract: [
-//                                 {
-//                                     $add: [
-//                                         { $multiply: [{ $toInt: { $arrayElemAt: ["$$e", 0] } }, 60] },
-//                                         { $toInt: { $arrayElemAt: ["$$e", 1] } },
-//                                     ],
-//                                 },
-//                                 {
-//                                     $add: [
-//                                         { $multiply: [{ $toInt: { $arrayElemAt: ["$$s", 0] } }, 60] },
-//                                         { $toInt: { $arrayElemAt: ["$$s", 1] } },
-//                                     ],
-//                                 },
-//                             ],
-//                         },
-//                         0,
-//                     ],
-//                 },
-//             },
-//         };
+        pipeline.push({
+            $group: {
+                _id: "$date",
+                value: {
+                    $sum: {
+                        $cond: [
+                            {
+                                $and: [
+                                    { $gt: [{ $strLenCP: { $ifNull: ["$entries.start", ""] } }, 0] },
+                                    { $gt: [{ $strLenCP: { $ifNull: ["$entries.end", ""] } }, 0] },
+                                ],
+                            },
+                            {
+                                $let: {
+                                    vars: {
+                                        s: { $split: ["$entries.start", ":"] },
+                                        e: { $split: ["$entries.end", ":"] },
+                                    },
+                                    in: {
+                                        $max: [
+                                            {
+                                                $subtract: [
+                                                    {
+                                                        $add: [
+                                                            { $multiply: [{ $toInt: { $arrayElemAt: ["$$e", 0] } }, 60] },
+                                                            { $toInt: { $arrayElemAt: ["$$e", 1] } },
+                                                        ],
+                                                    },
+                                                    {
+                                                        $add: [
+                                                            { $multiply: [{ $toInt: { $arrayElemAt: ["$$s", 0] } }, 60] },
+                                                            { $toInt: { $arrayElemAt: ["$$s", 1] } },
+                                                        ],
+                                                    },
+                                                ],
+                                            },
+                                            0,
+                                        ],
+                                    },
+                                },
+                            },
+                            0,
+                        ],
+                    },
+                },
+            },
+        });
+    } else {
+        pipeline.push({ $unwind: "$variables" });
+        pipeline.push({ $match: { "variables.variable": name } });
+        pipeline.push({
+            $addFields: {
+                numericValue: {
+                    $convert: { input: "$variables.value", to: "double", onError: null, onNull: null },
+                },
+            },
+        });
+        pipeline.push({
+            $group: { _id: "$date", value: { $last: "$numericValue" } },
+        });
+    }
 
-//         pipeline.push({
-//             $group: {
-//                 _id: "$date",
-//                 value: {
-//                     // Sum durations for the day. If either time is missing, contribute 0.
-//                     $sum: { $cond: [bothTimesPresent, durationMinutesExpr, 0] },
-//                 },
-//             },
-//         });
-//     } else {
-//         // type === "variable"
-//         pipeline.push({ $unwind: "$variables" });
-//         pipeline.push({ $match: { "variables.variable": name } });
+    pipeline.push(
+        {
+            $project: {
+                _id: 0,
+                date: { $dateToString: { date: "$_id", format: "%Y-%m-%d" } },
+                value: 1,
+            },
+        },
+        { $sort: { date: 1 } }
+    );
 
-//         // Convert string value to number (double). Non-numeric -> null.
-//         pipeline.push({
-//             $addFields: {
-//                 numericValue: {
-//                     $convert: { input: "$variables.value", to: "double", onError: null, onNull: null },
-//                 },
-//             },
-//         });
+    const res = await mongoProxyRequest<LineGraphAggResult[]>(c, "aggregate", {
+        db: "calendar",
+        coll: "activity",
+        pipeline,
+    });
 
-//         // If a day has multiple entries for the same variable (unlikely), just take the last one.
-//         pipeline.push({
-//             $group: {
-//                 _id: "$date",
-//                 value: { $last: "$numericValue" },
-//             },
-//         });
-//     }
+    const data = res.result?.map(d => ({
+        date: d.date,
+        value: typeof d.value === "number" ? d.value : d.value === null ? null : Number(d.value),
+    })) ?? [];
 
-//     // Format and sort
-//     pipeline.push(
-//         {
-//             $project: {
-//                 _id: 0,
-//                 date: { $dateToString: { date: "$_id", format: "%Y-%m-%d" } },
-//                 value: 1,
-//             },
-//         },
-//         { $sort: { date: 1 } }
-//     );
+    return c.json({ data });
+});
 
-//     const data = await activityCollection.aggregate(pipeline);
+StatisticsRoute.get("/latest-week-data", accessGuard, async (c) => {
+    const userId = c.var.user.id;
+    const today = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setUTCDate(today.getUTCDate() - 7);
 
-//     // Ensure the exact return shape
-//     const result: { date: string; value: number | null }[] = data.map((d: any) => ({
-//         date: d.date,
-//         value: typeof d.value === "number" ? d.value : d.value === null ? null : Number(d.value),
-//     }));
+    const res = await mongoProxyRequest<UserActivity[]>(c, "find", {
+        db: "calendar",
+        coll: "activity",
+        filter: { userId, date: { $gte: sevenDaysAgo } },
+        sort: { date: 1 },
+        limit: 7,
+    });
 
-//     return c.json({ data: result }, 200);
-// });
+    return c.json(res.result ?? []);
+});
 
-// StatisticsRoute.get("/latest-week-data", accessGuard, async (c) => {
-//     const db = await getDb(c, 'calendar');
-//     const activityCollection = db.collection<UserActivity>("activity");
-//     const id = c.var.user.id;
+StatisticsRoute.get("/getAllLocations", accessGuard, async (c) => {
+    const userId = c.var.user.id;
 
-//     const today = new Date();
-//     const sevenDaysAgo = new Date();
-//     sevenDaysAgo.setUTCDate(today.getUTCDate() - 7);
+    const res = await mongoProxyRequest<UserActivity[]>(c, "find", {
+        db: "calendar",
+        coll: "activity",
+        filter: { userId, location: { $exists: true, $ne: null } },
+    });
 
-//     // ✅ Use aggregate to filter, sort and limit directly in the database
-//     const activities = await activityCollection.aggregate([
-//         {
-//             $match: {
-//                 userId: new ObjectId(id.toString()),
-//                 date: { $gte: sevenDaysAgo },
-//             },
-//         },
-//         { $sort: { date: 1 } },
-//         { $limit: 7 },
-//     ]);
+    const locations = (res.result ?? [])
+        .filter(d => d.location)
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .map(d => ({
+            name: d.location!.name,
+            lat: d.location!.lat,
+            lng: d.location!.lng,
+            date: d.date,
+        }));
 
-//     return c.json(activities);
-// })
+    return c.json(locations);
+});
 
-// StatisticsRoute.get('/getAllLocations', accessGuard, async (c) => {
-//     const db = await getDb(c, 'calendar');
-//     const activityCollection = db.collection<UserActivity>("activity");
-//     const id = c.var.user.id;
 
-//     const docs = await activityCollection
-//         .find({
-//             userId: new ObjectId(id.toString()),
-//             location: { $exists: true, $ne: null }
-//         });
+type ActivityAggResult = {
+    _id: null;
+    totalActivities: number;
+};
+StatisticsRoute.get("/dbCount", async (c) => {
+    const userCountRes = await mongoProxyRequest<User>(c, "countDocuments", {
+        db: "calendar",
+        coll: "user",
+    });
 
-//     const locations = docs
-//         .filter(doc => doc.location)
-//         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-//         .map(doc => ({
-//             name: doc.location!.name,
-//             lat: doc.location!.lat,
-//             lng: doc.location!.lng,
-//             date: doc.date
-//         }));
+    const activityAgg = await mongoProxyRequest<ActivityAggResult[]>(c, "aggregate", {
+        db: "calendar",
+        coll: "activity",
+        pipeline: [
+            { $project: { entriesCount: { $size: { $ifNull: ["$entries", []] } } } },
+            { $group: { _id: null, totalActivities: { $sum: "$entriesCount" } } },
+        ],
+    });
 
-//     return c.json(locations);
-// });
+    return c.json({
+        userCount: userCountRes.result,
+        activityCount: activityAgg.result?.[0]?.totalActivities ?? 0,
+    });
+});
 
-// StatisticsRoute.get('/dbCount', async (c) => {
-//     const db = await getDb(c, "calendar");
-//     const userCollection = db.collection<User>("users");
-//     const userCount = await userCollection.count();
-
-//     // Count total number of activities across all documents
-//     const activityCollection = db.collection<UserActivity>("activity");
-
-//     const aggResult = await activityCollection.aggregate([
-//         {
-//             $project: {
-//                 entriesCount: { $size: { $ifNull: ["$entries", []] } }
-//             }
-//         },
-//         {
-//             $group: {
-//                 _id: null,
-//                 totalActivities: { $sum: "$entriesCount" }
-//             }
-//         }
-//     ]);
-
-//     const activityCount = aggResult.length > 0 ? aggResult[0].totalActivities : 0;
-//     return c.json({ userCount, activityCount });
-// })
-
-// export default StatisticsRoute
+export default StatisticsRoute;

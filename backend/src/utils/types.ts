@@ -56,6 +56,7 @@ export interface RpcBody {
   doc?: object
   arrayFilters?: object
   noLimit?: boolean
+  pipeline?: object[]
 }
 
 export type NewActivityBody = {

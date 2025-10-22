@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { FaBars, FaCalendar, FaChevronLeft } from "react-icons/fa";
-// import { IoStatsChartSharp } from "react-icons/io5";
+import { IoStatsChartSharp } from "react-icons/io5";
 import { GoHomeFill } from "react-icons/go";
 import { IoMdSettings } from "react-icons/io";
 
@@ -53,7 +53,7 @@ const Sidebar = () => {
             {isOpen && <span>Calendar</span>}
           </div>
         </Link>
-        {/* <Link
+        <Link
           to="/statistics"
           className={`p-3 rounded-lg ${isActive("/statistics") ? "bg-blue-500 text-white" : "hover:bg-blue-100 text-gray-700"
             }`}
@@ -62,7 +62,7 @@ const Sidebar = () => {
             <IoStatsChartSharp />
             {isOpen && <span>Statistics</span>}
           </div>
-        </Link> */}
+        </Link>
         <Link
           to="/settings"
           className={`p-3 rounded-lg ${isActive("/settings") ? "bg-blue-500 text-white" : "hover:bg-blue-100 text-gray-700"
@@ -83,9 +83,9 @@ const Sidebar = () => {
     <Link to="/calendar" className={isActive("/calendar") ? "text-blue-500" : "text-gray-700"}>
       <FaCalendar className="text-2xl" />
     </Link>
-    {/* <Link to="/statistics" className={isActive("/statistics") ? "text-blue-500" : "text-gray-700"}>
+    <Link to="/statistics" className={isActive("/statistics") ? "text-blue-500" : "text-gray-700"}>
       <IoStatsChartSharp className="text-2xl" />
-    </Link> */}
+    </Link>
     <Link to="/settings" className={isActive("/settings") ? "text-blue-500" : "text-gray-700"}>
       <IoMdSettings className="text-2xl" />
     </Link>
