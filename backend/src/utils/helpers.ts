@@ -119,7 +119,7 @@ export const defaultNoteColor = "#D9EAFB";
 
 import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-generator";
 import { ObjectId } from "bson";
-import { AppError } from "./types";
+// import { AppError } from "./types";
 import { User } from "../models/UserModel";
 
 // Generate a funny username
@@ -192,9 +192,23 @@ function minutesToTime(totalMinutes: number): string {
     return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
 }
 
-export function badRequest(message: string): never {
-    throw { status: 400, message } as AppError;
+export class AppError extends Error {
+    status: number;
+    constructor(message: string, status = 400) {
+        super(message);
+        this.status = status;
+        Object.setPrototypeOf(this, AppError.prototype);
+    }
 }
+
+export function badRequest(message: string): never {
+    throw new AppError(message, 400);
+}
+
+
+// export function badRequest(message: string): never {
+//     throw { status: 400, message } as AppError;
+// }
 
 export function computeStartFromEnd(end: string, description: string): string {
     const duration = getTimeFromLongString(description);
@@ -290,7 +304,7 @@ export async function handleActivity(
     } else if (!startProvided && endProvided) {
         start = computeStartFromEnd(endProvided, description);
     } else {
-        throw badRequest("Either start or end time must be defined");
+        badRequest("Either start or end time must be defined");
     }
 
     const location = body.location;

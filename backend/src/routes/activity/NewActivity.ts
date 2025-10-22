@@ -10,7 +10,7 @@ import { UserActivity } from "../../models/UserActivityModel";
 const NewActivityRoute = new Hono<{ Bindings: Env, Variables: Variables }>();
 
 NewActivityRoute.post('/', accessGuard, async (c) => {
-    try {
+
         const userId = c.var.user.id;
         const body = (await c.req.json()) as NewActivityBody;
 
@@ -34,7 +34,7 @@ NewActivityRoute.post('/', accessGuard, async (c) => {
             filter: { _id: userId }
         });
         const currentUser = userResp.result;
-        if (!currentUser) throw badRequest("User not found");
+        if (!currentUser) badRequest("User not found");
 
         const usedColors = new Set([
             ...Object.values(currentUser?.colors?.activities || {}),
@@ -71,7 +71,7 @@ NewActivityRoute.post('/', accessGuard, async (c) => {
 
             case "variable":
                 if (existingEntry?.variables?.some(v => v.variable === variable)) {
-                    throw badRequest("Variable already defined for this date");
+                    badRequest("Variable already defined for this date");
                 }
                 ({ updateQuery } = await handleVariable(body, existingEntry));
                 break;
@@ -96,12 +96,5 @@ NewActivityRoute.post('/', accessGuard, async (c) => {
         });
 
         return c.json({ message: `${type} added successfully` }, 200);
-    } catch (err: any) {
-        // if (err instanceof AppError) {
-        //     return c.json({ message: err.message }, err.status);
-        // }
-        console.error("Unexpected error in NewActivityRoute:", err);
-        return c.json({ message: "Internal server error" }, 500);
-    }
 });
 export default NewActivityRoute

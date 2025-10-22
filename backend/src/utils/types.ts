@@ -16,11 +16,6 @@ export type Variables = {
   userDoc?: User,
 };
 
-export interface AppError {
-  status: StatusCode;
-  message: string;
-};
-
 export type Env = {
   ATLAS_APPID: string;
   ATLAS_APIKEY: string;

@@ -7,6 +7,8 @@ import LocationRoute from "../src/routes/Location";
 import { Env, Variables } from "./utils/types";
 import { auth } from "./routes/auth";
 import { mongoProxyRequest } from "./utils/mongoProxyClient";
+import { AppError } from "./utils/helpers";
+import { ContentfulStatusCode } from "hono/utils/http-status";
 
 const app = new Hono<{ Bindings: Env, Variables: Variables }>();
 
@@ -48,6 +50,10 @@ app.onError((err, c) => {
 
   if (err.message.includes("MongoProxy")) {
     return c.json({ error: "Database error" }, 500);
+  }
+
+  if (err instanceof AppError && err.message) {
+    return c.json({ error: err.message }, (err.status || 500) as ContentfulStatusCode);
   }
 
   // fallback

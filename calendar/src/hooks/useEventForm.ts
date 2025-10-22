@@ -78,7 +78,7 @@ export function useEventForm(year: number, month: number, day: number, reload: b
 
     const data = await response.json();
     if (!response.ok) {
-      toast.error(data.message);
+      toast.error(data.error);
     } else {
       setEventPopUp({ state: "add", _id: new ObjectId, activity: "", description: "", start: "", end: "", note: "", variable: "", value: "" });
       setReload(!reload);
