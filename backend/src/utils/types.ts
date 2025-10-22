@@ -68,3 +68,9 @@ export type NewActivityBody = {
     note?: string;
     variable?: string;
 };
+
+export interface Colors {
+  activities: { [activity: string]: string };
+  note: string;
+  variables: { [variable: string]: string };
+}
