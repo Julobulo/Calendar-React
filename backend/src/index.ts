@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import ActivityRoute from "./routes/activity/Activity";
 // import StatisticsRoute from "../src/routes/Statistics";
-// import SettingsRoute from "../src/routes/Settings";
+import SettingsRoute from "../src/routes/Settings";
 import LocationRoute from "../src/routes/Location";
 import { Env, Variables } from "./utils/types";
 // import { restheartFind } from "./utils/restheartHelpers";
@@ -58,7 +58,7 @@ app.onError((err, c) => {
 app.route('/auth', auth);
 app.route('/activity', ActivityRoute);
 // app.route('/statistics', StatisticsRoute);
-// app.route('/settings', SettingsRoute);
+app.route('/settings', SettingsRoute);
 app.route('/location', LocationRoute);
 
 // app.get('/checkUserColors', async (c) => {

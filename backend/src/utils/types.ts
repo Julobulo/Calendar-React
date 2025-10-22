@@ -55,6 +55,7 @@ export interface RpcBody {
   upsert?: boolean
   doc?: object
   arrayFilters?: object
+  noLimit?: boolean
 }
 
 export type NewActivityBody = {
