@@ -88,7 +88,7 @@ export function useLineGraphData() {
     };
 
     if (!userLoading && user) fetchLineGraphData();
-  }, [lineGraphSelected]);
+  }, [lineGraphSelected, userLoading, user]);
 
   return { lineGraphData, lineGraphSelected, setLineGraphSelected, lineGraphLoading };
 }

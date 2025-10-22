@@ -41,7 +41,7 @@ export function useDayLocation(year: number, month: number, day: number) {
     };
 
     if (!userLoading && user) fetchLocation();
-  }, [year, month, day]);
+  }, [year, month, day, userLoading, user]);
 
   // Save location when it changes
   useEffect(() => {
@@ -52,11 +52,12 @@ export function useDayLocation(year: number, month: number, day: number) {
         return; // skip first run
       }
 
-      // toast.info(`Saving location for ${year}-${month}-${day}...: ${selectedLocation?.name}`);
       if (!selectedLocation) {
         // toast.error("No location selected");
         return;
       }
+
+      // toast.info(`Saving location for ${year}-${month}-${day}...: ${selectedLocation?.name}`);
 
       setIsSavingLocation(true);
       const controller = new AbortController();
@@ -95,10 +96,11 @@ export function useDayLocation(year: number, month: number, day: number) {
     };
 
     if (!userLoading && user) setLocation();
-  }, [selectedLocation]);
+  }, [selectedLocation, userLoading, user]);
 
   const deleteLocation = async (year: number, month: number, day: number) => {
     if (!userLoading && !user) return;
+    // toast.info(`Deleting location for ${year}-${month}-${day}`);
     setIsSavingLocation(true);
 
     const res = await fetch(`${import.meta.env.VITE_API_URI}/location/dayLocation/delete`, {

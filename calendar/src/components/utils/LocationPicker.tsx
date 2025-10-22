@@ -70,7 +70,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
             setSavedLocations(data);
         };
         if (!userLoading && user) fetchSavedLocations();
-    }, [reloadSavedLocations]);
+    }, [reloadSavedLocations, userLoading, user]);
 
     useEffect(() => {
         const filterSavedLocations = () => {

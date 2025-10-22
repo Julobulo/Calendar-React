@@ -1,5 +1,6 @@
 import { StatusCode } from "hono/utils/http-status";
 import { Sort } from "mongodb";
+import { User } from "../models/UserModel";
 
 export interface AuthPayload {
   id: string;
@@ -11,7 +12,8 @@ export interface AuthPayload {
 };
 
 export type Variables = {
-  user: AuthPayload
+  user: AuthPayload,
+  userDoc?: User,
 };
 
 export interface AppError {

@@ -32,7 +32,7 @@ export function useLifetimeActivity() {
     };
 
     if (!userLoading && user) fetchLifetimeActivity();
-  }, []);
+  }, [userLoading, user]);
 
   return { data, firstActivityDate, loading };
 }
