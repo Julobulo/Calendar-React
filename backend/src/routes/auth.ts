@@ -73,7 +73,17 @@ auth.post("/google", async (c) => {
     setAccessCookie(c, access);
     setRefreshCookie(c, refresh);
 
-    return c.json({ ok: true });
+    // return c.json({ ok: true });
+    // This HTML is what your backend returns after a successful login
+    // (or after exchanging the code for tokens)
+    return c.html(`
+  <script>
+    window.opener?.postMessage({ type: "loginSuccess" }, "*");
+    window.close();
+  </script>
+`);
+
+
 });
 
 // POST /auth/refresh  (cookie-based)

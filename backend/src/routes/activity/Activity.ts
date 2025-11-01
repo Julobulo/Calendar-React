@@ -1,9 +1,6 @@
 import { Hono } from "hono";
-import { ObjectId } from "bson";
-import { ActivityEntry, NewUserActivity, UserActivity, Location } from "../../models/UserActivityModel";
-import { User } from "../../models/UserModel";
-import { asObjectId, badRequest, generateRandomColor, handleActivity, handleNote, handleVariable, isActivityDocumentEmpty } from "../../utils/helpers";
-import { AppError, Env, Variables } from "../../utils/types";
+import { UserActivity } from "../../models/UserActivityModel";
+import { Env, Variables } from "../../utils/types";
 import { accessGuard } from "../../middleware/auth";
 import ActivityInfoRoute from "./ActivityInfo";
 import NewActivityRoute from "./NewActivity";
@@ -39,6 +36,7 @@ ActivityRoute.get('/', accessGuard, async (c) => {
         db: "calendar",
         coll: "activity",
         filter: { userId: id, date: { $gte: startDate, $lte: endDate } },
+        // noLimit: true
     });
     const activities = response.result;
 

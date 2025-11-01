@@ -42,7 +42,12 @@ const Home = () => {
       <div className="text-center mt-8">
         <p className="text-gray-500 text-sm mb-4">Try it yourself — head to your calendar and start logging today.</p>
 
-        {(!userLoading && !user) && <Login />}
+        {userLoading ? (
+          <p className="text-gray-400 text-sm">Checking your session...</p>
+        ) : !user && (
+          <Login />
+        )}
+
       </div>
     </div >
   );
