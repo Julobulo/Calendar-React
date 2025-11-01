@@ -1,6 +1,11 @@
+import { useAuth } from "../../AuthProvider";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 
-const Login = () => {
+export default function LoginButton() {
+    const { user, userLoading } = useAuth();
+
+    if (userLoading) return null; // show nothing while checking session
+    if (user) return null;        // hide button if logged in
 
     return (
         <div className="flex flex-col items-center justify-center">
@@ -10,6 +15,4 @@ const Login = () => {
             </span>
         </div>
     );
-};
-
-export default Login;
+}
