@@ -5,12 +5,11 @@ import { scrollToSignup } from "./ScrollButton";
 import { DailyOverview } from "./DailyOverview";
 import { FeaturesSection } from "./FeaturesSection";
 import { ChartsSection } from "./ChartsSection";
-// import LoginButton from "../login/LoginButton";
 import { useAuth } from "../../AuthProvider";
 import LoginButton from "../login/Login";
 
 const Home = () => {
-  const { userCount, activityCount, loading: userCountLoading } = useUserCount();
+  const { userCount, activityCount, loggedInCount, loading: userCountLoading } = useUserCount();
   const { user } = useAuth();
 
   // Scroll to top if user logs in
@@ -40,6 +39,7 @@ const Home = () => {
         userCount={userCount}
         activityCount={activityCount}
         userCountLoading={userCountLoading}
+        loggedInCount={loggedInCount}
         scrollToSignup={scrollToSignup}
       />
 

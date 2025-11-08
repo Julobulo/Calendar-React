@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 export function useUserCount() {
   const [userCount, setUserCount] = useState<number | null>(null);
   const [activityCount, setActivityCount] = useState<number | null>(null);
+  const [loggedInCount, setLoggedInCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -15,6 +16,7 @@ export function useUserCount() {
         const data = await res.json();
         setUserCount(data.userCount);
         setActivityCount(data.activityCount);
+        setLoggedInCount(data.loggedInCount);
       } finally {
         setLoading(false);
       }
@@ -22,5 +24,5 @@ export function useUserCount() {
     fetchUserCount();
   }, []);
 
-  return { userCount, activityCount, loading };
+  return { userCount, activityCount, loggedInCount, loading };
 }
