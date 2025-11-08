@@ -291,7 +291,7 @@ type ActivityAggResult = {
 StatisticsRoute.get("/dbCount", async (c) => {
     const userCountRes = await mongoProxyRequest<User>(c, "countDocuments", {
         db: "calendar",
-        coll: "user",
+        coll: "users",
     });
 
     const activityAgg = await mongoProxyRequest<ActivityAggResult[]>(c, "aggregate", {
@@ -303,10 +303,41 @@ StatisticsRoute.get("/dbCount", async (c) => {
         ],
     });
 
+    // currently logged-in users: unique userIds with at least one non-revoked token
+    const loggedInAgg = await mongoProxyRequest<any>(c, "aggregate", {
+        db: "calendar",
+        coll: "refresh_tokens",
+        pipeline: [
+            {
+                $match: {
+                    $or: [{ revokedAt: { $exists: false } }, { revokedAt: null }],
+                },
+            },
+            { $group: { _id: "$userId" } },
+            { $count: "uniqueLoggedInUsers" },
+        ],
+    });
+
     return c.json({
         userCount: userCountRes.result,
         activityCount: activityAgg.result?.[0]?.totalActivities ?? 0,
+        loggedInCount: loggedInAgg.result?.[0]?.uniqueLoggedInUsers ?? 0,
+
     });
 });
+
+StatisticsRoute.get("/activeUsers", async (c) => {
+    // Count users that have at least one refresh token
+    const activeUserRes = await mongoProxyRequest<User>(c, "countDocuments", {
+        db: "calendar",
+        coll: "user",
+        query: { refresh_tokens: { $exists: true, $not: { $size: 0 } } }, // only users with non-empty refresh_tokens
+    });
+
+    return c.json({
+        activeUserCount: activeUserRes.result,
+    });
+});
+
 
 export default StatisticsRoute;
