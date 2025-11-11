@@ -17,7 +17,14 @@ export function useUserCount() {
         setUserCount(data.userCount);
         setActivityCount(data.activityCount);
         setLoggedInCount(data.loggedInCount);
-      } finally {
+      }
+      catch (err) {
+        console.error(err);
+        setUserCount(0);
+        setActivityCount(0);
+        setLoggedInCount(0); 
+      }
+     finally {
         setLoading(false);
       }
     }
