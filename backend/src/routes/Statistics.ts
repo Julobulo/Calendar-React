@@ -7,6 +7,14 @@ import { User } from "../models/UserModel";
 
 const StatisticsRoute = new Hono<{ Bindings: Env; Variables: Variables }>();
 
+/*
+Line graph:
+-> One graph for variables
+    -> time range: last week, last month, last year, all time (reliable system)
+    Info under the graph:
+    -> sum of all the variable's values over time
+    -> an average of the variable's values (per day and weeks, right under the chart)
+*/
 
 // Type returned by the lifetime-activity aggregation
 type LifetimeActivityAgg = {
@@ -143,105 +151,47 @@ type LineGraphAggResult = {
     date: Date;
     value: number | null;
 };
-StatisticsRoute.post("/line-graph", accessGuard, async (c) => {
+StatisticsRoute.post("/line-graph-variable", accessGuard, async (c) => {
     const userId = c.var.user.id;
-    const { type, name } = await c.req.json();
+    const { varName, startDate, endDate } = await c.req.json();
 
-    if (!type || !name) return c.json({ message: "type and name required" }, 400);
-    if (type !== "activity" && type !== "variable") return c.json({ message: "invalid type" }, 400);
+    if (!varName) return c.json({ message: "varName required" }, 400);
+    if (!endDate) return c.json({ message: "endDate required" }, 400);
+    // startDate may be null (for "all")
 
-    const pipeline: any[] = [{ $match: { userId } }];
+    const start = startDate ? new Date(startDate) : null;
+    const end = new Date(endDate);
 
-    if (type === "activity") {
-        const isTotal = name.toLowerCase() === "total";
-        pipeline.push({ $unwind: "$entries" });
-        if (!isTotal) pipeline.push({ $match: { "entries.activity": name } });
+    // Build dynamic filter
+    const dateFilter: any = { $lte: end };
+    if (start) dateFilter.$gte = start;
 
-        pipeline.push({
-            $group: {
-                _id: "$date",
-                value: {
-                    $sum: {
-                        $cond: [
-                            {
-                                $and: [
-                                    { $gt: [{ $strLenCP: { $ifNull: ["$entries.start", ""] } }, 0] },
-                                    { $gt: [{ $strLenCP: { $ifNull: ["$entries.end", ""] } }, 0] },
-                                ],
-                            },
-                            {
-                                $let: {
-                                    vars: {
-                                        s: { $split: ["$entries.start", ":"] },
-                                        e: { $split: ["$entries.end", ":"] },
-                                    },
-                                    in: {
-                                        $max: [
-                                            {
-                                                $subtract: [
-                                                    {
-                                                        $add: [
-                                                            { $multiply: [{ $toInt: { $arrayElemAt: ["$$e", 0] } }, 60] },
-                                                            { $toInt: { $arrayElemAt: ["$$e", 1] } },
-                                                        ],
-                                                    },
-                                                    {
-                                                        $add: [
-                                                            { $multiply: [{ $toInt: { $arrayElemAt: ["$$s", 0] } }, 60] },
-                                                            { $toInt: { $arrayElemAt: ["$$s", 1] } },
-                                                        ],
-                                                    },
-                                                ],
-                                            },
-                                            0,
-                                        ],
-                                    },
-                                },
-                            },
-                            0,
-                        ],
-                    },
-                },
-            },
-        });
-    } else {
-        pipeline.push({ $unwind: "$variables" });
-        pipeline.push({ $match: { "variables.variable": name } });
-        pipeline.push({
-            $addFields: {
-                numericValue: {
-                    $convert: { input: "$variables.value", to: "double", onError: null, onNull: null },
-                },
-            },
-        });
-        pipeline.push({
-            $group: { _id: "$date", value: { $last: "$numericValue" } },
-        });
-    }
-
-    pipeline.push(
-        {
-            $project: {
-                _id: 0,
-                date: { $dateToString: { date: "$_id", format: "%Y-%m-%d" } },
-                value: 1,
-            },
-        },
-        { $sort: { date: 1 } }
-    );
-
-    const res = await mongoProxyRequest<LineGraphAggResult[]>(c, "aggregate", {
+    const res = await mongoProxyRequest<UserActivity[]>(c, "find", {
         db: "calendar",
         coll: "activity",
-        pipeline,
+        filter: {
+            userId,
+            date: dateFilter
+        },
+        sort: { date: 1 },
+        noLimit: true
     });
 
-    const data = res.result?.map(d => ({
-        date: d.date,
-        value: typeof d.value === "number" ? d.value : d.value === null ? null : Number(d.value),
-    })) ?? [];
+    const days = res.result ?? [];
 
-    return c.json({ data });
+    const output = days.flatMap(day => {
+        if (!day.variables) return [];
+
+        const found = day.variables.find(v => v.variable === varName);
+        if (!found) return [];
+
+        return [{
+            date: day.date,
+            value: found.value
+        }];
+    });
+
+    return c.json(output);
 });
 
 StatisticsRoute.get("/latest-week-data", accessGuard, async (c) => {

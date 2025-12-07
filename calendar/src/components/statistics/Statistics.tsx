@@ -11,10 +11,10 @@ import { useLifetimeActivity } from "../../hooks/statistics/useLifetimeActivity"
 import { useEntryCountData } from "../../hooks/statistics/useEntryCountData";
 import ActivityHeatmap from "./ActivityHeatmap";
 import { useColors } from "../../hooks/useColors";
-import { useLineGraphData } from "../../hooks/statistics/useLineGraphData";
-import { LineGraphOverTime } from "./LineGraphOverTime";
 import { useTimeBreakdownByDay } from "../../hooks/statistics/useTimeBreakdownByDay";
 import { TimeBreakdownByDay } from "./TimeBreakdownByDay";
+import { useLineGraphVariable } from "../../hooks/statistics/useLineGraphVariable";
+import LineGraphVariable from "./LineGraph/LineGraphVarOverTime";
 
 interface Location {
   name: string;
@@ -27,7 +27,7 @@ const Statistics = () => {
   const { colors } = useColors();
   const { data: lifetimeActivity, firstActivityDate, loading: lifetimeLoading } = useLifetimeActivity();
   const { entryCountData, heatmapLoading, heatmapType, setHeatmapType, selectedYear, setSelectedYear, maxCount } = useEntryCountData();
-  const { lineGraphData, lineGraphSelected, setLineGraphSelected, lineGraphLoading } = useLineGraphData();
+  const { data: lineGraphDataVar, stats: lineGraphStatsVar, selection: lineGraphSelectionVar, setSelection: setLineGraphSelectionVar, loading: lineGraphLoading } = useLineGraphVariable(colors);
   const { timeBreakdownByDayData, timeBreakdownByDayLoading } = useTimeBreakdownByDay();
 
   const [locations, setLocations] = useState<
@@ -156,12 +156,13 @@ const Statistics = () => {
         maxCount={maxCount}
       />
 
-      <LineGraphOverTime
-        lineGraphData={lineGraphData}
-        lineGraphSelected={lineGraphSelected}
-        setLineGraphSelected={setLineGraphSelected}
+      <LineGraphVariable
+        data={lineGraphDataVar}
+        stats={lineGraphStatsVar}
+        selection={lineGraphSelectionVar}
+        setSelection={setLineGraphSelectionVar}
         loading={lineGraphLoading}
-        colors={colors}
+        colors={colors.variables}
       />
 
       <TimeBreakdownByDay
