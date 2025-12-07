@@ -100,7 +100,7 @@ export function useLineGraphVariable(colors: Colors) {
   if (selection.range === "month") cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
   if (selection.range === "year") cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 365);
 
-  const filtered = cutoff ? parsed.filter(p => p.date >= cutoff) : parsed;
+  const filtered = cutoff ? parsed.filter((p:any) => p.date >= cutoff) : parsed;
 
   // --- NEW PART: compute actual number of days in the range ---
   const realStart = cutoff ?? (filtered[0]?.date ?? new Date());
@@ -113,7 +113,7 @@ export function useLineGraphVariable(colors: Colors) {
   );
 
   // Total stays the same
-  const total = filtered.reduce((sum, e) => sum + e.value, 0);
+  const total = filtered.reduce((sum: any, e: any) => sum + e.value, 0);
 
   // NEW: divide by total number of days, even the empty ones
   const average = total / daysInRange;
