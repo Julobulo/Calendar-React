@@ -146,11 +146,6 @@ StatisticsRoute.get("/daily-activity-count", accessGuard, async (c) => {
     return c.json(formatted);
 });
 
-// Type for line-graph aggregation result
-type LineGraphAggResult = {
-    date: Date;
-    value: number | null;
-};
 StatisticsRoute.post("/line-graph-variable", accessGuard, async (c) => {
     const userId = c.var.user.id;
     const { varName, startDate, endDate } = await c.req.json();
@@ -193,6 +188,64 @@ StatisticsRoute.post("/line-graph-variable", accessGuard, async (c) => {
 
     return c.json(output);
 });
+
+StatisticsRoute.post("/line-graph-activity", accessGuard, async (c) => {
+    const userId = c.var.user.id;
+    const { activity, startDate, endDate } = await c.req.json();
+
+    if (!activity) return c.json({ message: "activityName required" }, 400);
+    if (!endDate) return c.json({ message: "endDate required" }, 400);
+    // startDate may be null for "all"
+
+    const start = startDate ? new Date(startDate) : null;
+    const end = new Date(endDate);
+
+    const dateFilter: any = { $lte: end };
+    if (start) dateFilter.$gte = start;
+
+    const res = await mongoProxyRequest<UserActivity[]>(c, "find", {
+        db: "calendar",
+        coll: "activity",
+        filter: {
+            userId,
+            date: dateFilter,
+        },
+        sort: { date: 1 },
+        noLimit: true,
+    });
+
+    const days = res.result ?? [];
+
+    const toMinutes = (t: string) => {
+        const [h, m] = t.split(":").map(Number);
+        return h * 60 + m;
+    };
+
+    const output = days.flatMap(day => {
+        if (!day.entries || day.entries.length === 0) return [];
+
+        const totalMinutes = day.entries.reduce((sum, e) => {
+            if (e.activity !== activity) return sum;
+            if (!e.start || !e.end) return sum; // skip if no time info
+
+            const startMin = toMinutes(e.start);
+            const endMin = toMinutes(e.end);
+
+            if (isNaN(startMin) || isNaN(endMin) || endMin <= startMin) return sum;
+            return sum + (endMin - startMin);
+        }, 0);
+
+        if (totalMinutes === 0) return [];
+
+        return [{
+            date: day.date,
+            minutes: totalMinutes,
+        }];
+    });
+
+    return c.json(output);
+});
+
 
 StatisticsRoute.get("/latest-week-data", accessGuard, async (c) => {
     const userId = c.var.user.id;
