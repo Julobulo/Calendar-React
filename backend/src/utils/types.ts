@@ -43,6 +43,7 @@ export interface RpcBody {
   db: string
   coll: string
   filter?: object
+  query?: object
   projection?: object
   limit?: number
   sort?: Sort
