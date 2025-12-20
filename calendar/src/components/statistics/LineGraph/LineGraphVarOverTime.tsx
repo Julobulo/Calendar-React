@@ -81,7 +81,7 @@ export default function LineGraphVariable({
 
 
     return (
-        <div className="bg-white shadow rounded-2xl p-6 space-y-6">
+        <div className="bg-white shadow rounded-2xl p-6 space-y-6 my-3">
 
             {/* Header */}
             <div className="flex justify-between items-center">
