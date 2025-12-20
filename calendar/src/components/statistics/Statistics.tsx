@@ -15,6 +15,8 @@ import { useTimeBreakdownByDay } from "../../hooks/statistics/useTimeBreakdownBy
 import { TimeBreakdownByDay } from "./TimeBreakdownByDay";
 import { useLineGraphVariable } from "../../hooks/statistics/useLineGraphVariable";
 import LineGraphVariable from "./LineGraph/LineGraphVarOverTime";
+import { useLineGraphActivity } from "../../hooks/statistics/useLineGraphActivity";
+import LineGraphActivity from "./LineGraph/LineGraphActivityOverTime";
 
 interface Location {
   name: string;
@@ -28,6 +30,13 @@ const Statistics = () => {
   const { data: lifetimeActivity, firstActivityDate, loading: lifetimeLoading } = useLifetimeActivity();
   const { entryCountData, heatmapLoading, heatmapType, setHeatmapType, selectedYear, setSelectedYear, maxCount } = useEntryCountData();
   const { data: lineGraphDataVar, stats: lineGraphStatsVar, selection: lineGraphSelectionVar, setSelection: setLineGraphSelectionVar, loading: lineGraphLoading } = useLineGraphVariable(colors);
+  const {
+    data: lineGraphDataAct,
+    stats: lineGraphStatsAct,
+    selection: lineGraphSelectionAct,
+    setSelection: setLineGraphSelectionAct,
+    loading: lineGraphLoadingAct,
+  } = useLineGraphActivity(colors);
   const { timeBreakdownByDayData, timeBreakdownByDayLoading } = useTimeBreakdownByDay();
 
   const [locations, setLocations] = useState<
@@ -154,6 +163,15 @@ const Statistics = () => {
         selectedYear={selectedYear}
         setSelectedYear={setSelectedYear}
         maxCount={maxCount}
+      />
+
+      <LineGraphActivity
+        data={lineGraphDataAct}
+        stats={lineGraphStatsAct}
+        selection={lineGraphSelectionAct}
+        setSelection={setLineGraphSelectionAct}
+        loading={lineGraphLoadingAct}
+        colors={colors.activities}
       />
 
       <LineGraphVariable
