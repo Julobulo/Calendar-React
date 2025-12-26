@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import Spinner from "../utils/Spinner";
 import { formatTime } from "../../utils/helpers";
@@ -6,7 +5,6 @@ import { format } from "date-fns";
 import { Props } from "recharts/types/cartesian/Bar";
 import 'react-calendar-heatmap/dist/styles.css';
 import 'react-tooltip/dist/react-tooltip.css';
-import LocationTravelGraph from "../utils/LocationMap";
 import { useLifetimeActivity } from "../../hooks/statistics/useLifetimeActivity";
 import { useEntryCountData } from "../../hooks/statistics/useEntryCountData";
 import ActivityHeatmap from "./ActivityHeatmap";
@@ -17,13 +15,7 @@ import { useLineGraphVariable } from "../../hooks/statistics/useLineGraphVariabl
 import LineGraphVariable from "./LineGraph/LineGraphVarOverTime";
 import { useLineGraphActivity } from "../../hooks/statistics/useLineGraphActivity";
 import LineGraphActivity from "./LineGraph/LineGraphActivityOverTime";
-
-interface Location {
-  name: string;
-  lat: number;
-  lng: number;
-  date: string;
-}
+import LocationTravelGraph from "./LocationTravelGraph";
 
 const Statistics = () => {
   const { colors } = useColors();
@@ -39,30 +31,9 @@ const Statistics = () => {
   } = useLineGraphActivity(colors);
   const { timeBreakdownByDayData, timeBreakdownByDayLoading } = useTimeBreakdownByDay();
 
-  const [locations, setLocations] = useState<
-    Location[]
-  >([]);
-
-  useEffect(() => {
-    const fetchLocations = async () => {
-      const res = await fetch(`${import.meta.env.VITE_API_URI}/statistics/getAllLocations`, {
-        method: "GET",
-        credentials: "include",
-      });
-
-      if (!res.ok) return;
-
-      const data: Location[] = await res.json();
-
-      setLocations(data);
-    };
-
-    fetchLocations();
-  }, []);
-
   return (
     <div className="p-0 md:p-10">
-      <LocationTravelGraph locations={locations} />
+      <LocationTravelGraph />
 
       <div className="bg-white shadow rounded-2xl p-4 space-y-4 my-4">
         <h2 className="text-xl font-bold">Total Time Spent on Activities {(!lifetimeLoading && (lifetimeActivity?.length ?? 0) > 0) && `(since ${format(firstActivityDate || "", "MMMM dd, yyyy")})`}</h2>

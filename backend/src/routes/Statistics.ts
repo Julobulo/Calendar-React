@@ -271,6 +271,7 @@ StatisticsRoute.get("/getAllLocations", accessGuard, async (c) => {
         db: "calendar",
         coll: "activity",
         filter: { userId, location: { $exists: true, $ne: null } },
+        noLimit: true,
     });
 
     const locations = (res.result ?? [])
