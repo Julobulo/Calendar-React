@@ -31,20 +31,27 @@ export default function LineGraphActivity({
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
     // ---- Merge data for Recharts ----
+    const dateKey = (d: Date) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+    };
+
     const merged = useMemo(() => {
         const allDates = new Set<string>();
 
         Object.values(data).forEach(list =>
-            list.forEach(d => allDates.add(d.date.toISOString()))
+            list.forEach(d => allDates.add(dateKey(d.date)))
         );
 
         const sortedDates = [...allDates].sort();
 
-        return sortedDates.map(dateStr => {
-            const entry: any = { date: new Date(dateStr).toISOString() };
-            for (const key of Object.keys(data)) {
-                const found = data[key].find(e => e.date.toISOString() === dateStr);
-                entry[key] = found?.value ?? 0;
+        return sortedDates.map(key => {
+            const entry: any = { date: key };
+            for (const name of Object.keys(data)) {
+                const found = data[name].find(e => dateKey(e.date) === key);
+                entry[name] = found?.value ?? 0;
             }
             return entry;
         });
@@ -84,7 +91,7 @@ export default function LineGraphActivity({
                         style={{ color: p.color }}
                     >
                         <span>{p.dataKey}</span>
-                        <span>{p.value} min</span>
+                        <span>{formatTime(Number(p.value) || 0)}</span>
                     </div>
                 ))}
             </div>

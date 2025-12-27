@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../../AuthProvider";
 import { Colors } from "../../utils/types";
+import { dateKey } from "../../utils/helpers";
 
 export type GraphType = "activity" | "variable";
 export type TimeRange = "all" | "year" | "month" | "week";
@@ -127,12 +128,12 @@ export function useLineGraphActivity(colors: Colors) {
 
                     const map = new Map<string, number>();
                     raw.forEach((r: any) => {
-                        const key = new Date(r.date).toISOString().slice(0, 10);
+                        const key = dateKey(new Date(r.date));
                         map.set(key, Number(r.minutes) || 0);
                     });
 
                     const filled: Point[] = allDates.map(d => {
-                        const key = d.toISOString().slice(0, 10);
+                        const key = dateKey(d);
                         return {
                             date: new Date(d),
                             value: map.get(key) ?? 0,
