@@ -126,6 +126,7 @@ export default function LineGraphActivity({
                 >
                     <option value="week">Last Week</option>
                     <option value="month">Last Month</option>
+                    <option value="twoMonths">2 Months</option>
                     <option value="year">Last Year</option>
                     <option value="all">All Time</option>
                 </select>

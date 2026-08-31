@@ -5,7 +5,7 @@ import { Colors } from "../../utils/types";
 import { dateKey } from "../../utils/helpers";
 
 export type GraphType = "activity" | "variable";
-export type TimeRange = "all" | "year" | "month" | "week";
+export type TimeRange = "all" | "year" | "twoMonths" | "month" | "week";
 
 interface GraphSelection {
     type: GraphType;
@@ -27,12 +27,30 @@ interface Stat {
 
 export function useLineGraphActivity(colors: Colors) {
     const { user, userLoading } = useAuth();
+    const GRAPH_STORAGE_KEY = "calendar-activity-graph-selection";
+    const [selection, setSelection] = useState<GraphSelection>(() => {
+        try {
+            const saved = localStorage.getItem(GRAPH_STORAGE_KEY);
 
-    const [selection, setSelection] = useState<GraphSelection>({
-        type: "activity",
-        names: [],
-        range: "year",
+            if (saved) {
+                return JSON.parse(saved);
+            }
+        } catch (err) {
+            console.error("Failed to load saved graph selection:", err);
+        }
+
+        return {
+            type: "activity",
+            names: [],
+            range: "year",
+        };
     });
+    useEffect(() => {
+        localStorage.setItem(
+            GRAPH_STORAGE_KEY,
+            JSON.stringify(selection)
+        );
+    }, [selection]);
 
     const [data, setData] = useState<Record<string, Point[]>>({});
     const [stats, setStats] = useState<Record<string, Stat>>({});
@@ -63,6 +81,9 @@ export function useLineGraphActivity(colors: Colors) {
         }
         if (selection.range === "month") {
             startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
+        }
+        if (selection.range === "twoMonths") {
+            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 60);
         }
         if (selection.range === "year") {
             startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
