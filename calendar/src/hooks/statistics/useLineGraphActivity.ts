@@ -5,7 +5,7 @@ import { Colors } from "../../utils/types";
 import { dateKey } from "../../utils/helpers";
 
 export type GraphType = "activity" | "variable";
-export type TimeRange = "all" | "year" | "twoMonths" | "month" | "week";
+export type TimeRange = "all" | "year" | "twoMonths" | "month" | "twoWeeks" | "week";
 
 interface GraphSelection {
     type: GraphType;
@@ -78,6 +78,9 @@ export function useLineGraphActivity(colors: Colors) {
 
         if (selection.range === "week") {
             startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+        }
+        if (selection.range === "twoWeeks") {
+            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14);
         }
         if (selection.range === "month") {
             startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);

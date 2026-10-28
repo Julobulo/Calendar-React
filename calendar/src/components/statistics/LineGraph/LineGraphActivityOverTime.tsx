@@ -125,6 +125,7 @@ export default function LineGraphActivity({
                     onChange={e => changeRange(e.target.value)}
                 >
                     <option value="week">Last Week</option>
+                    <option value="twoWeeks">Last 2 Weeks</option>
                     <option value="month">Last Month</option>
                     <option value="twoMonths">2 Months</option>
                     <option value="year">Last Year</option>
